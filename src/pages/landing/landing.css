@@ -1,0 +1,168 @@
+.home-container {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #1c1c1c, #000);
+  color: #ffffff;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* NAVBAR */
+.home-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 60px;
+}
+
+.logo {
+  font-size: 28px;
+  font-weight: bold;
+  color: #f4c430;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 30px;
+}
+
+.nav-links li {
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.nav-links li:hover {
+  opacity: 1;
+}
+
+.nav-actions {
+  display: flex;
+  gap: 15px;
+}
+
+/* BUTTONS */
+.btn-fill {
+  padding: 10px 22px;
+  background: #f4c430;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-outline {
+  padding: 10px 22px;
+  background: transparent;
+  border: 1px solid #f4c430;
+  color: #f4c430;
+  border-radius: 25px;
+  cursor: pointer;
+}
+
+/* HERO */
+.hero-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 80px 60px;
+}
+
+.hero-text {
+  max-width: 550px;
+}
+
+.hero-text h1 {
+  font-size: 48px;
+  line-height: 1.2;
+}
+
+.hero-text span {
+  color: #f4c430;
+}
+
+.hero-text p {
+  margin-top: 20px;
+  opacity: 0.8;
+}
+
+.hero-buttons {
+  margin-top: 30px;
+  display: flex;
+  gap: 15px;
+}
+
+/* MOCKUPS */
+.hero-visual {
+  position: relative;
+  width: 300px;
+  height: 300px;
+}
+
+.mockup {
+  position: absolute;
+  width: 160px;
+  height: 280px;
+  background: #2a2a2a;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+}
+
+.mockup.phone {
+  left: 0;
+  top: 20px;
+  transform: rotate(-10deg);
+}
+
+.mockup.tablet {
+  right: 0;
+  top: 0;
+  transform: rotate(10deg);
+}
+
+/* HOW IT WORKS */
+.how-section {
+  padding: 60px;
+  text-align: center;
+}
+
+.steps {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.step-card {
+  background: #1f1f1f;
+  padding: 25px;
+  border-radius: 12px;
+}
+
+/* FEATURES */
+.features-section {
+  padding: 60px;
+  text-align: center;
+}
+
+.feature-grid {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.feature-box {
+  background: #1f1f1f;
+  padding: 25px;
+  border-radius: 12px;
+}
+
+/* CTA */
+.cta-section {
+  padding: 80px 60px;
+  text-align: center;
+  background: #111;
+}
