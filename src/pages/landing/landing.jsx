@@ -8,7 +8,7 @@ export default function Landing() {
     <div className="home-container">
       {/* NAVBAR */}
       <nav className="home-navbar">
-        <div className="logo">QR Dine</div>
+        <div className="logo">MenuMelt</div>
 
         <ul className="nav-links">
           <li>How It Works</li>
