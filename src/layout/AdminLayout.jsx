@@ -1,10 +1,9 @@
 import { NavLink, Outlet } from "react-router-dom";
-import "../pages/admin/dashboard.css";
+import "./adminLayout.css";
 
 export default function AdminLayout() {
   return (
     <div className="admin-container">
-      {/* SIDEBAR */}
       <aside className="sidebar">
         <h2 className="brand">MenuMelt</h2>
 
@@ -19,7 +18,6 @@ export default function AdminLayout() {
         </ul>
       </aside>
 
-      {/* MAIN CONTENT */}
       <main className="main-content">
         <div className="top-bar">
           <h1>Admin Panel</h1>

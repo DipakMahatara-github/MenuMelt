@@ -1,0 +1,77 @@
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f7fb;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: #1e293b;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 240px;
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  padding: 25px 20px;
+}
+
+.brand {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2563eb;
+  margin-bottom: 40px;
+}
+
+.menu {
+  list-style: none;
+  padding: 0;
+}
+
+.menu li {
+  margin-bottom: 10px;
+}
+
+.menu a {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #64748b;
+  font-weight: 500;
+  transition: 0.25s;
+}
+
+.menu a:hover {
+  background: #f1f5f9;
+  color: #2563eb;
+}
+
+.menu a.active {
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  color: white;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+/* MAIN */
+.main-content {
+  flex: 1;
+  padding: 30px 40px;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.top-bar h1 {
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.admin-profile {
+  background: #e2e8f0;
+  padding: 8px 18px;
+  border-radius: 30px;
+  font-weight: 500;
+}

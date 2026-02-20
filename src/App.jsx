@@ -1,11 +1,14 @@
 import { Routes, Route } from "react-router-dom";
 
-import Landing from "./pages/landing/landing";
+import Landing from "./pages/landing/landing.jsx";
 import Login from "./pages/login";
 import Register from "./pages/register";
 
 import AdminLayout from "./layout/AdminLayout";
-import Dashboard from "./pages/admin/dashboard";
+
+// Admin Pages
+import Dashboard from "./pages/admin/dashboard/dashboard";
+import Menu from "./pages/admin/menu/menu";
 
 function App() {
   return (
@@ -20,12 +23,14 @@ function App() {
       <Route path="/admin" element={<AdminLayout />}>
 
         <Route index element={<Dashboard />} />
-        <Route path="orders" element={<h1>Orders Page</h1>} />
-        <Route path="menu" element={<h1>Menu Page</h1>} />
-        <Route path="tables" element={<h1>Tables Page</h1>} />
-        <Route path="kitchen" element={<h1>Kitchen Page</h1>} />
-        <Route path="reports" element={<h1>Reports Page</h1>} />
-        <Route path="settings" element={<h1>Settings Page</h1>} />
+        <Route path="menu" element={<Menu />} />
+
+        {/* Future Pages */}
+        <Route path="orders" element={<h1>Orders</h1>} />
+        <Route path="tables" element={<h1>Tables</h1>} />
+        <Route path="kitchen" element={<h1>Kitchen</h1>} />
+        <Route path="reports" element={<h1>Reports</h1>} />
+        <Route path="settings" element={<h1>Settings</h1>} />
 
       </Route>
 
