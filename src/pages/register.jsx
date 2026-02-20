@@ -9,7 +9,7 @@ export default function Register() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1>Restaurant QR System</h1>
+        <h1>Let's Get Started</h1>
         <p className="subtitle">Create a new account</p>
 
         <input type="text" placeholder="Full Name" />
@@ -18,7 +18,7 @@ export default function Register() {
 
         <h3>Role Selection</h3>
         <div className="role-grid">
-          {["customer", "restaurant", "kitchen", "admin"].map((r) => (
+          {[ "restaurant", "kitchen", "admin"].map((r) => (
             <button
               key={r}
               className={`role-btn ${role === r ? "active" : ""}`}

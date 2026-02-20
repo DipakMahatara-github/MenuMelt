@@ -1,3 +1,7 @@
+/* ========================= */
+/* GLOBAL ADMIN LAYOUT */
+/* ========================= */
+
 .admin-container {
   display: flex;
   min-height: 100vh;
@@ -6,7 +10,10 @@
   font-family: "Segoe UI", sans-serif;
 }
 
+/* ========================= */
 /* SIDEBAR */
+/* ========================= */
+
 .sidebar {
   width: 230px;
   background: #151515;
@@ -17,6 +24,7 @@
   color: #f4c430;
   margin-bottom: 40px;
   font-size: 24px;
+  font-weight: bold;
 }
 
 .menu {
@@ -25,31 +33,44 @@
 }
 
 .menu li {
-  padding: 12px 10px;
   margin-bottom: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  opacity: 0.8;
 }
 
-.menu li:hover {
+.menu a {
+  display: block;
+  padding: 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #ccc;
+  opacity: 0.85;
+  transition: all 0.3s ease;
+}
+
+.menu a:hover {
   background: #1f1f1f;
+  color: #fff;
   opacity: 1;
 }
 
-.menu .active {
+.menu a.active {
   background: #f4c430;
   color: #000;
   font-weight: 600;
 }
 
+/* ========================= */
 /* MAIN CONTENT */
+/* ========================= */
+
 .main-content {
   flex: 1;
   padding: 30px 40px;
 }
 
+/* ========================= */
 /* TOP BAR */
+/* ========================= */
+
 .top-bar {
   display: flex;
   justify-content: space-between;
@@ -63,7 +84,10 @@
   border-radius: 20px;
 }
 
+/* ========================= */
 /* STATS */
+/* ========================= */
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -75,6 +99,12 @@
   background: #1b1b1b;
   padding: 20px;
   border-radius: 12px;
+  transition: 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  background: #222;
 }
 
 .stat-card h3 {
@@ -88,12 +118,14 @@
   color: #f4c430;
 }
 
-/* SECTION */
+/* ========================= */
+/* TABLE SECTION */
+/* ========================= */
+
 .section h2 {
   margin-bottom: 15px;
 }
 
-/* TABLE */
 .orders-table {
   width: 100%;
   border-collapse: collapse;

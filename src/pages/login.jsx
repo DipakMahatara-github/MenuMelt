@@ -9,14 +9,25 @@ export default function Login() {
   const handleLogin = (e) => {
     e.preventDefault();
 
-    // TEMP: direct navigation (later we connect Django JWT here)
-    navigate("/dashboard");
+    // Role-based redirect
+    if (role === "admin") {
+      navigate("/admin");
+    } 
+    else if (role === "restaurant") {
+      navigate("/restaurant");
+    } 
+    else if (role === "kitchen") {
+      navigate("/kitchen");
+    } 
+    else {
+      navigate("/customer");
+    }
   };
 
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1>Restaurant QR System</h1>
+        <h1>Welcome</h1>
         <p className="subtitle">Login to your account</p>
 
         <input type="email" placeholder="Email Address" />
@@ -44,7 +55,9 @@ export default function Login() {
 
         <p className="switch-text">
           New user?{" "}
-          <span onClick={() => navigate("/register")}>Register here</span>
+          <span onClick={() => navigate("/register")}>
+            Register here
+          </span>
         </p>
       </div>
     </div>
