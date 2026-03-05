@@ -1,18 +1,33 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./menu.css";
 
 export default function Menu() {
+
+  const API = "http://127.0.0.1:8000/api/menu/";
 
   const [items, setItems] = useState([]);
   const [editing, setEditing] = useState(null);
 
   const [form, setForm] = useState({
     name: "",
+    description: "",
     price: "",
     category: "Main",
-    image: "",
+    image: null,
     available: true,
   });
+
+  /* ================= FETCH MENU ================= */
+
+  const fetchMenu = async () => {
+    const res = await fetch(API);
+    const data = await res.json();
+    setItems(data);
+  };
+
+  useEffect(() => {
+    fetchMenu();
+  }, []);
 
   /* ================= HANDLE INPUT ================= */
 
@@ -25,52 +40,80 @@ export default function Menu() {
     });
   };
 
+  /* ================= HANDLE IMAGE ================= */
+
   const handleImage = (e) => {
     const file = e.target.files[0];
+
     if (file) {
       setForm({
         ...form,
-        image: URL.createObjectURL(file),
+        image: file,
       });
     }
   };
 
   /* ================= ADD ITEM ================= */
 
-  const handleAdd = (e) => {
+  const handleAdd = async (e) => {
     e.preventDefault();
 
-    if (!form.name || !form.price) return;
+    const formData = new FormData();
 
-    setItems([...items, { ...form, id: Date.now() }]);
+    Object.keys(form).forEach((key) => {
+      formData.append(key, form[key]);
+    });
 
+    await fetch(API + "create/", {
+      method: "POST",
+      body: formData,
+    });
+
+    fetchMenu();
     resetForm();
   };
 
   /* ================= DELETE ================= */
 
-  const handleDelete = (id) => {
-    setItems(items.filter((item) => item.id !== id));
+  const handleDelete = async (id) => {
+    await fetch(API + id + "/edit/", {
+      method: "DELETE",
+    });
+
+    fetchMenu();
   };
 
   /* ================= EDIT ================= */
 
   const handleEdit = (item) => {
     setEditing(item.id);
-    setForm(item);
+    setForm({
+      ...item,
+      image: null, // reset image so new file can be uploaded
+    });
   };
 
-  const handleUpdate = (e) => {
+  /* ================= UPDATE ================= */
+
+  const handleUpdate = async (e) => {
     e.preventDefault();
 
-    setItems(
-      items.map((item) =>
-        item.id === editing ? { ...form, id: editing } : item
-      )
-    );
+    const formData = new FormData();
 
-    resetForm();
+    Object.keys(form).forEach((key) => {
+      if (form[key] !== null) {
+        formData.append(key, form[key]);
+      }
+    });
+
+    await fetch(API + editing + "/edit/", {
+      method: "PUT",
+      body: formData,
+    });
+
     setEditing(null);
+    resetForm();
+    fetchMenu();
   };
 
   /* ================= RESET ================= */
@@ -78,9 +121,10 @@ export default function Menu() {
   const resetForm = () => {
     setForm({
       name: "",
+      description: "",
       price: "",
       category: "Main",
-      image: "",
+      image: null,
       available: true,
     });
   };
@@ -107,6 +151,14 @@ export default function Menu() {
         />
 
         <input
+          type="text"
+          name="description"
+          placeholder="Description"
+          value={form.description}
+          onChange={handleChange}
+        />
+
+        <input
           type="number"
           name="price"
           placeholder="Price"
@@ -125,6 +177,7 @@ export default function Menu() {
           <option>Snacks</option>
         </select>
 
+        {/* IMAGE UPLOAD */}
         <label className="file-upload">
           Upload Image
           <input type="file" onChange={handleImage} hidden />
@@ -153,7 +206,10 @@ export default function Menu() {
           <div className="menu-card" key={item.id}>
 
             {item.image && (
-              <img src={item.image} alt={item.name} />
+              <img
+                src={`http://127.0.0.1:8000${item.image}`}
+                alt={item.name}
+              />
             )}
 
             <h3>{item.name}</h3>
