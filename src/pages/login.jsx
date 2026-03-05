@@ -3,63 +3,109 @@ import { useState } from "react";
 import "./auth.css";
 
 export default function Login() {
-  const navigate = useNavigate();
-  const [role, setRole] = useState("customer");
 
-  const handleLogin = (e) => {
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async (e) => {
+
     e.preventDefault();
 
-    // Role-based redirect
-    if (role === "admin") {
-      navigate("/admin");
-    } 
-    else if (role === "restaurant") {
-      navigate("/restaurant");
-    } 
-    else if (role === "kitchen") {
-      navigate("/kitchen");
-    } 
-    else {
-      navigate("/customer");
+    try {
+
+      const res = await fetch("http://127.0.0.1:8000/api/auth/login/", {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          email: email,
+          password: password
+        })
+
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+
+        alert("Invalid email or password");
+        return;
+
+      }
+
+      // store token
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+
+      // redirect based on role
+      if (data.role === "admin") {
+
+        navigate("/admin");
+
+      } else if (data.role === "restaurant") {
+
+        navigate("/staff");
+
+      } else if (data.role === "kitchen") {
+
+        navigate("/kitchen");
+
+      } else {
+
+        navigate("/menu");
+
+      }
+
+    } catch (error) {
+
+      console.error(error);
+      alert("Server error");
+
     }
+
   };
 
   return (
+
     <div className="auth-container">
+
       <div className="auth-card">
-        <h1>Welcome</h1>
+
+        <h1>Login</h1>
         <p className="subtitle">Login to your account</p>
 
-        <input type="email" placeholder="Email Address" />
-        <input type="password" placeholder="Password" />
+        <form onSubmit={handleLogin}>
 
-        <h3>Role Selection</h3>
-        <div className="role-grid">
-          {["customer", "restaurant", "kitchen", "admin"].map((r) => (
-            <button
-              key={r}
-              type="button"
-              className={`role-btn ${role === r ? "active" : ""}`}
-              onClick={() => setRole(r)}
-            >
-              {r === "restaurant"
-                ? "Restaurant Staff"
-                : r.charAt(0).toUpperCase() + r.slice(1)}
-            </button>
-          ))}
-        </div>
+          <input
+            type="email"
+            placeholder="Email Address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-        <button className="primary-btn" onClick={handleLogin}>
-          Log In
-        </button>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-        <p className="switch-text">
-          New user?{" "}
-          <span onClick={() => navigate("/register")}>
-            Register here
-          </span>
-        </p>
+          <button className="primary-btn" type="submit">
+            Log In
+          </button>
+
+        </form>
+
       </div>
+
     </div>
+
   );
+
 }
