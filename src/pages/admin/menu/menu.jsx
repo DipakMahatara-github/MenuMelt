@@ -60,11 +60,17 @@ export default function Menu() {
 
     const formData = new FormData();
 
-    Object.keys(form).forEach((key) => {
-      formData.append(key, form[key]);
-    });
+    formData.append("name", form.name);
+    formData.append("description", form.description);
+    formData.append("price", form.price);
+    formData.append("category", form.category);
+    formData.append("available", form.available);
 
-    await fetch(API + "create/", {
+    if (form.image) {
+      formData.append("image", form.image);
+    }
+
+    await fetch(API, {
       method: "POST",
       body: formData,
     });
@@ -76,7 +82,8 @@ export default function Menu() {
   /* ================= DELETE ================= */
 
   const handleDelete = async (id) => {
-    await fetch(API + id + "/edit/", {
+
+    await fetch(API + id + "/", {
       method: "DELETE",
     });
 
@@ -86,27 +93,39 @@ export default function Menu() {
   /* ================= EDIT ================= */
 
   const handleEdit = (item) => {
+
     setEditing(item.id);
+
     setForm({
-      ...item,
-      image: null, // reset image so new file can be uploaded
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      category: item.category,
+      image: null,
+      available: item.available,
     });
+
   };
 
   /* ================= UPDATE ================= */
 
   const handleUpdate = async (e) => {
+
     e.preventDefault();
 
     const formData = new FormData();
 
-    Object.keys(form).forEach((key) => {
-      if (form[key] !== null) {
-        formData.append(key, form[key]);
-      }
-    });
+    formData.append("name", form.name);
+    formData.append("description", form.description);
+    formData.append("price", form.price);
+    formData.append("category", form.category);
+    formData.append("available", form.available);
 
-    await fetch(API + editing + "/edit/", {
+    if (form.image) {
+      formData.append("image", form.image);
+    }
+
+    await fetch(API + editing + "/", {
       method: "PUT",
       body: formData,
     });
@@ -114,11 +133,13 @@ export default function Menu() {
     setEditing(null);
     resetForm();
     fetchMenu();
+
   };
 
   /* ================= RESET ================= */
 
   const resetForm = () => {
+
     setForm({
       name: "",
       description: "",
@@ -127,6 +148,7 @@ export default function Menu() {
       image: null,
       available: true,
     });
+
   };
 
   /* ================= UI ================= */
@@ -137,6 +159,7 @@ export default function Menu() {
       <h2>Menu Management</h2>
 
       {/* ===== FORM ===== */}
+
       <form
         className="menu-form"
         onSubmit={editing ? handleUpdate : handleAdd}
@@ -178,9 +201,14 @@ export default function Menu() {
         </select>
 
         {/* IMAGE UPLOAD */}
+
         <label className="file-upload">
           Upload Image
-          <input type="file" onChange={handleImage} hidden />
+          <input
+            type="file"
+            onChange={handleImage}
+            hidden
+          />
         </label>
 
         <label className="toggle">
@@ -200,21 +228,27 @@ export default function Menu() {
       </form>
 
       {/* ===== GRID ===== */}
+
       <div className="menu-grid">
 
         {items.map((item) => (
+
           <div className="menu-card" key={item.id}>
 
             {item.image && (
               <img
-                src={`http://127.0.0.1:8000${item.image}`}
+                src={item.image}
                 alt={item.name}
               />
             )}
 
             <h3>{item.name}</h3>
+
             <p className="category">{item.category}</p>
-            <p className="price">Rs. {item.price}</p>
+
+            <p className="price">
+              Rs. {item.price}
+            </p>
 
             <span
               className={
@@ -245,9 +279,11 @@ export default function Menu() {
             </div>
 
           </div>
+
         ))}
 
       </div>
+
     </div>
   );
 }

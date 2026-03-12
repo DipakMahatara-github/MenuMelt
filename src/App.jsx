@@ -10,17 +10,30 @@ import AdminLayout from "./layout/AdminLayout";
 import Dashboard from "./pages/admin/dashboard/dashboard";
 import Menu from "./pages/admin/menu/menu";
 
+// Protected Route
+import ProtectedRoute from "./components/ProtectedRoute";
+
+import CustomerMenu from "./pages/customer/menu/menu.jsx";
+
 function App() {
   return (
     <Routes>
 
-      {/* Public Pages */}
+      {/* PUBLIC PAGES */}
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/menu" element={<CustomerMenu />} />
 
-      {/* Admin Panel */}
-      <Route path="/admin" element={<AdminLayout />}>
+      {/* ADMIN PANEL */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute allowedRole="admin">
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
 
         <Route index element={<Dashboard />} />
         <Route path="menu" element={<Menu />} />
