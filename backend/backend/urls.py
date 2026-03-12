@@ -10,7 +10,9 @@ urlpatterns = [
     path('api/menu/', include('menu.urls')),
 
     # Authentication API
-    path('api/auth/', include('accounts.urls')),   # ← ADD THIS
+    path('api/auth/', include('accounts.urls')),  
+
+    path('api/orders/', include('orders.urls')),
 ]
 
 # Serve media files in development

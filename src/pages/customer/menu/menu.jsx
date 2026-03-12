@@ -58,14 +58,13 @@ export default function CustomerMenu() {
       alert("Cart is empty");
       return;
     }
-
-    const orderData = {
-      table: table,
-      items: cart.map((item) => ({
-        menu_item: item.id,
-        quantity: item.quantity
-      }))
-    };
+        const orderData = {
+        table: Number(table),
+        items: cart.map((item) => ({
+            menu_item: item.id,
+            quantity: item.quantity
+        }))
+        };
 
     try {
 
