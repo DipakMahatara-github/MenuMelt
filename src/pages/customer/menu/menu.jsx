@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
-import "./menu.css";
+import { useSearchParams } from "react-router-dom";
+import "../../admin/menu/menu.css";
 
 export default function CustomerMenu() {
 
   const [items, setItems] = useState([]);
+
+  // GET TABLE NUMBER FROM URL
+  const [searchParams] = useSearchParams();
+  const table = searchParams.get("table");
 
   const fetchMenu = async () => {
 
@@ -24,6 +29,13 @@ export default function CustomerMenu() {
 
       <h1>Restaurant Menu</h1>
 
+      {/* SHOW TABLE NUMBER */}
+      {table && (
+        <p style={{marginBottom: "20px"}}>
+          Table Number: <strong>{table}</strong>
+        </p>
+      )}
+
       <div className="menu-grid">
 
         {items.map((item) => (
@@ -32,7 +44,7 @@ export default function CustomerMenu() {
 
             {item.image && (
               <img
-                src={item.image}
+                src={`http://127.0.0.1:8000${item.image}`}
                 alt={item.name}
               />
             )}
