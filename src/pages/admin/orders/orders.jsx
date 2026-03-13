@@ -49,12 +49,14 @@ export default function Orders() {
 
           <p>Status: {order.status}</p>
 
+          <p>Created: {order.created_at}</p>
+
           <h4>Items</h4>
 
           {order.items.map((item, index) => (
 
             <p key={index}>
-              Menu Item ID: {item.menu_item} × {item.quantity}
+              Item ID: {item.menu_item} × {item.quantity}
             </p>
 
           ))}

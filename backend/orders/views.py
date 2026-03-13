@@ -3,7 +3,6 @@ from .models import Order
 from .serializers import OrderSerializer
 
 
-class OrderCreateView(generics.CreateAPIView):
-
-    queryset = Order.objects.all()
+class OrderListCreateView(generics.ListCreateAPIView):
+    queryset = Order.objects.all().order_by("-created_at")
     serializer_class = OrderSerializer
