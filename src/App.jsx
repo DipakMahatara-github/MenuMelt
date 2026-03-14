@@ -9,6 +9,7 @@ import AdminLayout from "./layout/AdminLayout";
 // Admin Pages
 import Dashboard from "./pages/admin/dashboard/dashboard";
 import Menu from "./pages/admin/menu/menu";
+import Tables from "./pages/admin/tables/tables";
 
 // Protected Route
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -35,12 +36,15 @@ function App() {
         }
       >
 
+        {/* Default Admin Page */}
         <Route index element={<Dashboard />} />
+
+        {/* Admin Pages */}
         <Route path="menu" element={<Menu />} />
+        <Route path="tables" element={<Tables />} />
 
         {/* Future Pages */}
         <Route path="orders" element={<h1>Orders</h1>} />
-        <Route path="tables" element={<h1>Tables</h1>} />
         <Route path="kitchen" element={<h1>Kitchen</h1>} />
         <Route path="reports" element={<h1>Reports</h1>} />
         <Route path="settings" element={<h1>Settings</h1>} />
