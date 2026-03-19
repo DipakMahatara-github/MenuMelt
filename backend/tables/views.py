@@ -6,3 +6,6 @@ from .serializers import TableSerializer
 class TableViewSet(viewsets.ModelViewSet):
     queryset = Table.objects.all()
     serializer_class = TableSerializer
+
+    def get_serializer_context(self):
+        return {'request': self.request}
