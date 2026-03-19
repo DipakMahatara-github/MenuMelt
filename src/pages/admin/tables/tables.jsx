@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import "./tables.css";
 
 export default function Tables() {
-
   const [tables, setTables] = useState([]);
   const [number, setNumber] = useState("");
+  const [selectedTable, setSelectedTable] = useState(null);
 
   // Fetch tables
   const fetchTables = async () => {
@@ -19,10 +19,8 @@ export default function Tables() {
 
   // Add table
   const addTable = async () => {
-
     if (!number) return;
 
-    // Prevent duplicate tables
     if (tables.find(t => t.number === Number(number))) {
       alert("Table already exists");
       return;
@@ -44,7 +42,6 @@ export default function Tables() {
 
   // Delete table
   const deleteTable = async (id) => {
-
     await fetch(`http://127.0.0.1:8000/api/tables/tables/${id}/`, {
       method: "DELETE"
     });
@@ -59,39 +56,36 @@ export default function Tables() {
 
       {/* Add Table */}
       <div className="tables-form">
-
         <input
           className="tables-input"
           type="number"
-          placeholder="Table number"
+          placeholder="Enter table number..."
           value={number}
           onChange={(e) => setNumber(e.target.value)}
         />
 
-        <button
-          className="tables-add-btn"
-          onClick={addTable}
-        >
-          Add Table
+        <button className="tables-add-btn" onClick={addTable}>
+          + Add Table
         </button>
-
       </div>
 
       {/* Tables Grid */}
       <div className="tables-grid">
 
         {tables.map((table) => (
-
           <div key={table.id} className="table-card">
 
             <div className="table-number">
-              Table {table.number}
+              🍽 Table {table.number}
             </div>
 
             <div className="table-actions">
 
-              <button className="qr-btn">
-                QR
+              <button
+                className="qr-btn"
+                onClick={() => setSelectedTable(table)}
+              >
+                View QR
               </button>
 
               <button
@@ -104,10 +98,39 @@ export default function Tables() {
             </div>
 
           </div>
-
         ))}
 
       </div>
+
+      {/* QR MODAL */}
+      {selectedTable && (
+        <div className="qr-modal">
+
+          <div className="qr-content">
+
+            <h2>Table {selectedTable.number}</h2>
+
+            <img
+              src={selectedTable.qr_code}
+              alt="QR Code"
+              className="qr-image"
+            />
+
+            <p className="qr-note">
+              Scan this QR to access menu
+            </p>
+
+            <button
+              className="close-btn"
+              onClick={() => setSelectedTable(null)}
+            >
+              Close
+            </button>
+
+          </div>
+
+        </div>
+      )}
 
     </div>
   );
