@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-5llxo#@c6v-7+4#!!heaqng8^v@p#o&4dpi80al#3h7a+38u8q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -160,3 +160,11 @@ AUTH_USER_MODEL = 'accounts.User'
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+
+
+
+
+# ================= FRONTEND URL =================
+
+FRONTEND_URL = "http://192.168.1.74:5173"
