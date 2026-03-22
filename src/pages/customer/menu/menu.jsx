@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useParams } from "react-router-dom";
 import "../../admin/menu/menu.css";
 
 export default function CustomerMenu() {
@@ -7,31 +7,30 @@ export default function CustomerMenu() {
   const [items, setItems] = useState([]);
   const [cart, setCart] = useState([]);
 
-  // GET TABLE NUMBER FROM URL
+  // ✅ GET TABLE FROM URL (both ways)
+  const { id } = useParams();
   const [searchParams] = useSearchParams();
-  const table = searchParams.get("table");
+  const table = searchParams.get("table") || id;
 
-  // FETCH MENU
+  // ✅ FETCH MENU
   const fetchMenu = async () => {
-
     const res = await fetch("http://127.0.0.1:8000/api/menu/");
     const data = await res.json();
 
-    setItems(data);
-
+    // ✅ Only available items
+    setItems(data.filter(item => item.available));
   };
 
   useEffect(() => {
     fetchMenu();
   }, []);
 
-  // ADD ITEM TO CART
+  // ✅ ADD TO CART
   const addToCart = (item) => {
 
     const existing = cart.find((c) => c.id === item.id);
 
     if (existing) {
-
       setCart(
         cart.map((c) =>
           c.id === item.id
@@ -39,32 +38,29 @@ export default function CustomerMenu() {
             : c
         )
       );
-
     } else {
-
       setCart([
         ...cart,
         { ...item, quantity: 1 }
       ]);
-
     }
-
   };
 
-  // PLACE ORDER
+  // ✅ PLACE ORDER
   const placeOrder = async () => {
 
     if (cart.length === 0) {
       alert("Cart is empty");
       return;
     }
-        const orderData = {
-        table: Number(table),
-        items: cart.map((item) => ({
-            menu_item: item.id,
-            quantity: item.quantity
-        }))
-        };
+
+    const orderData = {
+      table: Number(table),
+      items: cart.map((item) => ({
+        menu_item: item.id,
+        quantity: item.quantity
+      }))
+    };
 
     try {
 
@@ -77,21 +73,15 @@ export default function CustomerMenu() {
       });
 
       if (res.ok) {
-
         alert("Order placed successfully!");
         setCart([]);
-
       } else {
-
         alert("Failed to place order");
-
       }
 
     } catch (error) {
-
       console.error(error);
       alert("Server error");
-
     }
 
   };
@@ -102,14 +92,14 @@ export default function CustomerMenu() {
 
       <h1>Restaurant Menu</h1>
 
-      {/* SHOW TABLE NUMBER */}
+      {/* ✅ TABLE DISPLAY */}
       {table && (
         <p style={{ marginBottom: "20px" }}>
           Table Number: <strong>{table}</strong>
         </p>
       )}
 
-      {/* MENU GRID */}
+      {/* ================= MENU ================= */}
 
       <div className="menu-grid">
 
@@ -136,18 +126,12 @@ export default function CustomerMenu() {
               Rs. {item.price}
             </p>
 
-            {item.available ? (
-              <button
-                className="order-btn"
-                onClick={() => addToCart(item)}
-              >
-                Add to Order
-              </button>
-            ) : (
-              <span className="unavailable">
-                Not Available
-              </span>
-            )}
+            <button
+              className="order-btn"
+              onClick={() => addToCart(item)}
+            >
+              Add to Order
+            </button>
 
           </div>
 
@@ -155,9 +139,9 @@ export default function CustomerMenu() {
 
       </div>
 
-      {/* CART SECTION */}
+      {/* ================= CART ================= */}
 
-      <div style={{ marginTop: "40px" }}>
+      <div className="cart-section">
 
         <h2>Your Order</h2>
 
@@ -165,14 +149,7 @@ export default function CustomerMenu() {
 
         {cart.map((item) => (
 
-          <div
-            key={item.id}
-            style={{
-              display: "flex",
-              gap: "20px",
-              marginBottom: "10px"
-            }}
-          >
+          <div key={item.id} className="cart-item">
 
             <span>{item.name}</span>
 
@@ -187,32 +164,21 @@ export default function CustomerMenu() {
         {cart.length > 0 && (
 
           <>
-            <h3>
-
+            <h3 className="total">
               Total Rs{" "}
               {cart.reduce(
                 (sum, item) =>
                   sum + item.price * item.quantity,
                 0
               )}
-
             </h3>
 
             <button
-              style={{
-                marginTop: "10px",
-                padding: "10px 20px",
-                background: "#2563eb",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer"
-              }}
+              className="place-order-btn"
               onClick={placeOrder}
             >
               Place Order
             </button>
-
           </>
 
         )}

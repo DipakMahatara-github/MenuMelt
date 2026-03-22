@@ -24,7 +24,7 @@ function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/menu" element={<CustomerMenu />} />
+      <Route path="/menu/:id" element={<CustomerMenu />} />
 
       {/* ADMIN PANEL */}
       <Route
