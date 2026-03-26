@@ -5,6 +5,7 @@ export default function Orders() {
 
   const [orders, setOrders] = useState([]);
 
+  // 🔥 FETCH ORDERS
   const fetchOrders = async () => {
     try {
       const res = await fetch("http://127.0.0.1:8000/api/orders/");
@@ -21,7 +22,24 @@ export default function Orders() {
     return () => clearInterval(interval);
   }, []);
 
-  // 🔥 stats
+  // 🔥 UPDATE STATUS FUNCTION
+  const updateStatus = async (id, status) => {
+    try {
+      await fetch(`http://127.0.0.1:8000/api/orders/${id}/status/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      fetchOrders(); // refresh UI
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // 🔥 STATS
   const total = orders.length;
   const pending = orders.filter(o => o.status === "pending").length;
   const completed = orders.filter(o => o.status === "completed").length;
@@ -31,7 +49,7 @@ export default function Orders() {
 
       <h1 className="page-title">Orders Dashboard</h1>
 
-      {/* 🔥 STATS */}
+      {/* STATS */}
       <div className="stats">
         <div className="stat-card">
           <h2>{total}</h2>
@@ -49,7 +67,7 @@ export default function Orders() {
         </div>
       </div>
 
-      {/* 🔥 ORDERS */}
+      {/* ORDERS */}
       <div className="orders-grid">
 
         {orders.map(order => (
@@ -76,8 +94,25 @@ export default function Orders() {
 
             {/* 🔥 ACTION BUTTONS */}
             <div className="actions">
-              <button className="btn accept">Accept</button>
-              <button className="btn done">Complete</button>
+
+              {order.status === "pending" && (
+                <button
+                  className="btn accept"
+                  onClick={() => updateStatus(order.id, "processing")}
+                >
+                  Accept
+                </button>
+              )}
+
+              {order.status !== "completed" && (
+                <button
+                  className="btn done"
+                  onClick={() => updateStatus(order.id, "completed")}
+                >
+                  Complete
+                </button>
+              )}
+
             </div>
 
           </div>

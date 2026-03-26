@@ -15,6 +15,7 @@ import Tables from "./pages/admin/tables/tables";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import CustomerMenu from "./pages/customer/menu/menu.jsx";
+import Orders from "./pages/admin/orders/orders";
 
 function App() {
   return (
@@ -44,7 +45,7 @@ function App() {
         <Route path="tables" element={<Tables />} />
 
         {/* Future Pages */}
-        <Route path="orders" element={<h1>Orders</h1>} />
+        <Route path="orders" element={<Orders />} />
         <Route path="kitchen" element={<h1>Kitchen</h1>} />
         <Route path="reports" element={<h1>Reports</h1>} />
         <Route path="settings" element={<h1>Settings</h1>} />
