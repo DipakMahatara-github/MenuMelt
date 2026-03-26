@@ -16,6 +16,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 import CustomerMenu from "./pages/customer/menu/menu.jsx";
 import Orders from "./pages/admin/orders/orders";
+import AdminKitchen from "./pages/admin/adminKitchen/adminKitchen";
 
 function App() {
   return (
@@ -43,10 +44,9 @@ function App() {
         {/* Admin Pages */}
         <Route path="menu" element={<Menu />} />
         <Route path="tables" element={<Tables />} />
-
-        {/* Future Pages */}
         <Route path="orders" element={<Orders />} />
-        <Route path="kitchen" element={<h1>Kitchen</h1>} />
+        <Route path="kitchen" element={<AdminKitchen />} />
+
         <Route path="reports" element={<h1>Reports</h1>} />
         <Route path="settings" element={<h1>Settings</h1>} />
 

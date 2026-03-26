@@ -9,12 +9,10 @@ export default function AdminLayout() {
 
         <ul className="menu">
           <li><NavLink to="/admin" end>Dashboard</NavLink></li>
-          <li><NavLink to="/admin/orders">Orders</NavLink></li>
+          <li><NavLink to="/admin/orders">Live Orders</NavLink></li>
           <li><NavLink to="/admin/menu">Menu</NavLink></li>
-          <li><NavLink to="/admin/tables">Tables</NavLink></li>
-          <li><NavLink to="/admin/kitchen">Kitchen</NavLink></li>
-          <li><NavLink to="/admin/reports">Reports</NavLink></li>
-          <li><NavLink to="/admin/settings">Settings</NavLink></li>
+          <li><NavLink to="/admin/tables">Qr Tables</NavLink></li>
+          <li><NavLink to="/admin/kitchen">Kitchen Monitor</NavLink></li>
         </ul>
       </aside>
 
