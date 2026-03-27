@@ -16,57 +16,49 @@ export default function Login() {
     try {
 
       const res = await fetch("http://127.0.0.1:8000/api/auth/login/", {
-
         method: "POST",
-
         headers: {
           "Content-Type": "application/json"
         },
-
         body: JSON.stringify({
-          email: email,
-          password: password
+          email,
+          password
         })
-
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-
-        alert("Invalid email or password");
+        alert(data.error || "Invalid email or password");
         return;
-
       }
 
-      // store token
+      // ✅ STORE AUTH DATA
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
+      localStorage.setItem("name", data.name);
 
-      // redirect based on role
+      // ✅ SAFE ROLE HANDLING
       if (data.role === "admin") {
-
         navigate("/admin");
+      } 
+      else if (data.role === "kitchen") {
+        // kitchen still uses admin layout
+        navigate("/admin/kitchen");
+      } 
+      else {
+        // ❌ NOT IMPLEMENTED YET
+        alert("This role dashboard is not implemented yet");
 
-      } else if (data.role === "restaurant") {
-
-        navigate("/staff");
-
-      } else if (data.role === "kitchen") {
-
-        navigate("/kitchen");
-
-      } else {
-
-        navigate("/menu");
-
+        // clear invalid session
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        localStorage.removeItem("name");
       }
 
     } catch (error) {
-
       console.error(error);
       alert("Server error");
-
     }
 
   };
