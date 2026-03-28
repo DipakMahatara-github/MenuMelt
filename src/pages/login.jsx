@@ -20,10 +20,7 @@ export default function Login() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          email,
-          password
-        })
+        body: JSON.stringify({ email, password })
       });
 
       const data = await res.json();
@@ -33,24 +30,21 @@ export default function Login() {
         return;
       }
 
-      // ✅ STORE AUTH DATA
+      // ✅ STORE DATA
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
       localStorage.setItem("name", data.name);
 
-      // ✅ SAFE ROLE HANDLING
+      // ✅ ROLE ROUTING (FIXED)
       if (data.role === "admin") {
         navigate("/admin");
       } 
       else if (data.role === "kitchen") {
-        // kitchen still uses admin layout
-        navigate("/admin/kitchen");
+        navigate("/kitchen"); // 🔥 FIXED
       } 
       else {
-        // ❌ NOT IMPLEMENTED YET
         alert("This role dashboard is not implemented yet");
 
-        // clear invalid session
         localStorage.removeItem("token");
         localStorage.removeItem("role");
         localStorage.removeItem("name");
@@ -64,9 +58,7 @@ export default function Login() {
   };
 
   return (
-
     <div className="auth-container">
-
       <div className="auth-card">
 
         <h1>Login</h1>
@@ -95,9 +87,6 @@ export default function Login() {
         </form>
 
       </div>
-
     </div>
-
   );
-
 }
