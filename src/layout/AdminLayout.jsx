@@ -9,8 +9,6 @@ export default function AdminLayout() {
 
   const navigate = useNavigate();
 
-  const role = localStorage.getItem("role");
-
   // 🔥 FETCH USER PROFILE
   useEffect(() => {
     fetch("http://127.0.0.1:8000/api/auth/profile/", {
@@ -25,45 +23,78 @@ export default function AdminLayout() {
 
   // 🔥 LOGOUT
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
+    localStorage.clear();
     navigate("/login");
   };
 
   return (
     <div className="admin-container">
 
-      {/* SIDEBAR */}
+      {/* ================= SIDEBAR ================= */}
       <aside className="sidebar">
 
         <h2 className="brand">MenuMelt</h2>
 
         <ul className="menu">
 
-          <li><NavLink to="/admin" end>Dashboard</NavLink></li>
+          {/* MAIN */}
+          <span className="menu-title">MAIN</span>
 
-          {/* ADMIN ONLY */}
-          {role === "admin" && (
-            <>
-              <li><NavLink to="/admin/orders">Live Orders</NavLink></li>
-              <li><NavLink to="/admin/menu">Menu</NavLink></li>
-              <li><NavLink to="/admin/tables">QR Tables</NavLink></li>
-            </>
-          )}
+          <li>
+            <NavLink to="/admin" end>
+              Dashboard
+            </NavLink>
+          </li>
 
-          {/* ADMIN + KITCHEN */}
-          {(role === "admin" || role === "kitchen") && (
-            <li><NavLink to="/admin/kitchen">Kitchen Monitor</NavLink></li>
-          )}
+          <li>
+            <NavLink to="/admin/orders">
+              Orders
+            </NavLink>
+          </li>
 
-          {/* ALL */}
-          <li><NavLink to="/admin/profile">Profile</NavLink></li>
+          <li>
+            <NavLink to="/admin/menu">
+              Menu
+            </NavLink>
+          </li>
+
+          <li>
+            <NavLink to="/admin/tables">
+              QR Tables
+            </NavLink>
+          </li>
+
+          <li>
+            <NavLink to="/admin/kitchen">
+              Kitchen
+            </NavLink>
+          </li>
+
+          {/* BUSINESS */}
+          <div className="divider"></div>
+          <span className="menu-title">BUSINESS</span>
+
+          <li>
+            <NavLink to="/admin/subscription">
+              Subscription
+            </NavLink>
+          </li>
+
+          {/* ACCOUNT */}
+          <div className="divider"></div>
+          <span className="menu-title">ACCOUNT</span>
+
+          <li>
+            <NavLink to="/admin/profile">
+              Profile
+            </NavLink>
+          </li>
 
         </ul>
 
       </aside>
 
-      {/* MAIN */}
+      {/* ================= MAIN ================= */}
       <main className="main-content">
 
         {/* TOP BAR */}
@@ -98,6 +129,7 @@ export default function AdminLayout() {
 
         </div>
 
+        {/* PAGE CONTENT */}
         <Outlet />
 
       </main>

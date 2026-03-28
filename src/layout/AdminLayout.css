@@ -1,16 +1,16 @@
 .admin-container {
   display: flex;
   min-height: 100vh;
-  background: #f5f7fb;
+  background: #f1f5f9;
   font-family: "Inter", "Segoe UI", sans-serif;
   color: #1e293b;
 }
 
 /* ================= SIDEBAR ================= */
 .sidebar {
-  width: 240px;
-  background: #ffffff;
-  border-right: 1px solid #e5e7eb;
+  width: 250px;
+  background: #0f172a;
+  color: #cbd5f5;
   padding: 25px 20px;
   display: flex;
   flex-direction: column;
@@ -19,8 +19,16 @@
 .brand {
   font-size: 22px;
   font-weight: 700;
-  color: #2563eb;
-  margin-bottom: 40px;
+  color: #38bdf8;
+  margin-bottom: 30px;
+}
+
+/* MENU TITLE */
+.menu-title {
+  font-size: 11px;
+  letter-spacing: 1px;
+  margin: 10px 0;
+  color: #94a3b8;
 }
 
 /* MENU */
@@ -30,7 +38,7 @@
 }
 
 .menu li {
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 .menu a {
@@ -38,16 +46,16 @@
   padding: 12px 14px;
   border-radius: 10px;
   text-decoration: none;
-  color: #64748b;
+  color: #cbd5f5;
   font-weight: 500;
   transition: all 0.25s ease;
 }
 
 /* HOVER */
 .menu a:hover {
-  background: #f1f5f9;
-  color: #2563eb;
-  transform: translateX(4px);
+  background: #1e293b;
+  color: #38bdf8;
+  transform: translateX(5px);
 }
 
 /* ACTIVE */
@@ -55,6 +63,13 @@
   background: linear-gradient(90deg, #2563eb, #3b82f6);
   color: white;
   box-shadow: 0 6px 18px rgba(37, 99, 235, 0.25);
+}
+
+/* DIVIDER */
+.divider {
+  height: 1px;
+  background: #1e293b;
+  margin: 15px 0;
 }
 
 /* ================= MAIN ================= */
@@ -69,11 +84,12 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
-}
 
-.top-bar h1 {
-  font-size: 26px;
-  font-weight: 700;
+  padding: 15px 20px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
 }
 
 /* ================= PROFILE ================= */
@@ -81,7 +97,6 @@
   position: relative;
 }
 
-/* PROFILE BUTTON */
 .admin-profile {
   background: #e2e8f0;
   padding: 8px 16px;
@@ -98,13 +113,13 @@
 /* DROPDOWN */
 .dropdown {
   position: absolute;
-  top: 45px;
+  top: 50px;
   right: 0;
   background: white;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  border-radius: 10px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+  border-radius: 12px;
   overflow: hidden;
-  min-width: 150px;
+  min-width: 160px;
   animation: fadeIn 0.2s ease;
   z-index: 100;
 }
@@ -121,19 +136,19 @@
   color: #2563eb;
 }
 
+.logout {
+  color: #ef4444;
+  font-weight: 600;
+}
+
 /* ANIMATION */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-5px);
+    transform: translateY(-6px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.logout {
-  color: #ef4444;
-  font-weight: 600;
 }
