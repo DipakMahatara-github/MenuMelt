@@ -10,20 +10,25 @@ import AdminLayout from "./layout/AdminLayout";
 import Dashboard from "./pages/admin/dashboard/dashboard";
 import Menu from "./pages/admin/menu/menu";
 import Tables from "./pages/admin/tables/tables";
-
-// Protected Route
-import ProtectedRoute from "./components/ProtectedRoute";
-
-import CustomerMenu from "./pages/customer/menu/menu.jsx";
 import Orders from "./pages/admin/orders/orders";
 import AdminKitchen from "./pages/admin/adminKitchen/adminKitchen";
 import Profile from "./pages/admin/profile/profile";
+import Subscription from "./pages/admin/subscription/subscription";
+
+// Customer
+import CustomerMenu from "./pages/customer/menu/menu.jsx";
+
+// Kitchen Staff
+import Kitchen from "./pages/kitchen/kitchen";
+
+// Protected Route
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <Routes>
 
-      {/* PUBLIC PAGES */}
+      {/* PUBLIC */}
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -38,18 +43,24 @@ function App() {
           </ProtectedRoute>
         }
       >
-
-        {/* Default Admin Page */}
         <Route index element={<Dashboard />} />
-
-        {/* Admin Pages */}
         <Route path="menu" element={<Menu />} />
         <Route path="tables" element={<Tables />} />
         <Route path="orders" element={<Orders />} />
         <Route path="kitchen" element={<AdminKitchen />} />
+        <Route path="subscription" element={<Subscription />} />
         <Route path="profile" element={<Profile />} />
-
       </Route>
+
+      {/* 🔥 KITCHEN STAFF PANEL */}
+      <Route
+        path="/kitchen"
+        element={
+          <ProtectedRoute allowedRole="kitchen">
+            <Kitchen />
+          </ProtectedRoute>
+        }
+      />
 
     </Routes>
   );
