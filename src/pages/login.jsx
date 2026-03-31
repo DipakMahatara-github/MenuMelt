@@ -30,24 +30,22 @@ export default function Login() {
         return;
       }
 
-      // ✅ STORE DATA
+      // STORE DATA
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
       localStorage.setItem("name", data.name);
 
-      // ✅ ROLE ROUTING (FIXED)
+      // 🔥 ROLE BASED NAVIGATION
       if (data.role === "admin") {
-        navigate("/admin");
+        navigate("/admin", { replace: true });
       } 
       else if (data.role === "kitchen") {
-        navigate("/kitchen"); // 🔥 FIXED
+        navigate("/kitchen", { replace: true });
       } 
       else {
-        alert("This role dashboard is not implemented yet");
+        alert("Role not implemented");
 
-        localStorage.removeItem("token");
-        localStorage.removeItem("role");
-        localStorage.removeItem("name");
+        localStorage.clear();
       }
 
     } catch (error) {

@@ -5,8 +5,6 @@ import Login from "./pages/login";
 import Register from "./pages/register";
 
 import AdminLayout from "./layout/AdminLayout";
-
-// Admin Pages
 import Dashboard from "./pages/admin/dashboard/dashboard";
 import Menu from "./pages/admin/menu/menu";
 import Tables from "./pages/admin/tables/tables";
@@ -15,13 +13,8 @@ import AdminKitchen from "./pages/admin/adminKitchen/adminKitchen";
 import Profile from "./pages/admin/profile/profile";
 import Subscription from "./pages/admin/subscription/subscription";
 
-// Customer
-import CustomerMenu from "./pages/customer/menu/menu.jsx";
-
-// Kitchen Staff
 import Kitchen from "./pages/kitchen/kitchen";
 
-// Protected Route
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -32,9 +25,8 @@ function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/menu/:id" element={<CustomerMenu />} />
 
-      {/* ADMIN PANEL */}
+      {/* ADMIN */}
       <Route
         path="/admin"
         element={
@@ -44,15 +36,15 @@ function App() {
         }
       >
         <Route index element={<Dashboard />} />
+        <Route path="orders" element={<Orders />} />
         <Route path="menu" element={<Menu />} />
         <Route path="tables" element={<Tables />} />
-        <Route path="orders" element={<Orders />} />
         <Route path="kitchen" element={<AdminKitchen />} />
         <Route path="subscription" element={<Subscription />} />
         <Route path="profile" element={<Profile />} />
       </Route>
 
-      {/* 🔥 KITCHEN STAFF PANEL */}
+      {/* 🔥 KITCHEN (SEPARATE UI) */}
       <Route
         path="/kitchen"
         element={

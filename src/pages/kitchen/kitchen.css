@@ -1,87 +1,100 @@
-body {
-  margin: 0;
-}
-
-.kitchen-screen {
-  background: #000;
-  color: white;
+.kitchen {
+  background: #0f172a;
   min-height: 100vh;
+  color: white;
   padding: 20px;
-  font-family: "Inter", sans-serif;
 }
 
-.kitchen-screen h1 {
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 32px;
+/* HEADER */
+.kitchen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kitchen-header h1 {
+  font-size: 28px;
+}
+
+.kitchen-header span {
+  background: #1e293b;
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+/* SECTION */
+.section-title {
+  margin: 20px 0 10px;
+  font-size: 18px;
+  color: #facc15;
+}
+
+.completed-title {
+  color: #22c55e;
 }
 
 /* GRID */
-.orders-grid {
+.kitchen-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
 }
 
 /* CARD */
 .order-card {
-  border-radius: 16px;
-  padding: 20px;
-  font-size: 18px;
-  transition: 0.3s;
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 12px;
+  border-left: 6px solid orange;
 }
 
-/* COLORS */
-.order-card.green {
-  background: #065f46;
+.order-card.completed {
+  border-left: 6px solid #22c55e;
+  opacity: 0.8;
 }
 
-.order-card.orange {
-  background: #92400e;
-}
-
-.order-card.red {
-  background: #7f1d1d;
-  animation: blink 1s infinite;
-}
-
-/* BLINK FOR URGENT */
-@keyframes blink {
-  50% {
-    opacity: 0.7;
-  }
-}
-
-/* HEADER */
-.header {
+/* TOP */
+.order-top {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 10px;
+  align-items: center;
 }
 
-.header h2 {
-  font-size: 22px;
+.timer {
+  font-size: 12px;
+  background: #0f172a;
+  padding: 5px 10px;
+  border-radius: 10px;
 }
 
 /* ITEMS */
-.items {
-  margin: 10px 0;
+.order-items {
+  margin-top: 10px;
 }
 
-.item {
+.item-row {
   display: flex;
   justify-content: space-between;
-  margin: 6px 0;
+  padding: 5px 0;
+  border-bottom: 1px solid #334155;
+}
+
+.item-name {
+  font-weight: 500;
 }
 
 /* BUTTON */
-.order-card button {
+.complete-btn {
+  margin-top: 10px;
   width: 100%;
-  padding: 12px;
+  padding: 10px;
+  background: #22c55e;
   border: none;
-  background: white;
-  color: black;
-  font-weight: bold;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
+}
+
+/* EMPTY */
+.empty {
+  opacity: 0.6;
 }

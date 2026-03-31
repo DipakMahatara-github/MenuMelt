@@ -1,137 +1,149 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import "./kitchen.css";
 
-export default function AdminLayout() {
+export default function Kitchen() {
 
-  const [open, setOpen] = useState(false);
-  const [user, setUser] = useState(null);
+  const [orders, setOrders] = useState([]);
 
-  const navigate = useNavigate();
-
-  // 🔥 FETCH USER PROFILE
-  useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/auth/profile/", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-      }
-    })
-      .then(res => res.json())
-      .then(data => setUser(data))
-      .catch(err => console.error(err));
-  }, []);
-
-  // 🔥 LOGOUT
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
+  // 🔥 FETCH ORDERS
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/orders/");
+      const data = await res.json();
+      setOrders(data);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
+  useEffect(() => {
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // ✅ MARK ORDER COMPLETED
+  const markCompleted = async (id) => {
+    try {
+      await fetch(`http://127.0.0.1:8000/api/orders/${id}/status/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          status: "completed"
+        })
+      });
+
+      fetchOrders();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // ✅ SAFE TIMER
+  const getTime = (created_at) => {
+    if (!created_at) return "0m";
+
+    const created = new Date(created_at);
+    if (isNaN(created.getTime())) return "0m";
+
+    const diff = Math.floor((Date.now() - created.getTime()) / 1000);
+
+    const min = Math.floor(diff / 60);
+    const sec = diff % 60;
+
+    return `${min}m ${sec}s`;
+  };
+
+  // 🔥 SPLIT ORDERS
+  const activeOrders = orders.filter(o => o.status !== "completed");
+  const completedOrders = orders.filter(o => o.status === "completed");
+
   return (
-    <div className="admin-container">
+    <div className="kitchen">
 
-      {/* ================= SIDEBAR ================= */}
-      <aside className="sidebar">
+      {/* HEADER */}
+      <div className="kitchen-header">
+        <h1>🍳 Kitchen Live</h1>
+        <span>{activeOrders.length} Active Orders</span>
+      </div>
 
-        <h2 className="brand">MenuMelt</h2>
+      {/* ================= ACTIVE ================= */}
+      <h2 className="section-title"> Active Orders</h2>
 
-        <ul className="menu">
+      <div className="kitchen-grid">
+        {activeOrders.length === 0 ? (
+          <p className="empty">No active orders</p>
+        ) : (
+          activeOrders.map(order => (
+            <div key={order.id} className={`order-card ${order.status}`}>
 
-          {/* MAIN */}
-          <span className="menu-title">MAIN</span>
-
-          <li>
-            <NavLink to="/admin" end>
-              Dashboard
-            </NavLink>
-          </li>
-
-          <li>
-            <NavLink to="/admin/orders">
-              Orders
-            </NavLink>
-          </li>
-
-          <li>
-            <NavLink to="/admin/menu">
-              Menu
-            </NavLink>
-          </li>
-
-          <li>
-            <NavLink to="/admin/tables">
-              QR Tables
-            </NavLink>
-          </li>
-
-          <li>
-            <NavLink to="/admin/kitchen">
-              Kitchen
-            </NavLink>
-          </li>
-
-          {/* BUSINESS */}
-          <div className="divider"></div>
-          <span className="menu-title">BUSINESS</span>
-
-          <li>
-            <NavLink to="/admin/subscription">
-              Subscription
-            </NavLink>
-          </li>
-
-          {/* ACCOUNT */}
-          <div className="divider"></div>
-          <span className="menu-title">ACCOUNT</span>
-
-          <li>
-            <NavLink to="/admin/profile">
-              Profile
-            </NavLink>
-          </li>
-
-        </ul>
-
-      </aside>
-
-      {/* ================= MAIN ================= */}
-      <main className="main-content">
-
-        {/* TOP BAR */}
-        <div className="top-bar">
-
-          <h1>Admin Panel</h1>
-
-          <div className="admin-profile-wrapper">
-
-            <div
-              className="admin-profile"
-              onClick={() => setOpen(!open)}
-            >
-              👤 {user?.full_name || "User"} ▾
-            </div>
-
-            {open && (
-              <div className="dropdown">
-
-                <p onClick={() => navigate("/admin/profile")}>
-                  Profile
-                </p>
-
-                <p className="logout" onClick={handleLogout}>
-                  Logout
-                </p>
-
+              {/* TOP */}
+              <div className="order-top">
+                <h2>Table {order.table}</h2>
+                <span className="timer">
+                  ⏱ {getTime(order.created_at)}
+                </span>
               </div>
-            )}
 
-          </div>
+              {/* ITEMS */}
+              <div className="order-items">
+                {order.items?.map((item, index) => (
+                  <div key={index} className="item-row">
+                    <span className="item-name">
+                      {item.item_name}
+                    </span>
+                    <span className="qty">
+                      x{item.quantity}
+                    </span>
+                  </div>
+                ))}
+              </div>
 
-        </div>
+              {/* ACTION */}
+              <button
+                className="complete-btn"
+                onClick={() => markCompleted(order.id)}
+              >
+                ✔ Mark Ready
+              </button>
 
-        {/* PAGE CONTENT */}
-        <Outlet />
+            </div>
+          ))
+        )}
+      </div>
 
-      </main>
+      {/* ================= COMPLETED ================= */}
+      <h2 className="section-title completed-title"> Completed Orders</h2>
+
+      <div className="kitchen-grid">
+        {completedOrders.length === 0 ? (
+          <p className="empty">No completed orders</p>
+        ) : (
+          completedOrders.map(order => (
+            <div key={order.id} className="order-card completed">
+
+              <div className="order-top">
+                <h2>Table {order.table}</h2>
+                <span className="timer">
+                  ⏱ {getTime(order.created_at)}
+                </span>
+              </div>
+
+              <div className="order-items">
+                {order.items?.map((item, index) => (
+                  <div key={index} className="item-row">
+                    <span>{item.item_name}</span>
+                    <span>x{item.quantity}</span>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+          ))
+        )}
+      </div>
 
     </div>
   );
