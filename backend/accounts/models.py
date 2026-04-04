@@ -30,7 +30,7 @@ class UserManager(BaseUserManager):
 
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
-        extra_fields.setdefault("role", "admin")
+        extra_fields.setdefault("role", "admin")  # 👑 platform admin
 
         return self.create_user(email, full_name, password, **extra_fields)
 
@@ -42,8 +42,9 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
 
     ROLE_CHOICES = (
-        ("admin", "Admin"),
-        ("restaurant", "Restaurant Staff"),
+        ("admin", "Platform Admin"),
+        ("restaurant_admin", "Restaurant Admin"),
+        ("staff", "Staff"),
         ("kitchen", "Kitchen Staff"),
         ("customer", "Customer"),
     )

@@ -5,25 +5,28 @@ export default function ProtectedRoute({ children, allowedRole }) {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
 
+  // ✅ Public routes (like /menu)
+  if (!allowedRole) {
+    return children;
+  }
+
   // ❌ Not logged in
   if (!token) {
     return <Navigate to="/login" replace />;
   }
 
   // ❌ Wrong role
-  if (allowedRole && role !== allowedRole) {
+  if (role !== allowedRole) {
 
-    if (role === "admin") {
-      return <Navigate to="/admin" replace />;
-    }
+    const roleRoutes = {
+      admin: "/admin",
+      restaurant_admin: "/restaurant-admin",
+      staff: "/staff",
+      kitchen: "/kitchen"
+    };
 
-    if (role === "kitchen") {
-      return <Navigate to="/kitchen" replace />;
-    }
-
-    return <Navigate to="/login" replace />;
+    return <Navigate to={roleRoutes[role] || "/login"} replace />;
   }
 
-  // ✅ Allowed
   return children;
 }
