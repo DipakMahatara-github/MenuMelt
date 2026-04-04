@@ -1,0 +1,56 @@
+.restaurants-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.restaurant-card {
+  background: rgba(30, 41, 59, 0.6);
+  padding: 20px;
+  border-radius: 16px;
+  width: 250px;
+  transition: 0.3s;
+}
+
+.restaurant-card:hover {
+  transform: translateY(-5px);
+}
+
+.status {
+  display: inline-block;
+  margin: 10px 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.active {
+  background: #22c55e;
+}
+
+.inactive {
+  background: #ef4444;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+button {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+button.danger {
+  background: red;
+  color: white;
+}

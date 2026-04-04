@@ -1,0 +1,117 @@
+.admin-container {
+  display: flex;
+  height: 100vh;
+  background: #020617;
+  color: white;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 250px;
+  background: linear-gradient(180deg, #020617, #0f172a);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.brand {
+  font-size: 20px;
+  margin-bottom: 30px;
+  color: #38bdf8;
+}
+
+/* MENU */
+.menu {
+  list-style: none;
+  padding: 0;
+}
+
+.menu-title {
+  font-size: 11px;
+  color: #64748b;
+  margin: 15px 0 5px;
+}
+
+.menu li {
+  margin-bottom: 10px;
+}
+
+.menu a {
+  text-decoration: none;
+  color: #cbd5f5;
+  padding: 10px;
+  display: block;
+  border-radius: 10px;
+  transition: 0.25s;
+}
+
+.menu a.active,
+.menu a:hover {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+/* MAIN */
+.main-content {
+  flex: 1;
+  padding: 25px;
+  background: radial-gradient(circle at top, #0f172a, #020617);
+}
+
+/* TOP BAR */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.top-bar h1 {
+  font-size: 24px;
+}
+
+/* PROFILE */
+.admin-profile-wrapper {
+  position: relative;
+}
+
+.admin-profile {
+  background: #1e293b;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.admin-profile:hover {
+  background: #334155;
+}
+
+/* DROPDOWN */
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: 45px;
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  width: 160px;
+  overflow: hidden;
+  z-index: 10;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+.dropdown p {
+  padding: 12px;
+  margin: 0;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.dropdown p:hover {
+  background: #1e293b;
+}
+
+.logout {
+  color: #ef4444;
+}

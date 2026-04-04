@@ -1,0 +1,58 @@
+.users-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-header input {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #1e293b;
+  color: white;
+}
+
+/* TABLE CARD */
+.table-card {
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+table {
+  width: 100%;
+}
+
+th {
+  text-align: left;
+  color: #94a3b8;
+}
+
+td {
+  padding: 12px 0;
+}
+
+/* BADGES */
+.badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.admin {
+  background: #ef4444;
+}
+
+.restaurant_admin {
+  background: #3b82f6;
+}
+
+.staff {
+  background: #22c55e;
+}

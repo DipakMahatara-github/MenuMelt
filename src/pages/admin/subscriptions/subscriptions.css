@@ -1,0 +1,38 @@
+.subscriptions-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.plans {
+  display: flex;
+  gap: 20px;
+}
+
+.plan-card {
+  flex: 1;
+  background: rgba(30, 41, 59, 0.6);
+  padding: 25px;
+  border-radius: 16px;
+  text-align: center;
+  transition: 0.3s;
+}
+
+.plan-card:hover {
+  transform: scale(1.05);
+}
+
+.plan-card h1 {
+  font-size: 32px;
+  margin: 10px 0;
+}
+
+button {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #3b82f6;
+  color: white;
+  cursor: pointer;
+}
