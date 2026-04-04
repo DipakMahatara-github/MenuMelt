@@ -65,7 +65,7 @@ export default function Kitchen() {
 
       {/* HEADER */}
       <div className="kitchen-header">
-        <h1>🍳 Kitchen Live</h1>
+        <h1> Kitchen Live</h1>
         <span>{activeOrders.length} Active Orders</span>
       </div>
 

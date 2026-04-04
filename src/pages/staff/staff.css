@@ -1,0 +1,120 @@
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+}
+
+.staff-container {
+  min-height: 100vh;
+  padding: 30px;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: white;
+}
+
+.staff-header {
+  margin-bottom: 30px;
+}
+
+.staff-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.staff-header p {
+  opacity: 0.7;
+}
+
+.orders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.order-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 20px;
+  transition: 0.3s;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.order-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+.order-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status {
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.status.pending {
+  background: #facc15;
+  color: black;
+}
+
+.status.accepted {
+  background: #38bdf8;
+}
+
+.status.preparing {
+  background: #a78bfa;
+}
+
+.status.done {
+  background: #4ade80;
+  color: black;
+}
+
+.order-items {
+  margin: 15px 0;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  opacity: 0.9;
+}
+
+.order-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.btn:hover {
+  transform: scale(1.05);
+}
+
+.accept {
+  background: #22c55e;
+  color: white;
+}
+
+.prepare {
+  background: #6366f1;
+  color: white;
+}
+
+.done {
+  background: #10b981;
+  color: white;
+}

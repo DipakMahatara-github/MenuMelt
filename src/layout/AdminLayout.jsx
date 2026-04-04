@@ -9,7 +9,6 @@ export default function AdminLayout() {
 
   const navigate = useNavigate();
 
-  // 🔥 FETCH USER PROFILE
   useEffect(() => {
     fetch("http://127.0.0.1:8000/api/auth/profile/", {
       headers: {
@@ -21,7 +20,6 @@ export default function AdminLayout() {
       .catch(err => console.error(err));
   }, []);
 
-  // 🔥 LOGOUT
   const handleLogout = () => {
     localStorage.clear();
     navigate("/login");
@@ -30,62 +28,58 @@ export default function AdminLayout() {
   return (
     <div className="admin-container">
 
-      {/* ================= SIDEBAR ================= */}
       <aside className="sidebar">
 
         <h2 className="brand">MenuMelt</h2>
 
         <ul className="menu">
 
-          {/* MAIN */}
           <span className="menu-title">MAIN</span>
 
           <li>
-            <NavLink to="/admin" end>
+            <NavLink to="/restaurant-admin" end>
               Dashboard
             </NavLink>
           </li>
 
           <li>
-            <NavLink to="/admin/orders">
+            <NavLink to="/restaurant-admin/orders">
               Orders
             </NavLink>
           </li>
 
           <li>
-            <NavLink to="/admin/menu">
+            <NavLink to="/restaurant-admin/menu">
               Menu
             </NavLink>
           </li>
 
           <li>
-            <NavLink to="/admin/tables">
+            <NavLink to="/restaurant-admin/tables">
               QR Tables
             </NavLink>
           </li>
 
           <li>
-            <NavLink to="/admin/kitchen">
+            <NavLink to="/restaurant-admin/kitchen">
               Kitchen
             </NavLink>
           </li>
 
-          {/* BUSINESS */}
           <div className="divider"></div>
           <span className="menu-title">BUSINESS</span>
 
           <li>
-            <NavLink to="/admin/subscription">
+            <NavLink to="/restaurant-admin/subscription">
               Subscription
             </NavLink>
           </li>
 
-          {/* ACCOUNT */}
           <div className="divider"></div>
           <span className="menu-title">ACCOUNT</span>
 
           <li>
-            <NavLink to="/admin/profile">
+            <NavLink to="/restaurant-admin/profile">
               Profile
             </NavLink>
           </li>
@@ -94,13 +88,11 @@ export default function AdminLayout() {
 
       </aside>
 
-      {/* ================= MAIN ================= */}
       <main className="main-content">
 
-        {/* TOP BAR */}
         <div className="top-bar">
 
-          <h1>Admin Panel</h1>
+          <h1>Restaurant Admin Panel</h1>
 
           <div className="admin-profile-wrapper">
 
@@ -114,7 +106,7 @@ export default function AdminLayout() {
             {open && (
               <div className="dropdown">
 
-                <p onClick={() => navigate("/admin/profile")}>
+                <p onClick={() => navigate("/restaurant-admin/profile")}>
                   Profile
                 </p>
 
@@ -129,7 +121,6 @@ export default function AdminLayout() {
 
         </div>
 
-        {/* PAGE CONTENT */}
         <Outlet />
 
       </main>

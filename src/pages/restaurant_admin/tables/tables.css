@@ -1,0 +1,153 @@
+.tables-container {
+  padding: 30px;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.tables-header {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 25px;
+}
+
+/* FORM */
+.tables-form {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.tables-input {
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  width: 220px;
+  font-size: 14px;
+}
+
+.tables-input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.tables-add-btn {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.tables-add-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* GRID */
+.tables-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+/* CARD */
+.table-card {
+  background: white;
+  border-radius: 14px;
+  padding: 25px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  transition: 0.2s;
+}
+
+.table-card:hover {
+  transform: translateY(-5px);
+}
+
+.table-number {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+/* BUTTONS */
+.table-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.qr-btn {
+  background: #10b981;
+  border: none;
+  color: white;
+  padding: 7px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.delete-btn {
+  background: #ef4444;
+  border: none;
+  color: white;
+  padding: 7px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* MODAL */
+.qr-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.qr-content {
+  background: white;
+  padding: 30px;
+  border-radius: 14px;
+  text-align: center;
+  width: 300px;
+  animation: fadeIn 0.3s ease;
+}
+
+.qr-image {
+  width: 200px;
+  margin: 15px 0;
+}
+
+.qr-note {
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+.close-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* ANIMATION */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

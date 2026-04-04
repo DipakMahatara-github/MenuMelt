@@ -1,0 +1,125 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ===== STATS ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  transition: 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-card h3 {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.stat-card p {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+/* ===== GRID ===== */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+/* ===== SECTION ===== */
+.section {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+}
+
+/* ===== TABLE ===== */
+.orders-table {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.orders-table th,
+.orders-table td {
+  padding: 10px;
+}
+
+/* ===== STATUS ===== */
+.status {
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.status.pending {
+  background: #facc15;
+}
+
+.status.completed {
+  background: #22c55e;
+  color: white;
+}
+
+/* ===== ACTIVITY ===== */
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.activity-item {
+  display: flex;
+  justify-content: space-between;
+  background: #f8fafc;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.status.pending {
+  background: #facc15;
+  color: #000;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.status.completed {
+  background: #22c55e;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+.chart-section {
+  margin-top: 30px;
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+}
+
+.status.pending {
+  background: #facc15;
+  color: black;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.status.completed {
+  background: #22c55e;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+}

@@ -1,0 +1,54 @@
+.subscription-container {
+  padding: 20px;
+}
+
+.subscription-container h1 {
+  margin-bottom: 20px;
+}
+
+.plans {
+  display: flex;
+  gap: 20px;
+}
+
+/* CARD */
+.plan-card {
+  flex: 1;
+  background: white;
+  padding: 25px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  transition: 0.3s;
+}
+
+.plan-card:hover {
+  transform: translateY(-8px);
+}
+
+/* POPULAR PLAN */
+.popular {
+  border: 2px solid #2563eb;
+}
+
+/* PRICE */
+.price {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+/* BUTTON */
+.plan-card button {
+  margin-top: 15px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+}
+
+.plan-card button:hover {
+  background: #1e40af;
+}

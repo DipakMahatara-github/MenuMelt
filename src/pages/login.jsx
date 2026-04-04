@@ -10,7 +10,6 @@ export default function Login() {
   const [password, setPassword] = useState("");
 
   const handleLogin = async (e) => {
-
     e.preventDefault();
 
     try {
@@ -30,21 +29,23 @@ export default function Login() {
         return;
       }
 
-      // STORE DATA
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
-      localStorage.setItem("name", data.name);
 
-      // 🔥 ROLE BASED NAVIGATION
       if (data.role === "admin") {
         navigate("/admin", { replace: true });
+      } 
+      else if (data.role === "restaurant_admin") {
+        navigate("/restaurant-admin", { replace: true });
+      } 
+      else if (data.role === "staff") {
+        navigate("/staff", { replace: true });
       } 
       else if (data.role === "kitchen") {
         navigate("/kitchen", { replace: true });
       } 
       else {
-        alert("Role not implemented");
-
+        alert("Invalid role");
         localStorage.clear();
       }
 
@@ -52,7 +53,6 @@ export default function Login() {
       console.error(error);
       alert("Server error");
     }
-
   };
 
   return (
