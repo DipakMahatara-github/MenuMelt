@@ -6,7 +6,7 @@ from .serializers import OrderSerializer
 
 
 class OrderViewSet(viewsets.ModelViewSet):
-    queryset = Order.objects.all()
+    queryset = Order.objects.all().order_by("-created_at")
     serializer_class = OrderSerializer
 
     def get_queryset(self):
@@ -17,14 +17,14 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         return Order.objects.all()
 
-    # 🔥 CUSTOM ACTION FOR STATUS UPDATE
+    # 🔥 FIXED STATUS ACTION
     @action(detail=True, methods=["patch"])
     def status(self, request, pk=None):
 
         order = self.get_object()
         status_value = request.data.get("status")
 
-        if status_value not in ["pending", "processing", "completed"]:
+        if status_value not in ["pending", "accepted", "preparing", "done"]:
             return Response({"error": "Invalid status"}, status=400)
 
         order.status = status_value
