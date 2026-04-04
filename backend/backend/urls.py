@@ -6,17 +6,16 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # Menu API
     path('api/menu/', include('menu.urls')),
-
-    # Authentication API
     path('api/auth/', include('accounts.urls')),  
-
     path('api/orders/', include('orders.urls')),
-
     path('api/tables/', include('tables.urls')),
-    
+
+    # restaurant admin dashboard
     path('api/dashboard/', include('dashboard.urls')),
+
+    #  platform admin dashboard
+    path('api/admin/dashboard/', include('admin_dashboard.urls')),
 ]
 
 # Serve media files in development

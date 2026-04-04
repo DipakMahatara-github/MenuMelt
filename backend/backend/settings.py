@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'orders', 
     'tables',
     'dashboard',
+    'admin_dashboard',
+    'restaurants',
 ]
 
 
