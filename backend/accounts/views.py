@@ -6,7 +6,8 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
-from .serializers import RegisterSerializer, UserSerializer
+from .serializers import UserSerializer
+from restaurants.models import Restaurant
 
 
 # ================= LOGIN =================
@@ -19,7 +20,10 @@ def login_user(request):
     user = authenticate(email=email, password=password)
 
     if user is None:
-        return Response({"error": "Invalid email or password"}, status=401)
+        return Response(
+            {"error": "Invalid email or password"},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
 
     refresh = RefreshToken.for_user(user)
 
@@ -27,7 +31,8 @@ def login_user(request):
         "token": str(refresh.access_token),
         "email": user.email,
         "role": user.role,
-        "name": user.full_name
+        "name": user.full_name,
+        "restaurant": user.restaurant.name if user.restaurant else None
     })
 
 
@@ -35,17 +40,60 @@ def login_user(request):
 @api_view(["POST"])
 def register_user(request):
 
-    serializer = RegisterSerializer(data=request.data)
+    full_name = request.data.get("full_name")
+    email = request.data.get("email")
+    password = request.data.get("password")
+    restaurant_name = request.data.get("restaurantName")
 
-    if serializer.is_valid():
-        user = serializer.save()
+    # 🔒 Validation
+    if not all([full_name, email, password, restaurant_name]):
+        return Response(
+            {"error": "All fields are required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if User.objects.filter(email=email).exists():
+        return Response(
+            {"error": "Email already exists"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        # ✅ 1. Create User (restaurant admin)
+        user = User.objects.create_user(
+            email=email,
+            full_name=full_name,
+            password=password,
+            role="restaurant_admin"
+        )
+
+        # ✅ 2. Create Restaurant
+        restaurant = Restaurant.objects.create(
+            name=restaurant_name,
+            owner=user,
+            address="Default Address"
+        )
+
+        # ✅ 3. Link User → Restaurant
+        user.restaurant = restaurant
+        user.save()
+
+        # ✅ 4. Generate JWT (auto login)
+        refresh = RefreshToken.for_user(user)
 
         return Response({
-            "message": "User created successfully",
-            "email": user.email
+            "message": "Restaurant registered successfully",
+            "token": str(refresh.access_token),
+            "role": user.role,
+            "name": user.full_name,
+            "restaurant": restaurant.name
         })
 
-    return Response(serializer.errors, status=400)
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 # ================= GET PROFILE =================
@@ -54,7 +102,6 @@ def register_user(request):
 def get_profile(request):
 
     serializer = UserSerializer(request.user)
-
     return Response(serializer.data)
 
 
@@ -69,7 +116,10 @@ def change_password(request):
     new_password = request.data.get("new_password")
 
     if not user.check_password(current_password):
-        return Response({"error": "Wrong current password"}, status=400)
+        return Response(
+            {"error": "Wrong current password"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     user.set_password(new_password)
     user.save()

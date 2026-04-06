@@ -30,7 +30,7 @@ class UserManager(BaseUserManager):
 
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
-        extra_fields.setdefault("role", "admin")  # 👑 platform admin
+        extra_fields.setdefault("role", "admin")
 
         return self.create_user(email, full_name, password, **extra_fields)
 
@@ -56,6 +56,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=20,
         choices=ROLE_CHOICES,
         default="customer"
+    )
+
+    # 🔥 IMPORTANT (NEW)
+    restaurant = models.ForeignKey(
+        "restaurants.Restaurant",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="users"
     )
 
     is_active = models.BooleanField(default=True)

@@ -4,9 +4,10 @@ from accounts.models import User
 
 class Restaurant(models.Model):
 
-    owner = models.ForeignKey(
+    owner = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
+        related_name="owned_restaurant",
         limit_choices_to={"role": "restaurant_admin"}
     )
 
