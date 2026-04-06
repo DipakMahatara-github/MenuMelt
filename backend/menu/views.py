@@ -1,18 +1,29 @@
-from rest_framework import generics
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
 from .models import MenuItem
-from .serializers import MenuItemSerializer
 
 
-# GET + POST
-class MenuListCreateView(generics.ListCreateAPIView):
-    queryset = MenuItem.objects.all()
-    serializer_class = MenuItemSerializer
-    parser_classes = [MultiPartParser, FormParser]
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_menu(request):
 
+    restaurant = request.user.restaurant
 
-# GET single + PUT + DELETE
-class MenuDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = MenuItem.objects.all()
-    serializer_class = MenuItemSerializer
-    parser_classes = [MultiPartParser, FormParser]
+    if not restaurant:
+        return Response({"error": "No restaurant assigned"}, status=400)
+
+    items = MenuItem.objects.filter(restaurant=restaurant)
+
+    data = [
+        {
+            "id": item.id,
+            "name": item.name,
+            "price": item.price,
+            "category": item.category,
+        }
+        for item in items
+    ]
+
+    return Response(data)

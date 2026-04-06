@@ -1,11 +1,19 @@
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 from .models import Table
 from .serializers import TableSerializer
 
 
 class TableViewSet(viewsets.ModelViewSet):
-    queryset = Table.objects.all()
     serializer_class = TableSerializer
+    permission_classes = [IsAuthenticated]
 
-    def get_serializer_context(self):
-        return {'request': self.request}
+    def get_queryset(self):
+        return Table.objects.filter(
+            restaurant=self.request.user.restaurant
+        )
+
+    def perform_create(self, serializer):
+        serializer.save(
+            restaurant=self.request.user.restaurant
+        )
