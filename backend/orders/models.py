@@ -1,14 +1,14 @@
 from django.db import models
 from menu.models import MenuItem
+from restaurants.models import Restaurant
 
 
 class Order(models.Model):
 
-    STATUS_CHOICES = (
-        ("pending", "Pending"),
-        ("accepted", "Accepted by Staff"),
-        ("preparing", "In Kitchen"),
-        ("done", "Ready"),
+    restaurant = models.ForeignKey(
+        Restaurant,
+        on_delete=models.CASCADE,
+        related_name="orders"
     )
 
     table = models.IntegerField()
@@ -16,7 +16,6 @@ class Order(models.Model):
 
     status = models.CharField(
         max_length=20,
-        choices=STATUS_CHOICES,
         default="pending"
     )
 

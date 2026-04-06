@@ -1,33 +1,48 @@
-from rest_framework import viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Order
-from .serializers import OrderSerializer
+
+from .models import Order, OrderItem
+from tables.models import Table
+from menu.models import MenuItem
 
 
-class OrderViewSet(viewsets.ModelViewSet):
-    queryset = Order.objects.all().order_by("-created_at")
-    serializer_class = OrderSerializer
+@api_view(["POST"])
+def create_order(request):
 
-    def get_queryset(self):
-        table = self.request.query_params.get('table')
+    try:
+        table_id = request.data.get("table_id")
+        items = request.data.get("items")
 
-        if table:
-            return Order.objects.filter(table=table)
+        if not table_id or not items:
+            return Response({"error": "Missing data"}, status=400)
 
-        return Order.objects.all()
+        table = Table.objects.get(id=table_id)
+        restaurant = table.restaurant
 
-    # 🔥 FIXED STATUS ACTION
-    @action(detail=True, methods=["patch"])
-    def status(self, request, pk=None):
+        # ✅ Create order
+        order = Order.objects.create(
+            restaurant=restaurant,
+            table=table.number,
+            status="pending"
+        )
 
-        order = self.get_object()
-        status_value = request.data.get("status")
+        # ✅ Create order items
+        for item in items:
+            menu_item = MenuItem.objects.get(id=item["menu_item"])
 
-        if status_value not in ["pending", "accepted", "preparing", "done"]:
-            return Response({"error": "Invalid status"}, status=400)
+            OrderItem.objects.create(
+                order=order,
+                menu_item=menu_item,
+                quantity=item["quantity"]
+            )
 
-        order.status = status_value
-        order.save()
+        return Response({
+            "message": "Order placed successfully",
+            "order_id": order.id
+        })
 
-        return Response({"message": "Status updated"})
+    except Table.DoesNotExist:
+        return Response({"error": "Table not found"}, status=404)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)

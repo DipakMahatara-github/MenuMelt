@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import "./dashboard.css";
 
-// 📊 CHART
 import {
   LineChart,
   Line,
@@ -11,7 +10,6 @@ import {
   ResponsiveContainer
 } from "recharts";
 
-// 🔔 SOUND
 import notificationSound from "../../../assets/notification.mp3";
 
 export default function Dashboard() {
@@ -21,16 +19,28 @@ export default function Dashboard() {
 
   const fetchDashboard = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/dashboard/");
+
+      // 🔥 GET TOKEN
+      const token = localStorage.getItem("token");
+
+      const res = await fetch("http://127.0.0.1:8000/api/dashboard/", {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
       const json = await res.json();
 
+      console.log("Dashboard data:", json);
+      console.log("Current restaurant:", localStorage.getItem("restaurant"));
+
       // 🔔 SOUND ALERT
-      if (json.recent_orders.length > lastOrderCount) {
+      if (json.recent_orders?.length > lastOrderCount) {
         const audio = new Audio(notificationSound);
         audio.play();
       }
 
-      setLastOrderCount(json.recent_orders.length);
+      setLastOrderCount(json.recent_orders?.length || 0);
       setData(json);
 
     } catch (err) {
@@ -94,57 +104,37 @@ export default function Dashboard() {
         </ResponsiveContainer>
       </div>
 
-      {/* ===== LOWER GRID ===== */}
-      <div className="dashboard-grid">
+      {/* ===== ORDERS ===== */}
+      <div className="section">
+        <h2>Recent Orders</h2>
 
-        {/* ORDERS */}
-        <div className="section">
-          <h2>Recent Orders</h2>
+        <table className="orders-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Table</th>
+              <th>Items</th>
+              <th>Status</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
 
-          <table className="orders-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Table</th>
-                <th>Items</th>
-                <th>Status</th>
-                <th>Amount</th>
+          <tbody>
+            {data.recent_orders?.map(order => (
+              <tr key={order.id}>
+                <td>#{order.id}</td>
+                <td>{order.table}</td>
+                <td>{order.items}</td>
+                <td>
+                  <span className={`status ${order.status}`}>
+                    {order.status}
+                  </span>
+                </td>
+                <td>Rs. {order.amount}</td>
               </tr>
-            </thead>
-
-            <tbody>
-              {data.recent_orders.map(order => (
-                <tr key={order.id}>
-                  <td>#{order.id}</td>
-                  <td>{order.table}</td>
-                  <td>{order.items}</td>
-                  <td>
-                    <span className={`status ${order.status}`}>
-                      {order.status}
-                    </span>
-                  </td>
-                  <td>Rs. {order.amount}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* ACTIVITY */}
-        <div className="section">
-          <h2>Live Activity</h2>
-
-          <div className="activity-list">
-            {data.recent_orders.map(order => (
-              <div key={order.id} className="activity-item">
-                <p>Order #{order.id} - {order.status}</p>
-                <span>Just now</span>
-              </div>
             ))}
-          </div>
-
-        </div>
-
+          </tbody>
+        </table>
       </div>
 
     </div>

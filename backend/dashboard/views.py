@@ -1,4 +1,5 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.utils import timezone
 from datetime import timedelta
@@ -6,25 +7,29 @@ from orders.models import Order
 
 
 @api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def dashboard_stats(request):
 
     try:
-        today = timezone.now().date()
-        orders = Order.objects.all()
+        restaurant = request.user.restaurant
 
-        # ===== STATS =====
+        if not restaurant:
+            return Response({"error": "No restaurant assigned"}, status=400)
+
+        today = timezone.now().date()
+
+        orders = Order.objects.filter(restaurant=restaurant)
+
         today_orders = orders.filter(created_at__date=today).count()
         pending_orders = orders.filter(status="pending").count()
         active_tables = orders.exclude(status="completed").values("table").distinct().count()
 
-        # ===== REVENUE =====
         revenue = 0
         for order in orders:
             if order.status == "completed":
                 for item in order.items.all():
                     revenue += item.menu_item.price * item.quantity
 
-        # ===== RECENT ORDERS =====
         recent_orders = orders.order_by("-created_at")[:5]
 
         recent_data = []
@@ -45,7 +50,6 @@ def dashboard_stats(request):
                 "amount": total
             })
 
-        # ===== CHART DATA (LAST 7 DAYS) =====
         daily_data = []
 
         for i in range(6, -1, -1):
