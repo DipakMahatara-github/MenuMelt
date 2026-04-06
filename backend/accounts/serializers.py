@@ -1,21 +1,40 @@
 from rest_framework import serializers
 from .models import User
+from restaurants.models import Restaurant
 
 
-# REGISTER SERIALIZER
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+
+    restaurant_name = serializers.CharField(write_only=True)
+    address = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ["email", "full_name", "password", "role"]
+        fields = ["email", "password", "full_name", "restaurant_name", "address"]
+        extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
+        restaurant_name = validated_data.pop("restaurant_name")
+        address = validated_data.pop("address")
+
+        user = User.objects.create_user(
+            role="restaurant_admin",
+            **validated_data
+        )
+
+        restaurant = Restaurant.objects.create(
+            name=restaurant_name,
+            address=address,
+            owner=user
+        )
+
+        user.restaurant = restaurant
+        user.save()
+
+        return user
 
 
-# PROFILE SERIALIZER
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["email", "full_name", "role"]
+        fields = ["id", "email", "full_name", "role", "restaurant"]

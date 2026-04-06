@@ -28,9 +28,18 @@ export default function Login() {
         return;
       }
 
+      // 🔥 CLEAR OLD SESSION (IMPORTANT)
+      localStorage.clear();
+
+      // ✅ STORE EVERYTHING
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
+      localStorage.setItem("restaurant", data.restaurant);
+      localStorage.setItem("name", data.name);
 
+      console.log("Logged in restaurant:", data.restaurant);
+
+      // ✅ ROLE BASED NAVIGATION
       if (data.role === "admin") navigate("/admin");
       else if (data.role === "restaurant_admin") navigate("/restaurant-admin");
       else if (data.role === "staff") navigate("/staff");
@@ -44,7 +53,6 @@ export default function Login() {
   return (
     <div className="auth-container">
 
-      {/* LEFT */}
       <div className="auth-left">
         <div className="auth-card">
 
@@ -80,7 +88,6 @@ export default function Login() {
         </div>
       </div>
 
-      {/* RIGHT */}
       <div className="auth-right">
         <div className="auth-overlay"></div>
 

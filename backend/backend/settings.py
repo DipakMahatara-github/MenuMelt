@@ -171,3 +171,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 # ================= FRONTEND URL =================
 
 FRONTEND_URL = "http://192.168.1.74:5173"
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+]
