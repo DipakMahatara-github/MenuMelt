@@ -13,7 +13,6 @@ export default function Login() {
     e.preventDefault();
 
     try {
-
       const res = await fetch("http://127.0.0.1:8000/api/auth/login/", {
         method: "POST",
         headers: {
@@ -32,59 +31,65 @@ export default function Login() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
 
-      if (data.role === "admin") {
-        navigate("/admin", { replace: true });
-      } 
-      else if (data.role === "restaurant_admin") {
-        navigate("/restaurant-admin", { replace: true });
-      } 
-      else if (data.role === "staff") {
-        navigate("/staff", { replace: true });
-      } 
-      else if (data.role === "kitchen") {
-        navigate("/kitchen", { replace: true });
-      } 
-      else {
-        alert("Invalid role");
-        localStorage.clear();
-      }
+      if (data.role === "admin") navigate("/admin");
+      else if (data.role === "restaurant_admin") navigate("/restaurant-admin");
+      else if (data.role === "staff") navigate("/staff");
+      else if (data.role === "kitchen") navigate("/kitchen");
 
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
       alert("Server error");
     }
   };
 
   return (
     <div className="auth-container">
-      <div className="auth-card">
 
-        <h1>Login</h1>
-        <p className="subtitle">Login to your account</p>
+      {/* LEFT */}
+      <div className="auth-left">
+        <div className="auth-card">
 
-        <form onSubmit={handleLogin}>
+          <h1>Login</h1>
+          <p className="subtitle">Access your restaurant dashboard</p>
 
-          <input
-            type="email"
-            placeholder="Email Address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <form onSubmit={handleLogin}>
+            <div className="input-group">
 
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
 
-          <button className="primary-btn" type="submit">
-            Log In
-          </button>
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
 
-        </form>
+            </div>
 
+            <button className="primary-btn">Log In</button>
+          </form>
+
+          <p className="switch-text">
+            New here? <span onClick={() => navigate("/register")}>Create account</span>
+          </p>
+
+        </div>
       </div>
+
+      {/* RIGHT */}
+      <div className="auth-right">
+        <div className="auth-overlay"></div>
+
+        <div className="auth-content">
+          <h2>MenuMelt</h2>
+          <p>Smart QR ordering system for modern restaurants</p>
+        </div>
+      </div>
+
     </div>
   );
 }
