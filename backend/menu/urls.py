@@ -1,6 +1,7 @@
-from django.urls import path
-from .views import get_menu
+from rest_framework.routers import DefaultRouter
+from .views import MenuViewSet
 
-urlpatterns = [
-    path("", get_menu),
-]
+router = DefaultRouter()
+router.register(r'', MenuViewSet, basename='menu')
+
+urlpatterns = router.urls

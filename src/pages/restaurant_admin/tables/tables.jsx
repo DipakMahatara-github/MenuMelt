@@ -2,13 +2,22 @@ import { useEffect, useState } from "react";
 import "./tables.css";
 
 export default function Tables() {
+
+  const API = "http://127.0.0.1:8000/api/tables/tables/";
+  const token = localStorage.getItem("token");
+
   const [tables, setTables] = useState([]);
   const [number, setNumber] = useState("");
   const [selectedTable, setSelectedTable] = useState(null);
 
-  // Fetch tables
+  // ✅ FETCH TABLES
   const fetchTables = async () => {
-    const res = await fetch("http://127.0.0.1:8000/api/tables/tables/");
+    const res = await fetch(API, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
     const data = await res.json();
     setTables(data);
   };
@@ -17,7 +26,7 @@ export default function Tables() {
     fetchTables();
   }, []);
 
-  // Add table
+  // ✅ ADD TABLE
   const addTable = async () => {
     if (!number) return;
 
@@ -26,24 +35,28 @@ export default function Tables() {
       return;
     }
 
-    await fetch("http://127.0.0.1:8000/api/tables/tables/", {
+    await fetch(API, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        number: Number(number)
-      })
+        number: Number(number),
+      }),
     });
 
     setNumber("");
     fetchTables();
   };
 
-  // Delete table
+  // ✅ DELETE TABLE
   const deleteTable = async (id) => {
-    await fetch(`http://127.0.0.1:8000/api/tables/tables/${id}/`, {
-      method: "DELETE"
+    await fetch(API + id + "/", {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     fetchTables();
@@ -54,7 +67,7 @@ export default function Tables() {
 
       <h1 className="tables-header">Table Management</h1>
 
-      {/* Add Table */}
+      {/* FORM */}
       <div className="tables-form">
         <input
           className="tables-input"
@@ -69,55 +82,56 @@ export default function Tables() {
         </button>
       </div>
 
-      {/* Tables Grid */}
+      {/* GRID */}
       <div className="tables-grid">
 
-        {tables.map((table) => (
-          <div key={table.id} className="table-card">
+        {tables.length === 0 ? (
+          <p>No tables yet. Add one </p>
+        ) : (
+          tables.map((table) => (
+            <div key={table.id} className="table-card">
 
-            <div className="table-number">
-              🍽 Table {table.number}
+              <div className="table-number">
+                🍽 Table {table.number}
+              </div>
+
+              <div className="table-actions">
+
+                <button
+                  className="qr-btn"
+                  onClick={() => setSelectedTable(table)}
+                >
+                  View QR
+                </button>
+
+                <button
+                  className="delete-btn"
+                  onClick={() => deleteTable(table.id)}
+                >
+                  Delete
+                </button>
+
+              </div>
+
             </div>
-
-            <div className="table-actions">
-
-              <button
-                className="qr-btn"
-                onClick={() => setSelectedTable(table)}
-              >
-                View QR
-              </button>
-
-              <button
-                className="delete-btn"
-                onClick={() => deleteTable(table.id)}
-              >
-                Delete
-              </button>
-
-            </div>
-
-          </div>
-        ))}
+          ))
+        )}
 
       </div>
 
       {/* QR MODAL */}
       {selectedTable && (
         <div className="qr-modal">
-
           <div className="qr-content">
 
             <h2>Table {selectedTable.number}</h2>
 
-            <img
-              src={selectedTable.qr_code}
-              alt="QR Code"
-              className="qr-image"
-            />
+            {/* ⚠️ TEMP FIX */}
+            <p>QR Code ID:</p>
+            <code>{selectedTable.qr_code}</code>
 
             <p className="qr-note">
-              Scan this QR to access menu
+              (Next step: convert this to actual QR image)
             </p>
 
             <button
@@ -128,7 +142,6 @@ export default function Tables() {
             </button>
 
           </div>
-
         </div>
       )}
 

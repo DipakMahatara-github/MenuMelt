@@ -1,29 +1,20 @@
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from .models import MenuItem
+from .serializers import MenuItemSerializer
 
+class MenuViewSet(viewsets.ModelViewSet):
+    serializer_class = MenuItemSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_menu(request):
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return MenuItem.objects.filter(
+                restaurant=self.request.user.restaurant
+            )
+        return MenuItem.objects.none()
 
-    restaurant = request.user.restaurant
-
-    if not restaurant:
-        return Response({"error": "No restaurant assigned"}, status=400)
-
-    items = MenuItem.objects.filter(restaurant=restaurant)
-
-    data = [
-        {
-            "id": item.id,
-            "name": item.name,
-            "price": item.price,
-            "category": item.category,
-        }
-        for item in items
-    ]
-
-    return Response(data)
+    def perform_create(self, serializer):
+        serializer.save(
+            restaurant=self.request.user.restaurant
+        )
