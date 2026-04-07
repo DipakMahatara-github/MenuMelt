@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -12,6 +12,7 @@ from restaurants.models import Restaurant
 
 # ================= LOGIN =================
 @api_view(["POST"])
+@permission_classes([AllowAny])
 def login_user(request):
 
     email = request.data.get("email")
@@ -28,7 +29,8 @@ def login_user(request):
     refresh = RefreshToken.for_user(user)
 
     return Response({
-        "token": str(refresh.access_token),
+        "access": str(refresh.access_token),
+        "refresh": str(refresh),
         "email": user.email,
         "role": user.role,
         "name": user.full_name,
@@ -38,6 +40,7 @@ def login_user(request):
 
 # ================= REGISTER =================
 @api_view(["POST"])
+@permission_classes([AllowAny])
 def register_user(request):
 
     full_name = request.data.get("full_name")
@@ -83,7 +86,8 @@ def register_user(request):
 
         return Response({
             "message": "Restaurant registered successfully",
-            "token": str(refresh.access_token),
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
             "role": user.role,
             "name": user.full_name,
             "restaurant": restaurant.name
