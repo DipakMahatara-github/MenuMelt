@@ -1,6 +1,8 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import "./AdminLayout.css";
+import { authFetch, API_BASE } from "../lib/api";
+import { clearAuth } from "../lib/auth";
 
 export default function PlatformAdminLayout() {
 
@@ -10,18 +12,14 @@ export default function PlatformAdminLayout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/auth/profile/", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-      }
-    })
+    authFetch(`${API_BASE}/api/auth/profile/`)
       .then(res => res.json())
       .then(data => setUser(data))
       .catch(err => console.error(err));
   }, []);
 
   const handleLogout = () => {
-    localStorage.clear();
+    clearAuth();
     navigate("/login");
   };
 
