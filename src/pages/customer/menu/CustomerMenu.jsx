@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useParams } from "react-router-dom";
 import "./CustomerMenu.css";
+import { authFetch, API_BASE } from "../../../lib/api";
 
 export default function CustomerMenu() {
 
@@ -22,7 +23,7 @@ export default function CustomerMenu() {
 
   // ✅ Fetch menu
   const fetchMenu = async () => {
-    const res = await fetch("http://127.0.0.1:8000/api/menu/");
+    const res = await authFetch(`${API_BASE}/api/menu/`);
     const data = await res.json();
     setItems(data.filter(item => item.available));
   };
@@ -65,12 +66,10 @@ export default function CustomerMenu() {
       }))
     };
 
-    const res = await fetch("http://127.0.0.1:8000/api/orders/", {
+    const res = await authFetch(`${API_BASE}/api/orders/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        // ✅ SAFE: works with or without login
-        Authorization: `Bearer ${localStorage.getItem("token") || ""}`
       },
       body: JSON.stringify(orderData)
     });

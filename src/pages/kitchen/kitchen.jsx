@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./kitchen.css";
+import { authFetch, API_BASE } from "../../lib/api";
 
 export default function Kitchen() {
 
@@ -8,7 +9,7 @@ export default function Kitchen() {
   // 🔥 FETCH ORDERS
   const fetchOrders = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/orders/");
+      const res = await authFetch(`${API_BASE}/api/orders/`);
       const data = await res.json();
       setOrders(data);
     } catch (err) {
@@ -25,7 +26,7 @@ export default function Kitchen() {
   // ✅ MARK ORDER COMPLETED
   const markCompleted = async (id) => {
     try {
-      await fetch(`http://127.0.0.1:8000/api/orders/${id}/status/`, {
+      await authFetch(`${API_BASE}/api/orders/${id}/status/`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json"

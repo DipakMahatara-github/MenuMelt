@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import "./AdminMenu.css";
+import { authFetch, API_BASE } from "../../../lib/api";
 
 export default function AdminMenu() {
 
-  const API = "http://127.0.0.1:8000/api/menu/";
-  const token = localStorage.getItem("token");
+  const API = `${API_BASE}/api/menu/`;
 
   const [items, setItems] = useState([]);
   const [editing, setEditing] = useState(null);
@@ -21,21 +21,21 @@ export default function AdminMenu() {
   // ================= FETCH MENU =================
   const fetchMenu = async () => {
     try {
-      const res = await fetch(API, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await authFetch(API);
 
       const data = await res.json();
       console.log("FETCH MENU:", data);
 
-      if (Array.isArray(data)) {
+      if (res.ok && Array.isArray(data)) {
         setItems(data);
+      } else {
+        // Never keep stale items from a previous session/user.
+        setItems([]);
       }
 
     } catch (err) {
       console.error("Fetch error:", err);
+      setItems([]);
     }
   };
 
@@ -74,11 +74,8 @@ export default function AdminMenu() {
     }
 
     try {
-      const res = await fetch(API, {
+      const res = await authFetch(API, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         body: formData,
       });
 
@@ -101,11 +98,8 @@ export default function AdminMenu() {
 
   // ================= DELETE =================
   const handleDelete = async (id) => {
-    await fetch(API + id + "/", {
+    await authFetch(API + id + "/", {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
     });
 
     fetchMenu();
@@ -140,11 +134,8 @@ export default function AdminMenu() {
       formData.append("image", form.image);
     }
 
-    const res = await fetch(API + editing + "/", {
+    const res = await authFetch(API + editing + "/", {
       method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
       body: formData,
     });
 

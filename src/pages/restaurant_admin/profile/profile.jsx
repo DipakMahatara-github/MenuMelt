@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./profile.css";
+import { authFetch, API_BASE } from "../../../lib/api";
 
 export default function Profile() {
 
@@ -12,11 +13,7 @@ export default function Profile() {
 
   // ================= FETCH PROFILE =================
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/auth/profile/", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-      }
-    })
+    authFetch(`${API_BASE}/api/auth/profile/`)
       .then(res => res.json())
       .then(data => {
         console.log("USER:", data);
@@ -28,11 +25,10 @@ export default function Profile() {
   // ================= CHANGE PASSWORD =================
   const handleChangePassword = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/auth/change-password/", {
+      const res = await authFetch(`${API_BASE}/api/auth/change-password/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`
         },
         body: JSON.stringify({
           current_password: currentPassword,

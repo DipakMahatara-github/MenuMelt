@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import "./tables.css";
+import { authFetch, API_BASE } from "../../../lib/api";
 
 export default function Tables() {
 
-  const API = "http://127.0.0.1:8000/api/tables/tables/";
-  const token = localStorage.getItem("token");
+  const API = `${API_BASE}/api/tables/tables/`;
 
   const [tables, setTables] = useState([]);
   const [number, setNumber] = useState("");
@@ -12,11 +12,7 @@ export default function Tables() {
 
   // ✅ FETCH TABLES
   const fetchTables = async () => {
-    const res = await fetch(API, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await authFetch(API);
 
     const data = await res.json();
     setTables(data);
@@ -35,11 +31,10 @@ export default function Tables() {
       return;
     }
 
-    await fetch(API, {
+    await authFetch(API, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         number: Number(number),
@@ -52,11 +47,8 @@ export default function Tables() {
 
   // ✅ DELETE TABLE
   const deleteTable = async (id) => {
-    await fetch(API + id + "/", {
+    await authFetch(API + id + "/", {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
     });
 
     fetchTables();

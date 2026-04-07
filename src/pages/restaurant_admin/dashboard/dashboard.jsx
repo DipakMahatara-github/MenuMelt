@@ -11,6 +11,7 @@ import {
 } from "recharts";
 
 import notificationSound from "../../../assets/notification.mp3";
+import { authFetch, API_BASE } from "../../../lib/api";
 
 export default function Dashboard() {
 
@@ -20,14 +21,7 @@ export default function Dashboard() {
   const fetchDashboard = async () => {
     try {
 
-      // 🔥 GET TOKEN
-      const token = localStorage.getItem("token");
-
-      const res = await fetch("http://127.0.0.1:8000/api/dashboard/", {
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      });
+      const res = await authFetch(`${API_BASE}/api/dashboard/`);
 
       const json = await res.json();
 
