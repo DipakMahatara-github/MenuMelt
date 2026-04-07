@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import "./auth.css";
+import { clearAuth, setAuthTokens, setUserSession } from "../lib/auth";
 
 export default function Login() {
 
@@ -29,13 +30,15 @@ export default function Login() {
       }
 
       // 🔥 CLEAR OLD SESSION (IMPORTANT)
-      localStorage.clear();
+      clearAuth();
 
       // ✅ STORE EVERYTHING
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.role);
-      localStorage.setItem("restaurant", data.restaurant);
-      localStorage.setItem("name", data.name);
+      setAuthTokens({ access: data.access, refresh: data.refresh });
+      setUserSession({
+        role: data.role,
+        restaurant: data.restaurant,
+        name: data.name,
+      });
 
       console.log("Logged in restaurant:", data.restaurant);
 
