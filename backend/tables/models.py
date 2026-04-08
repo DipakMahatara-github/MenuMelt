@@ -1,5 +1,9 @@
 from django.db import models
+from django.core.files.base import ContentFile
+from django.conf import settings
+import qrcode
 import uuid
+from io import BytesIO
 
 
 class Table(models.Model):
@@ -14,6 +18,26 @@ class Table(models.Model):
 
     # 🔥 ADD THIS
     qr_code = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    qr_image = models.ImageField(upload_to="qr_codes/", null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        # Generate QR only when table is first created.
+        if is_new and not self.qr_image:
+            qr_url = f"{settings.FRONTEND_URL}/menu?table_token={self.qr_code}"
+            qr_img = qrcode.make(qr_url)
+
+            buffer = BytesIO()
+            qr_img.save(buffer, format="PNG")
+            buffer.seek(0)
+
+            self.qr_image.save(
+                f"table-{self.id}.png",
+                ContentFile(buffer.getvalue()),
+                save=True,
+            )
 
     class Meta:
         unique_together = ("restaurant", "number")
