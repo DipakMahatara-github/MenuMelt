@@ -1,21 +1,44 @@
 import { useEffect, useState } from "react";
 import "./tables.css";
 import { authFetch, API_BASE } from "../../../lib/api";
+import { API_BASE_URL } from "../../../config";
 
 export default function Tables() {
 
   const API = `${API_BASE}/api/tables/tables/`;
 
   const [tables, setTables] = useState([]);
+  const getQrImageUrl = (qrImagePath) => {
+    if (!qrImagePath) return null;
+    if (qrImagePath.startsWith("http://") || qrImagePath.startsWith("https://")) {
+      return qrImagePath;
+    }
+    return `${API_BASE_URL}${qrImagePath}`;
+  };
+
   const [number, setNumber] = useState("");
   const [selectedTable, setSelectedTable] = useState(null);
 
   // ✅ FETCH TABLES
   const fetchTables = async () => {
-    const res = await authFetch(API);
+    try {
+      const res = await authFetch(API);
+      const data = await res.json();
 
-    const data = await res.json();
-    setTables(data);
+      console.log("TABLES STATUS:", res.status);
+      console.log("TABLES RESPONSE:", data);
+
+      const tableList = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.results)
+        ? data.results
+        : [];
+
+      setTables(tableList);
+    } catch (error) {
+      console.error("Failed to fetch tables:", error);
+      setTables([]);
+    }
   };
 
   useEffect(() => {
@@ -115,24 +138,31 @@ export default function Tables() {
       {selectedTable && (
         <div className="qr-modal">
           <div className="qr-content">
-
             <h2>Table {selectedTable.number}</h2>
+            <p className="qr-note">Scan to view menu</p>
 
-            {/* ⚠️ TEMP FIX */}
-            <p>QR Code ID:</p>
-            <code>{selectedTable.qr_code}</code>
+            <div>
+              {selectedTable.qr_image ? (
+                <img
+                  src={getQrImageUrl(selectedTable.qr_image)}
+                  alt={`QR code for table ${selectedTable.number}`}
+                  className="qr-image"
+                />
+              ) : (
+                <p className="qr-note">QR image not available for this table.</p>
+              )}
+            </div>
 
             <p className="qr-note">
-              (Next step: convert this to actual QR image)
+              Customers can scan this QR to order
             </p>
 
             <button
-              className="close-btn"
               onClick={() => setSelectedTable(null)}
+              className="close-btn"
             >
               Close
             </button>
-
           </div>
         </div>
       )}
