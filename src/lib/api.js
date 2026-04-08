@@ -1,6 +1,7 @@
 import { clearAuth, getAccessToken, getRefreshToken, setAuthTokens } from "./auth";
+import { API_BASE_URL } from "../config";
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = API_BASE_URL;
 
 let refreshPromise = null;
 
@@ -33,14 +34,22 @@ const getFreshAccessToken = async () => {
 };
 
 export const authFetch = async (url, options = {}) => {
+  console.log("API BASE:", API_BASE);
   const headers = {
     ...(options.headers || {}),
   };
 
   const token = getAccessToken();
+  console.log("SESSION TOKEN (API):", sessionStorage.getItem("table_token"));
+  const tableToken = sessionStorage.getItem("table_token");
+
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
+  if (tableToken) {
+    headers["X-Table-Token"] = tableToken;
+  }
+  console.log("FINAL HEADERS:", headers);
 
   let response = await fetch(url, { ...options, headers });
 
@@ -61,6 +70,9 @@ export const authFetch = async (url, options = {}) => {
     ...(options.headers || {}),
     Authorization: `Bearer ${newAccess}`,
   };
+  if (tableToken) {
+    retryHeaders["X-Table-Token"] = tableToken;
+  }
 
   response = await fetch(url, { ...options, headers: retryHeaders });
   return response;

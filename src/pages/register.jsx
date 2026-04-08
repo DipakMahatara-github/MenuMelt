@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./auth.css";
+import { API_BASE_URL } from "../config";
 
 export default function Register() {
 
@@ -20,7 +21,7 @@ export default function Register() {
   // 🔥 CONNECT BACKEND
   const handleSubmit = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/auth/register/", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/register/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
