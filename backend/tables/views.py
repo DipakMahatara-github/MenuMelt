@@ -9,12 +9,9 @@ class TableViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Table.objects.filter(
+        return Table.objects.filter(
             restaurant=self.request.user.restaurant
         )
-        print("USER:", self.request.user, self.request.user.restaurant_id)
-        print("TABLES:", queryset)
-        return queryset
 
     def perform_create(self, serializer):
         serializer.save(

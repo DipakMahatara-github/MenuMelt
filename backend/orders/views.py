@@ -1,5 +1,6 @@
+from django.db import transaction
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Order, OrderItem
@@ -74,6 +75,55 @@ def orders_collection(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def guest_place_order(request):
+    """QR / table guest: create order using X-Table-Token (table QR), no login."""
+    token = request.headers.get("X-Table-Token")
+    if not token:
+        return Response({"error": "Missing table token"}, status=400)
+    try:
+        table = Table.objects.select_related("restaurant").get(qr_code=token)
+    except (Table.DoesNotExist, ValueError):
+        return Response({"error": "Invalid or expired table link"}, status=404)
+
+    items = request.data.get("items")
+    if not isinstance(items, list) or len(items) == 0:
+        return Response({"error": "Add at least one item"}, status=400)
+
+    restaurant = table.restaurant
+    try:
+        with transaction.atomic():
+            order = Order.objects.create(
+                restaurant=restaurant,
+                table=table.number,
+                status="pending",
+            )
+            for row in items:
+                mid = row.get("menu_item")
+                if mid is None:
+                    raise ValueError("invalid")
+                try:
+                    qty = int(row.get("quantity", 1))
+                except (TypeError, ValueError):
+                    raise ValueError("invalid")
+                if qty < 1 or qty > 99:
+                    raise ValueError("invalid")
+                menu_item = MenuItem.objects.get(
+                    id=int(mid), restaurant=restaurant, is_available=True
+                )
+                OrderItem.objects.create(order=order, menu_item=menu_item, quantity=qty)
+    except MenuItem.DoesNotExist:
+        return Response({"error": "One or more items are unavailable."}, status=400)
+    except ValueError:
+        return Response({"error": "Invalid order data."}, status=400)
+
+    return Response(
+        {"message": "Order placed successfully", "order_id": order.id},
+        status=201,
+    )
 
 
 @api_view(["PATCH"])

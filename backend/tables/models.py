@@ -1,9 +1,10 @@
 from django.db import models
 from django.core.files.base import ContentFile
-from django.conf import settings
 import qrcode
 import uuid
 from io import BytesIO
+
+from .utils import table_menu_qr_url
 
 
 class Table(models.Model):
@@ -26,7 +27,7 @@ class Table(models.Model):
 
         # Generate QR only when table is first created.
         if is_new and not self.qr_image:
-            qr_url = f"{settings.FRONTEND_URL}/menu?table_token={self.qr_code}"
+            qr_url = table_menu_qr_url(self)
             qr_img = qrcode.make(qr_url)
 
             buffer = BytesIO()
