@@ -64,6 +64,11 @@
   box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
 }
 
+.focus-image--placeholder {
+  background: linear-gradient(145deg, #e2e8f0, #f1f5f9);
+  box-shadow: inset 0 2px 8px rgba(148, 163, 184, 0.35);
+}
+
 .focus-title {
   margin: 0;
   font-size: 32px;
@@ -84,6 +89,59 @@
   color: #22c55e;
   font-size: 30px;
   font-weight: 700;
+}
+
+.focus-price-note {
+  font-size: 15px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.size-picker {
+  margin-top: 12px;
+}
+
+.size-picker-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.size-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.size-chip {
+  border: 0;
+  border-radius: 14px;
+  padding: 10px 14px;
+  background: #fff;
+  box-shadow: 0 6px 14px rgba(148, 163, 184, 0.22);
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.size-chip.active {
+  background: #dcfce7;
+  box-shadow: inset 0 0 0 2px #86efac;
+}
+
+.size-chip-price {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2563eb;
 }
 
 .thumb-row {
@@ -120,6 +178,14 @@
   border-radius: 12px;
   object-fit: cover;
   display: block;
+}
+
+.thumb-placeholder {
+  display: block;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: #e2e8f0;
 }
 
 .focus-actions {
@@ -216,6 +282,14 @@
   flex: 0 0 auto;
 }
 
+.order-thumb-placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  background: #e2e8f0;
+  flex: 0 0 auto;
+}
+
 .order-meta {
   min-width: 0;
   flex: 1;
@@ -226,6 +300,11 @@
   font-size: 14px;
   font-weight: 700;
   color: #1e293b;
+}
+
+.order-size-tag {
+  font-weight: 600;
+  color: #64748b;
 }
 
 .order-meta .price {
