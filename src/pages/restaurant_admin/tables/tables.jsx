@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import "./tables.css";
 import { authFetch, API_BASE } from "../../../lib/api";
-import { API_BASE_URL } from "../../../config";
 
 export default function Tables() {
 
@@ -13,7 +12,7 @@ export default function Tables() {
     if (qrImagePath.startsWith("http://") || qrImagePath.startsWith("https://")) {
       return qrImagePath;
     }
-    return `${API_BASE_URL}${qrImagePath}`;
+    return `${API_BASE}${qrImagePath}`;
   };
 
   const [number, setNumber] = useState("");
@@ -24,9 +23,6 @@ export default function Tables() {
     try {
       const res = await authFetch(API);
       const data = await res.json();
-
-      console.log("TABLES STATUS:", res.status);
-      console.log("TABLES RESPONSE:", data);
 
       const tableList = Array.isArray(data)
         ? data

@@ -16,7 +16,6 @@ export default function Profile() {
     authFetch(`${API_BASE}/api/auth/profile/`)
       .then(res => res.json())
       .then(data => {
-        console.log("USER:", data);
         setUser(data);
       })
       .catch(err => console.error(err));

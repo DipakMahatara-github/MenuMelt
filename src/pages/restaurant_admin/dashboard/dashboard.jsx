@@ -25,9 +25,6 @@ export default function Dashboard() {
 
       const json = await res.json();
 
-      console.log("Dashboard data:", json);
-      console.log("Current restaurant:", localStorage.getItem("restaurant"));
-
       // 🔔 SOUND ALERT
       if (json.recent_orders?.length > lastOrderCount) {
         const audio = new Audio(notificationSound);
