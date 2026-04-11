@@ -30,8 +30,8 @@ SECRET_KEY = "django-insecure-5llxo#@c6v-7+4#!!heaqng8^v@p#o&4dpi80al#3h7a+38u8q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# Browser traffic uses ngrok → Vite; Django is reached via Vite’s dev proxy (not exposed separately).
 ALLOWED_HOSTS = ["*"]
-
 
 # Application definition
 INSTALLED_APPS = [
@@ -87,7 +87,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "backend.wsgi.application"
 
 
-# Database
+# Database (local Postgres — not exposed via ngrok).
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
@@ -96,8 +96,8 @@ DATABASES = {
         "NAME": "menumelt_db",
         "USER": "postgres",
         "PASSWORD": "your_password",
-        "HOST": "localhost",
-        "PORT": "5432",
+        "HOST": os.getenv("DB_HOST") or "localhost",
+        "PORT": os.getenv("DB_PORT") or "5432",
     }
 }
 
@@ -179,8 +179,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 
 # ================= FRONTEND URL =================
-
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+# HTTPS ngrok URL to Vite (single public entry). QR codes: FRONTEND_URL + /menu?table_token=...
+# Set only in backend/.env — no default, so links never fall back to loopback or LAN IPs.
+FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
