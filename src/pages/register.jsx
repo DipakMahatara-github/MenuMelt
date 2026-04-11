@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./auth.css";
-import { API_BASE_URL } from "../config";
+import { API_BASE } from "../config";
 
 export default function Register() {
 
@@ -21,7 +21,7 @@ export default function Register() {
   // 🔥 CONNECT BACKEND
   const handleSubmit = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/register/`, {
+      const res = await fetch(`${API_BASE}/api/auth/register/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -37,7 +37,6 @@ export default function Register() {
         // later we will auto login
         navigate("/login");
       } else {
-        console.log(data);
         alert("Error: " + JSON.stringify(data));
       }
 

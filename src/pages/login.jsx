@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import "./auth.css";
 import { clearAuth, setAuthTokens, setUserSession } from "../lib/auth";
-import { API_BASE_URL } from "../config";
+import { API_BASE } from "../config";
 
 export default function Login() {
 
@@ -15,7 +15,7 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/login/`, {
+      const res = await fetch(`${API_BASE}/api/auth/login/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -40,8 +40,6 @@ export default function Login() {
         restaurant: data.restaurant,
         name: data.name,
       });
-
-      console.log("Logged in restaurant:", data.restaurant);
 
       // ✅ ROLE BASED NAVIGATION
       if (data.role === "admin") navigate("/admin");
