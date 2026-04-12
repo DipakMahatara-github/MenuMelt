@@ -1,0 +1,80 @@
+@import "./customerShell.css";
+
+.cx-cart-heading {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.cx-cart-heading h1 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--cx-navy);
+}
+
+.cx-cart-restaurant {
+  margin: 0 0 4px;
+  padding: 0 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--cx-green);
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cx-cart-page .cx-cart-lines {
+  margin-top: 8px;
+}
+
+.cx-secondary-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.cx-link-quiet {
+  display: block;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4f46e5;
+  text-decoration: none;
+  padding: 8px;
+}
+
+.cx-link-quiet:hover {
+  text-decoration: underline;
+}
+
+.cx-footer-pill {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.cx-footer-pill a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--cx-border);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--cx-navy);
+  text-decoration: none;
+  box-shadow: 0 8px 20px rgba(148, 163, 184, 0.2);
+}
+
+.cx-footer-pill a:hover {
+  box-shadow: 0 10px 24px rgba(148, 163, 184, 0.28);
+}

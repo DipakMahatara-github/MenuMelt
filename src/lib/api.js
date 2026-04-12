@@ -1,5 +1,6 @@
 import { clearAuth, getAccessToken, getRefreshToken, setAuthTokens } from "./auth";
 import { API_BASE } from "../config";
+import { getCustomerSessionId } from "./customerSession";
 
 let refreshPromise = null;
 
@@ -38,6 +39,7 @@ export const authFetch = async (url, options = {}) => {
 
   const token = getAccessToken();
   const tableToken = sessionStorage.getItem("table_token");
+  const sessionId = getCustomerSessionId();
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -45,10 +47,17 @@ export const authFetch = async (url, options = {}) => {
   if (tableToken) {
     headers["X-Table-Token"] = tableToken;
   }
+  if (sessionId) {
+    headers["X-Session-Id"] = sessionId;
+  }
 
   let response = await fetch(url, { ...options, headers });
 
   if (response.status !== 401) {
+    return response;
+  }
+
+  if (!token) {
     return response;
   }
 
@@ -67,6 +76,9 @@ export const authFetch = async (url, options = {}) => {
   };
   if (tableToken) {
     retryHeaders["X-Table-Token"] = tableToken;
+  }
+  if (sessionId) {
+    retryHeaders["X-Session-Id"] = sessionId;
   }
 
   response = await fetch(url, { ...options, headers: retryHeaders });

@@ -1,0 +1,110 @@
+@import "./customerShell.css";
+
+.cx-billing-summary {
+  margin-top: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--cx-border);
+}
+
+.cx-billing-order-line {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--cx-slate);
+}
+
+.cx-billing-total {
+  margin: 8px 0 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--cx-navy);
+}
+
+.cx-billing-total span {
+  color: var(--cx-green);
+}
+
+.cx-line-items {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cx-line-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.88rem;
+  color: var(--cx-slate-dark);
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: var(--cx-radius-sm);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.cx-billing-actions {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cx-btn-secondary {
+  width: 100%;
+  border: none;
+  border-radius: var(--cx-radius-md);
+  padding: 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(145deg, #334155, #1e293b);
+  box-shadow: 0 10px 24px rgba(30, 41, 59, 0.35);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.cx-btn-secondary:hover {
+  transform: translateY(-1px);
+}
+
+.cx-btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cx-billing-esewa-wait {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: var(--cx-slate-dark);
+  text-align: center;
+}
+
+.cx-billing-error {
+  margin-top: 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--cx-danger);
+}
+
+.cx-billing-link {
+  display: block;
+  text-align: center;
+  margin-top: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+.cx-billing-link:hover {
+  text-decoration: underline;
+}
+
+.cx-loading-inline {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--cx-slate);
+}
