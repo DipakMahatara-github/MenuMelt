@@ -69,6 +69,20 @@ class MenuCategoryViewSet(viewsets.ModelViewSet):
 class MenuViewSet(viewsets.ModelViewSet):
     serializer_class = MenuItemSerializer
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        # QR / table flow: return restaurant branding even if a JWT is also present (same browser).
+        if (request.headers.get("X-Table-Token") or "").strip():
+            restaurant = resolve_restaurant(request)
+            return Response(
+                {
+                    "restaurant": {"id": restaurant.id, "name": restaurant.name},
+                    "items": serializer.data,
+                }
+            )
+        return Response(serializer.data)
+
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context["request"] = self.request

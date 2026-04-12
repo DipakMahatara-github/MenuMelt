@@ -1,4 +1,6 @@
 from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -104,8 +106,8 @@ def register_user(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_profile(request):
-
-    serializer = UserSerializer(request.user)
+    user = User.objects.select_related("restaurant").get(pk=request.user.pk)
+    serializer = UserSerializer(user)
     return Response(serializer.data)
 
 
@@ -129,3 +131,60 @@ def change_password(request):
     user.save()
 
     return Response({"message": "Password updated successfully"})
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def restaurant_team(request):
+    """
+    Restaurant admins only: list or create staff / kitchen users for this restaurant.
+    """
+    if getattr(request.user, "role", None) != "restaurant_admin":
+        return Response(
+            {"error": "Only restaurant admins can manage staff and kitchen accounts."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+    restaurant = request.user.restaurant
+    if not restaurant:
+        return Response({"error": "No restaurant assigned"}, status=400)
+
+    if request.method == "GET":
+        team = (
+            User.objects.filter(restaurant_id=restaurant.id, role__in=["staff", "kitchen"])
+            .order_by("role", "email")
+        )
+        return Response(UserSerializer(team, many=True).data)
+
+    raw_email = (request.data.get("email") or "").strip()
+    email = User.objects.normalize_email(raw_email)
+    full_name = (request.data.get("full_name") or "").strip()
+    password = request.data.get("password") or ""
+    role = (request.data.get("role") or "").strip()
+
+    if not all([email, full_name, password, role]):
+        return Response(
+            {"error": "email, full_name, password, and role are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if role not in ("staff", "kitchen"):
+        return Response(
+            {"error": "role must be staff or kitchen."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if User.objects.filter(email__iexact=email).exists():
+        return Response({"error": "This email is already registered."}, status=400)
+
+    user = User(
+        email=email,
+        full_name=full_name[:255],
+        role=role,
+        restaurant=restaurant,
+    )
+    try:
+        validate_password(password, user)
+    except DjangoValidationError as exc:
+        return Response({"error": "; ".join(exc.messages)}, status=400)
+
+    user.set_password(password)
+    user.save()
+    return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)

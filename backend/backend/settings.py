@@ -149,6 +149,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "x-table-token",
+    "x-session-id",
 ]
 
 REST_FRAMEWORK = {
@@ -182,6 +183,13 @@ MEDIA_ROOT = BASE_DIR / "media"
 # HTTPS ngrok URL to Vite (single public entry). QR codes: FRONTEND_URL + /menu?table_token=...
 # Set only in backend/.env — no default, so links never fall back to loopback or LAN IPs.
 FRONTEND_URL = os.getenv("FRONTEND_URL")
+
+# Optional extra status host; verification tries rc-epay, uat, rc, then this if set.
+# ePay v2 form is on rc-epay — that status API usually has the transaction first.
+ESEWA_STATUS_URL = os.getenv(
+    "ESEWA_STATUS_URL",
+    "https://rc-epay.esewa.com.np/api/epay/transaction/status/",
+)
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",

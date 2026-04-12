@@ -35,6 +35,13 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    restaurant_name = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ["id", "email", "full_name", "role", "restaurant"]
+        fields = ["id", "email", "full_name", "role", "restaurant", "restaurant_name"]
+
+    def get_restaurant_name(self, obj):
+        if obj.restaurant_id and obj.restaurant:
+            return obj.restaurant.name
+        return None
