@@ -1,151 +1,166 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./kitchen.css";
 import { authFetch, API_BASE } from "../../lib/api";
+import { clearAuth } from "../../lib/auth";
 
 export default function Kitchen() {
-
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
+  const [error, setError] = useState("");
+  const [busyId, setBusyId] = useState(null);
 
-  // 🔥 FETCH ORDERS
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       const res = await authFetch(`${API_BASE}/api/orders/`);
       const data = await res.json();
-      setOrders(data);
-    } catch (err) {
-      console.error(err);
+      if (!res.ok) {
+        setError(data.detail || data.error || "Could not load orders.");
+        setOrders([]);
+        return;
+      }
+      setError("");
+      setOrders(Array.isArray(data) ? data : []);
+    } catch {
+      setError("Network error.");
+      setOrders([]);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchOrders();
     const interval = setInterval(fetchOrders, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchOrders]);
 
-  // ✅ MARK ORDER COMPLETED
-  const markCompleted = async (id) => {
+  const { activeOrders, servedOrders } = useMemo(() => {
+    const active = orders.filter((o) => o.status !== "served");
+    const served = orders.filter((o) => o.status === "served");
+    return { activeOrders: active, servedOrders: served };
+  }, [orders]);
+
+  const markServed = async (id) => {
+    setBusyId(id);
     try {
-      await authFetch(`${API_BASE}/api/orders/${id}/status/`, {
+      const res = await authFetch(`${API_BASE}/api/orders/${id}/status/`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          status: "completed"
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "served" }),
       });
-
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || data.detail || "Could not update.");
+        return;
+      }
+      setError("");
       fetchOrders();
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setError("Network error.");
+    } finally {
+      setBusyId(null);
     }
   };
 
-  // ✅ SAFE TIMER
   const getTime = (created_at) => {
-    if (!created_at) return "0m";
-
+    if (!created_at) return "—";
     const created = new Date(created_at);
-    if (isNaN(created.getTime())) return "0m";
-
+    if (Number.isNaN(created.getTime())) return "—";
     const diff = Math.floor((Date.now() - created.getTime()) / 1000);
-
     const min = Math.floor(diff / 60);
     const sec = diff % 60;
-
     return `${min}m ${sec}s`;
   };
 
-  // 🔥 SPLIT ORDERS
-  const activeOrders = orders.filter(o => o.status !== "completed");
-  const completedOrders = orders.filter(o => o.status === "completed");
+  const logout = () => {
+    clearAuth();
+    navigate("/login");
+  };
 
   return (
-    <div className="kitchen">
+    <div className="mm-ops mm-kitchen">
+      <header className="mm-ops-top">
+        <div>
+          <p className="mm-ops-eyebrow">Kitchen</p>
+          <h1 className="mm-ops-title">Live line</h1>
+          <p className="mm-ops-sub">Only orders released by staff appear here.</p>
+        </div>
+        <div className="mm-kitchen-top-meta">
+          <span className="mm-kitchen-pill">{activeOrders.length} active</span>
+          <button type="button" className="mm-ops-logout" onClick={logout}>
+            Log out
+          </button>
+        </div>
+      </header>
 
-      {/* HEADER */}
-      <div className="kitchen-header">
-        <h1> Kitchen Live</h1>
-        <span>{activeOrders.length} Active Orders</span>
-      </div>
+      {error ? <div className="mm-ops-alert">{error}</div> : null}
 
-      {/* ================= ACTIVE ================= */}
-      <h2 className="section-title"> Active Orders</h2>
-
-      <div className="kitchen-grid">
-        {activeOrders.length === 0 ? (
-          <p className="empty">No active orders</p>
-        ) : (
-          activeOrders.map(order => (
-            <div key={order.id} className={`order-card ${order.status}`}>
-
-              {/* TOP */}
-              <div className="order-top">
-                <h2>Table {order.table}</h2>
-                <span className="timer">
-                  ⏱ {getTime(order.created_at)}
-                </span>
-              </div>
-
-              {/* ITEMS */}
-              <div className="order-items">
-                {order.items?.map((item, index) => (
-                  <div key={index} className="item-row">
-                    <span className="item-name">
-                      {item.item_name}
-                    </span>
-                    <span className="qty">
-                      x{item.quantity}
-                    </span>
+      <section className="mm-kitchen-section">
+        <h2 className="mm-kitchen-h2">Cooking</h2>
+        <div className="mm-kitchen-grid">
+          {activeOrders.length === 0 ? (
+            <p className="mm-kitchen-empty">No tickets. Staff must send orders from the floor console.</p>
+          ) : (
+            activeOrders.map((order) => (
+              <article key={order.id} className={`mm-kitchen-card mm-kitchen-card--${order.status}`}>
+                <header className="mm-kitchen-card__head">
+                  <div>
+                    <span className="mm-kitchen-table">Table {order.table_number}</span>
+                    <h3>#{order.id}</h3>
                   </div>
-                ))}
-              </div>
+                  <span className="mm-kitchen-timer">{getTime(order.created_at)}</span>
+                </header>
+                <ul className="mm-kitchen-items">
+                  {order.items?.map((item, index) => (
+                    <li key={item.id ?? index}>
+                      <span className="mm-kitchen-item-name">{item.item_name}</span>
+                      <span className="mm-kitchen-qty">×{item.quantity}</span>
+                    </li>
+                  ))}
+                </ul>
+                {order.status === "preparing" && (
+                  <button
+                    type="button"
+                    className="mm-kitchen-done"
+                    disabled={busyId === order.id}
+                    onClick={() => markServed(order.id)}
+                  >
+                    {busyId === order.id ? "Saving…" : "Mark served"}
+                  </button>
+                )}
+              </article>
+            ))
+          )}
+        </div>
+      </section>
 
-              {/* ACTION */}
-              <button
-                className="complete-btn"
-                onClick={() => markCompleted(order.id)}
-              >
-                ✔ Mark Ready
-              </button>
-
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* ================= COMPLETED ================= */}
-      <h2 className="section-title completed-title"> Completed Orders</h2>
-
-      <div className="kitchen-grid">
-        {completedOrders.length === 0 ? (
-          <p className="empty">No completed orders</p>
-        ) : (
-          completedOrders.map(order => (
-            <div key={order.id} className="order-card completed">
-
-              <div className="order-top">
-                <h2>Table {order.table}</h2>
-                <span className="timer">
-                  ⏱ {getTime(order.created_at)}
-                </span>
-              </div>
-
-              <div className="order-items">
-                {order.items?.map((item, index) => (
-                  <div key={index} className="item-row">
-                    <span>{item.item_name}</span>
-                    <span>x{item.quantity}</span>
+      <section className="mm-kitchen-section mm-kitchen-section--done">
+        <h2 className="mm-kitchen-h2">Completed</h2>
+        <div className="mm-kitchen-grid">
+          {servedOrders.length === 0 ? (
+            <p className="mm-kitchen-empty">No completed tickets yet.</p>
+          ) : (
+            servedOrders.map((order) => (
+              <article key={order.id} className="mm-kitchen-card mm-kitchen-card--served">
+                <header className="mm-kitchen-card__head">
+                  <div>
+                    <span className="mm-kitchen-table">Table {order.table_number}</span>
+                    <h3>#{order.id}</h3>
                   </div>
-                ))}
-              </div>
-
-            </div>
-          ))
-        )}
-      </div>
-
+                  <span className="mm-kitchen-timer muted">{getTime(order.created_at)}</span>
+                </header>
+                <ul className="mm-kitchen-items">
+                  {order.items?.map((item, index) => (
+                    <li key={item.id ?? index}>
+                      <span>{item.item_name}</span>
+                      <span>×{item.quantity}</span>
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            ))
+          )}
+        </div>
+      </section>
     </div>
   );
 }

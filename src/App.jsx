@@ -22,6 +22,8 @@ import Orders from "./pages/restaurant_admin/orders/orders.jsx";
 import AdminKitchen from "./pages/restaurant_admin/adminKitchen/adminKitchen.jsx";
 import Profile from "./pages/restaurant_admin/profile/profile.jsx";
 import Subscription from "./pages/restaurant_admin/subscription/subscription.jsx";
+import PaymentSettings from "./pages/restaurant_admin/payment/PaymentSettings.jsx";
+import Team from "./pages/restaurant_admin/team/Team.jsx";
 
 /* ================= STAFF ================= */
 import Staff from "./pages/staff/staff";
@@ -31,6 +33,11 @@ import Kitchen from "./pages/kitchen/kitchen";
 
 /* ================= CUSTOMER ================= */
 import CustomerMenu from "./pages/customer/menu/CustomerMenu";
+import CustomerCart from "./pages/customer/Cart.jsx";
+import Checkout from "./pages/customer/Checkout.jsx";
+import Billing from "./pages/customer/Billing.jsx";
+import MyOrders from "./pages/customer/MyOrders.jsx";
+import EsewaReturn from "./pages/customer/EsewaReturn.jsx";
 
 /* ================= PROTECTED ================= */
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -47,6 +54,12 @@ function App() {
       {/* ================= CUSTOMER ================= */}
       <Route path="/menu" element={<CustomerMenu />} />
       <Route path="/menu/:id" element={<CustomerMenu />} />
+      <Route path="/cart" element={<CustomerCart />} />
+      <Route path="/checkout" element={<Checkout />} />
+      <Route path="/billing/:orderId" element={<Billing />} />
+      <Route path="/my-orders" element={<MyOrders />} />
+      <Route path="/payment/esewa/success" element={<EsewaReturn variant="success" />} />
+      <Route path="/payment/esewa/failure" element={<EsewaReturn variant="failure" />} />
 
       {/* ================= PLATFORM ADMIN ================= */}
       <Route
@@ -80,6 +93,8 @@ function App() {
         <Route path="kitchen" element={<AdminKitchen />} />
         <Route path="subscription" element={<Subscription />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="payment" element={<PaymentSettings />} />
+        <Route path="team" element={<Team />} />
       </Route>
 
       {/* ================= STAFF ================= */}

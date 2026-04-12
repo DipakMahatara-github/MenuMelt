@@ -1,14 +1,71 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap");
+
 /* PAGE */
-.orders-page {
-  padding: 30px;
-  background: #f1f5f9;
+.orders-page.mm-orders-pro {
+  padding: clamp(1.25rem, 3vw, 2.25rem);
+  background: radial-gradient(900px 500px at 0% 0%, rgba(59, 130, 246, 0.08), transparent 50%),
+    linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
   min-height: 100vh;
+  font-family: "Outfit", system-ui, sans-serif;
+}
+
+.mm-orders-pro__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
+}
+
+.mm-orders-pro__eyebrow {
+  margin: 0 0 0.25rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #6366f1;
 }
 
 .page-title {
-  font-size: 30px;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
   font-weight: 800;
-  margin-bottom: 25px;
+  margin: 0 0 0.35rem;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+}
+
+.mm-orders-pro__sub {
+  margin: 0;
+  max-width: 36rem;
+  color: #64748b;
+  line-height: 1.55;
+}
+
+.mm-orders-pro__filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.mm-orders-pro__filter select {
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+  background: #fff;
+}
+
+.mm-orders-stats {
+  flex-wrap: wrap;
+}
+
+.stat-card--alert {
+  border-left: 5px solid #f97316 !important;
+  background: linear-gradient(135deg, #fff7ed, #ffffff);
 }
 
 /* STATS */
@@ -124,4 +181,27 @@
 .btn.done {
   background: #10b981;
   color: white;
+}
+
+.mm-orders-chip {
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mm-orders-chip--warn {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.mm-orders-chip--ok {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
 }

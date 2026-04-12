@@ -74,95 +74,103 @@ export default function Tables() {
   };
 
   return (
-    <div className="tables-container">
+    <div className="mm-tables">
+      <header className="mm-tables__hero">
+        <p className="mm-tables__eyebrow">Floor</p>
+        <h1 className="mm-tables__title">Table management</h1>
+        <p className="mm-tables__lead">
+          Create numbered tables and share QR codes so guests open your menu instantly.
+        </p>
+      </header>
 
-      <h1 className="tables-header">Table Management</h1>
-
-      {/* FORM */}
-      <div className="tables-form">
+      <div className="mm-tables__toolbar">
         <input
-          className="tables-input"
+          className="mm-tables__input"
           type="number"
-          placeholder="Enter table number..."
+          min={1}
+          placeholder="Table number…"
           value={number}
           onChange={(e) => setNumber(e.target.value)}
         />
-
-        <button className="tables-add-btn" onClick={addTable}>
-          + Add Table
+        <button type="button" className="mm-tables__add" onClick={addTable}>
+          Add table
         </button>
       </div>
 
-      {/* GRID */}
-      <div className="tables-grid">
-
+      <div className="mm-tables__grid">
         {tables.length === 0 ? (
-          <p>No tables yet. Add one </p>
+          <p className="mm-tables__empty">No tables yet. Add a number above to get started.</p>
         ) : (
           tables.map((table) => (
-            <div key={table.id} className="table-card">
-
-              <div className="table-number">
-                🍽 Table {table.number}
+            <div key={table.id} className="mm-tables__card">
+              <div className="mm-tables__card-label">
+                <span className="mm-tables__card-icon" aria-hidden>
+                  ◈
+                </span>
+                Table {table.number}
               </div>
-
-              <div className="table-actions">
-
+              <div className="mm-tables__actions">
                 <button
-                  className="qr-btn"
+                  type="button"
+                  className="mm-tables__btn mm-tables__btn--qr"
                   onClick={() => setSelectedTable(table)}
                 >
                   View QR
                 </button>
-
                 <button
-                  className="delete-btn"
+                  type="button"
+                  className="mm-tables__btn mm-tables__btn--delete"
                   onClick={() => deleteTable(table.id)}
                 >
-                  Delete
+                  Remove
                 </button>
-
               </div>
-
             </div>
           ))
         )}
-
       </div>
 
-      {/* QR MODAL */}
       {selectedTable && (
-        <div className="qr-modal">
-          <div className="qr-content">
-            <h2>Table {selectedTable.number}</h2>
-            <p className="qr-note">Scan to view menu</p>
-
+        <div
+          className="mm-tables__modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="mm-tables-qr-title"
+          onClick={() => setSelectedTable(null)}
+          onKeyDown={(e) => e.key === "Escape" && setSelectedTable(null)}
+        >
+          <div
+            className="mm-tables__modal-panel"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="mm-tables-qr-title">Table {selectedTable.number}</h2>
+            <p className="mm-tables__modal-note">Scan to open the menu</p>
             <div>
               {selectedTable.qr_image ? (
                 <img
                   src={getQrImageUrl(selectedTable.qr_image)}
                   alt={`QR code for table ${selectedTable.number}`}
-                  className="qr-image"
+                  className="mm-tables__qr"
                 />
               ) : (
-                <p className="qr-note">QR image not available for this table.</p>
+                <p className="mm-tables__modal-note">
+                  QR image is not available for this table.
+                </p>
               )}
             </div>
-
-            <p className="qr-note">
-              Customers can scan this QR to order
+            <p className="mm-tables__modal-note">
+              Guests scan this code to browse and order.
             </p>
-
             <button
+              type="button"
               onClick={() => setSelectedTable(null)}
-              className="close-btn"
+              className="mm-tables__close"
             >
               Close
             </button>
           </div>
         </div>
       )}
-
     </div>
   );
 }

@@ -1,0 +1,58 @@
+.payment-settings {
+  max-width: 520px;
+}
+
+.payment-settings__intro {
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+}
+
+.payment-settings__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.payment-settings__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.payment-settings__form input {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  font-size: 1rem;
+}
+
+.payment-settings__submit {
+  margin-top: 0.5rem;
+  background: #0f172a;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.payment-settings__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.payment-settings__error {
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
+
+.payment-settings__muted {
+  color: #64748b;
+  font-size: 0.85rem;
+}
