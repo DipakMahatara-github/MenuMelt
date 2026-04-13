@@ -68,8 +68,8 @@ export default function Dashboard() {
             </tr>
 
             <tr>
-              <td>staff@menumelt.com</td>
-              <td>Staff</td>
+              <td>waiter@menumelt.com</td>
+              <td>Waiter</td>
               <td><span className="badge pending">Pending</span></td>
             </tr>
           </tbody>

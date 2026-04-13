@@ -18,11 +18,12 @@ class OrderAdmin(admin.ModelAdmin):
         "customer_name",
         "total_price",
         "payment_method",
+        "billing_status",
         "payment_status",
         "status",
         "created_at",
     )
-    list_filter = ("status", "payment_status", "payment_method")
+    list_filter = ("status", "billing_status", "payment_status", "payment_method")
     inlines = [OrderItemInline]
 
 

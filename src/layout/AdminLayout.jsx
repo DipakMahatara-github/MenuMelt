@@ -70,7 +70,7 @@ export default function AdminLayout() {
           </li>
           <li>
             <NavLink to="/restaurant-admin/team">
-              <Users /> Staff
+              <Users /> Team
             </NavLink>
           </li>
           <li>

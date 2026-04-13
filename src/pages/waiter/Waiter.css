@@ -1,7 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
 
 .mm-ops,
-.mm-staff {
+.mm-waiter {
   --mm-bg0: #070b14;
   --mm-bg1: #0c1224;
   --mm-surface: rgba(18, 26, 48, 0.72);
@@ -82,28 +82,28 @@
   font-size: 0.95rem;
 }
 
-.mm-staff-section {
+.mm-waiter-section {
   margin-bottom: 2.5rem;
 }
 
-.mm-staff-section--dim .mm-staff-section__head h2 {
+.mm-waiter-section--dim .mm-waiter-section__head h2 {
   color: var(--mm-muted);
 }
 
-.mm-staff-section__head {
+.mm-waiter-section__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1rem;
 }
 
-.mm-staff-section__head h2 {
+.mm-waiter-section__head h2 {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
 }
 
-.mm-staff-count {
+.mm-waiter-count {
   font-size: 0.85rem;
   font-weight: 700;
   padding: 0.25rem 0.65rem;
@@ -113,19 +113,19 @@
   border: 1px solid rgba(56, 189, 248, 0.25);
 }
 
-.mm-staff-empty {
+.mm-waiter-empty {
   color: var(--mm-muted);
   margin: 0;
   padding: 1.25rem 0;
 }
 
-.mm-staff-grid {
+.mm-waiter-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 1.1rem;
 }
 
-.mm-staff-card {
+.mm-waiter-card {
   position: relative;
   padding: 1.25rem 1.35rem;
   border-radius: 18px;
@@ -136,7 +136,7 @@
   overflow: hidden;
 }
 
-.mm-staff-card::before {
+.mm-waiter-card::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -144,19 +144,19 @@
   pointer-events: none;
 }
 
-.mm-staff-card > * {
+.mm-waiter-card > * {
   position: relative;
   z-index: 1;
 }
 
-.mm-staff-card__head {
+.mm-waiter-card__head {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 0.75rem;
 }
 
-.mm-staff-card__table {
+.mm-waiter-card__table {
   display: block;
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -165,13 +165,13 @@
   font-weight: 600;
 }
 
-.mm-staff-card__title {
+.mm-waiter-card__title {
   margin: 0.15rem 0 0;
   font-size: 1.2rem;
   font-weight: 700;
 }
 
-.mm-staff-badge {
+.mm-waiter-badge {
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -181,51 +181,51 @@
   border: 1px solid transparent;
 }
 
-.mm-staff-badge--pending {
+.mm-waiter-badge--pending {
   background: rgba(251, 191, 36, 0.15);
   color: #fcd34d;
   border-color: rgba(251, 191, 36, 0.35);
 }
 
-.mm-staff-badge--preparing {
+.mm-waiter-badge--preparing {
   background: rgba(167, 139, 250, 0.18);
   color: #ddd6fe;
   border-color: rgba(167, 139, 250, 0.35);
 }
 
-.mm-staff-badge--served {
+.mm-waiter-badge--served {
   background: rgba(52, 211, 153, 0.15);
   color: #6ee7b7;
   border-color: rgba(52, 211, 153, 0.35);
 }
 
-.mm-staff-card__who {
+.mm-waiter-card__who {
   margin: 0.65rem 0 0.15rem;
   color: var(--mm-muted);
   font-size: 0.92rem;
 }
 
-.mm-staff-card__pay {
+.mm-waiter-card__pay {
   margin: 0;
   font-size: 0.82rem;
   color: var(--mm-accent2);
 }
 
-.mm-staff-card__amt {
+.mm-waiter-card__amt {
   margin: 0.35rem 0 0.85rem;
   font-size: 1.35rem;
   font-weight: 700;
   color: var(--mm-text);
 }
 
-.mm-staff-items {
+.mm-waiter-items {
   list-style: none;
   margin: 0 0 1rem;
   padding: 0;
   border-top: 1px solid var(--mm-border);
 }
 
-.mm-staff-items li {
+.mm-waiter-items li {
   display: flex;
   justify-content: space-between;
   padding: 0.45rem 0;
@@ -234,7 +234,7 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
-.mm-staff-btn {
+.mm-waiter-btn {
   width: 100%;
   border: none;
   border-radius: 12px;
@@ -245,33 +245,33 @@
   transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
 }
 
-.mm-staff-btn:disabled {
+.mm-waiter-btn:disabled {
   opacity: 0.55;
   cursor: wait;
 }
 
-.mm-staff-btn--primary {
+.mm-waiter-btn--primary {
   color: #041018;
   background: linear-gradient(120deg, #38bdf8, #22d3ee);
   box-shadow: 0 12px 30px var(--mm-glow);
 }
 
-.mm-staff-btn--primary:hover:not(:disabled) {
+.mm-waiter-btn--primary:hover:not(:disabled) {
   transform: translateY(-1px);
 }
 
-.mm-staff-btn--ghost {
+.mm-waiter-btn--ghost {
   background: rgba(255, 255, 255, 0.06);
   color: var(--mm-text);
   border: 1px solid var(--mm-border);
 }
 
-.mm-staff-btn--ghost:hover:not(:disabled) {
+.mm-waiter-btn--ghost:hover:not(:disabled) {
   border-color: rgba(52, 211, 153, 0.45);
   color: #a7f3d0;
 }
 
-.mm-staff-card__actions {
+.mm-waiter-card__actions {
   display: flex;
   gap: 0.5rem;
 }

@@ -7,7 +7,7 @@ export default function Users() {
   const users = [
     { email: "admin@menumelt.com", role: "admin" },
     { email: "restaurant@menumelt.com", role: "restaurant_admin" },
-    { email: "staff@menumelt.com", role: "staff" },
+    { email: "waiter@menumelt.com", role: "waiter" },
   ];
 
   const filtered = users.filter(u =>

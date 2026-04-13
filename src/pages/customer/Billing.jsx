@@ -112,7 +112,7 @@ export default function Billing() {
       setOrder(data);
       navigate("/my-orders", {
         replace: true,
-        state: { flash: "You chose pay at counter. Show staff your order number." },
+        state: { flash: "Cash payment is awaiting the cashier. Show your order number at the counter." },
       });
     } catch (e) {
       console.error(e);
@@ -232,6 +232,9 @@ export default function Billing() {
             <p className="cx-billing-total">
               Rs. <span>{Number(order.total_price).toFixed(2)}</span>
             </p>
+            <p className="cx-billing-order-line">
+              Billing status <strong>{String(order.billing_status || "unbilled").replaceAll("_", " ")}</strong>
+            </p>
           </div>
 
           <ul className="cx-line-items">
@@ -259,10 +262,20 @@ export default function Billing() {
           ) : null}
 
           <div className="cx-billing-actions">
-            <button type="button" className="cx-btn-secondary" disabled={busy} onClick={payCash}>
+            <button
+              type="button"
+              className="cx-btn-secondary"
+              disabled={busy || order.billing_status === "paid" || order.billing_status === "refunded"}
+              onClick={payCash}
+            >
               Pay at counter
             </button>
-            <button type="button" className="cx-btn-block" disabled={busy} onClick={payEsewa}>
+            <button
+              type="button"
+              className="cx-btn-block"
+              disabled={busy || order.billing_status === "paid" || order.billing_status === "refunded"}
+              onClick={payEsewa}
+            >
               Pay with eSewa
             </button>
             {epayPayload ? (

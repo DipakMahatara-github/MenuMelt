@@ -1,11 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./staff.css";
+import "./Waiter.css";
 import { authFetch, API_BASE } from "../../lib/api";
-import { clearAuth } from "../../lib/auth";
+import { clearAuth, getUserRole } from "../../lib/auth";
 
-export default function Staff() {
+const ROLE_COPY = {
+  waiter: {
+    eyebrow: "Waiter",
+    title: "Waiter console",
+    subtitle: "Confirm new orders before the kitchen sees them.",
+    emptyAwaiting: "No new orders right now.",
+    emptyInKitchen: "Nothing sent to the kitchen yet.",
+  },
+};
+
+export default function Waiter() {
   const navigate = useNavigate();
+  const role = getUserRole();
+  const copy = ROLE_COPY[role] || ROLE_COPY.waiter;
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState(null);
@@ -87,24 +99,24 @@ export default function Staff() {
   };
 
   const payLabel = (o) => {
-    if (o.payment_method === "esewa") return o.payment_status === "paid" ? "eSewa · paid" : "eSewa · pending";
-    if (o.payment_method === "cash") return "Pay at counter";
-    return "Payment pending";
+    if (o.payment_method === "esewa") return `eSewa · ${o.billing_status}`;
+    if (o.payment_method === "cash") return `Cash · ${o.billing_status}`;
+    return `Billing · ${o.billing_status}`;
   };
 
   const OrderCard = ({ order, mode }) => (
-    <article className="mm-staff-card" key={order.id}>
-      <header className="mm-staff-card__head">
+    <article className="mm-waiter-card" key={order.id}>
+      <header className="mm-waiter-card__head">
         <div>
-          <span className="mm-staff-card__table">Table {order.table_number}</span>
-          <h3 className="mm-staff-card__title">Order #{order.id}</h3>
+          <span className="mm-waiter-card__table">Table {order.table_number}</span>
+          <h3 className="mm-waiter-card__title">Order #{order.id}</h3>
         </div>
-        <span className={`mm-staff-badge mm-staff-badge--${order.status}`}>{order.status}</span>
+        <span className={`mm-waiter-badge mm-waiter-badge--${order.status}`}>{order.status}</span>
       </header>
-      <p className="mm-staff-card__who">{order.customer_name}</p>
-      <p className="mm-staff-card__pay">{payLabel(order)}</p>
-      <p className="mm-staff-card__amt">Rs. {Number(order.total_price).toFixed(2)}</p>
-      <ul className="mm-staff-items">
+      <p className="mm-waiter-card__who">{order.customer_name}</p>
+      <p className="mm-waiter-card__pay">{payLabel(order)}</p>
+      <p className="mm-waiter-card__amt">Rs. {Number(order.total_price).toFixed(2)}</p>
+      <ul className="mm-waiter-items">
         {(order.items || []).map((item) => (
           <li key={item.id ?? `${item.menu_item}-${item.quantity}`}>
             <span>{item.item_name}</span>
@@ -115,18 +127,18 @@ export default function Staff() {
       {mode === "await" ? (
         <button
           type="button"
-          className="mm-staff-btn mm-staff-btn--primary"
+          className="mm-waiter-btn mm-waiter-btn--primary"
           disabled={busyId === order.id}
           onClick={() => confirmForKitchen(order.id)}
         >
           {busyId === order.id ? "Sending…" : "Send to kitchen"}
         </button>
       ) : (
-        <div className="mm-staff-card__actions">
+        <div className="mm-waiter-card__actions">
           {order.status === "preparing" && (
             <button
               type="button"
-              className="mm-staff-btn mm-staff-btn--ghost"
+              className="mm-waiter-btn mm-waiter-btn--ghost"
               disabled={busyId === order.id}
               onClick={() => updateStatus(order.id, "served")}
             >
@@ -139,12 +151,12 @@ export default function Staff() {
   );
 
   return (
-    <div className="mm-ops mm-staff">
+    <div className="mm-ops mm-waiter">
       <header className="mm-ops-top">
         <div>
-          <p className="mm-ops-eyebrow">Floor</p>
-          <h1 className="mm-ops-title">Staff console</h1>
-          <p className="mm-ops-sub">Confirm new orders before the kitchen sees them.</p>
+          <p className="mm-ops-eyebrow">{copy.eyebrow}</p>
+          <h1 className="mm-ops-title">{copy.title}</h1>
+          <p className="mm-ops-sub">{copy.subtitle}</p>
         </div>
         <button type="button" className="mm-ops-logout" onClick={logout}>
           Log out
@@ -153,15 +165,15 @@ export default function Staff() {
 
       {error ? <div className="mm-ops-alert">{error}</div> : null}
 
-      <section className="mm-staff-section">
-        <div className="mm-staff-section__head">
+      <section className="mm-waiter-section">
+        <div className="mm-waiter-section__head">
           <h2>Awaiting your confirmation</h2>
-          <span className="mm-staff-count">{awaiting.length}</span>
+          <span className="mm-waiter-count">{awaiting.length}</span>
         </div>
         {awaiting.length === 0 ? (
-          <p className="mm-staff-empty">No new orders right now.</p>
+          <p className="mm-waiter-empty">{copy.emptyAwaiting}</p>
         ) : (
-          <div className="mm-staff-grid">
+          <div className="mm-waiter-grid">
             {awaiting.map((o) => (
               <OrderCard key={o.id} order={o} mode="await" />
             ))}
@@ -169,15 +181,15 @@ export default function Staff() {
         )}
       </section>
 
-      <section className="mm-staff-section mm-staff-section--dim">
-        <div className="mm-staff-section__head">
+      <section className="mm-waiter-section mm-waiter-section--dim">
+        <div className="mm-waiter-section__head">
           <h2>In service · kitchen queue</h2>
-          <span className="mm-staff-count">{inKitchen.length}</span>
+          <span className="mm-waiter-count">{inKitchen.length}</span>
         </div>
         {inKitchen.length === 0 ? (
-          <p className="mm-staff-empty">Nothing sent to the kitchen yet.</p>
+          <p className="mm-waiter-empty">{copy.emptyInKitchen}</p>
         ) : (
-          <div className="mm-staff-grid">
+          <div className="mm-waiter-grid">
             {inKitchen.map((o) => (
               <OrderCard key={o.id} order={o} mode="floor" />
             ))}

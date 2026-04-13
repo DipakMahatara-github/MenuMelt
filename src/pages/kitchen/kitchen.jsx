@@ -82,7 +82,7 @@ export default function Kitchen() {
         <div>
           <p className="mm-ops-eyebrow">Kitchen</p>
           <h1 className="mm-ops-title">Live line</h1>
-          <p className="mm-ops-sub">Only orders released by staff appear here.</p>
+          <p className="mm-ops-sub">Only orders released by waiters or admins appear here.</p>
         </div>
         <div className="mm-kitchen-top-meta">
           <span className="mm-kitchen-pill">{activeOrders.length} active</span>
@@ -98,7 +98,7 @@ export default function Kitchen() {
         <h2 className="mm-kitchen-h2">Cooking</h2>
         <div className="mm-kitchen-grid">
           {activeOrders.length === 0 ? (
-            <p className="mm-kitchen-empty">No tickets. Staff must send orders from the floor console.</p>
+            <p className="mm-kitchen-empty">No tickets. Waiters or admins must send orders from the floor console.</p>
           ) : (
             activeOrders.map((order) => (
               <article key={order.id} className={`mm-kitchen-card mm-kitchen-card--${order.status}`}>

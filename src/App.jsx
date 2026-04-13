@@ -25,8 +25,9 @@ import Subscription from "./pages/restaurant_admin/subscription/subscription.jsx
 import PaymentSettings from "./pages/restaurant_admin/payment/PaymentSettings.jsx";
 import Team from "./pages/restaurant_admin/team/Team.jsx";
 
-/* ================= STAFF ================= */
-import Staff from "./pages/staff/staff";
+/* ================= WAITER / CASHIER ================= */
+import Waiter from "./pages/waiter/Waiter";
+import Cashier from "./pages/cashier/Cashier";
 
 /* ================= KITCHEN ================= */
 import Kitchen from "./pages/kitchen/kitchen";
@@ -97,12 +98,22 @@ function App() {
         <Route path="team" element={<Team />} />
       </Route>
 
-      {/* ================= STAFF ================= */}
+      {/* ================= WAITER ================= */}
       <Route
-        path="/staff"
+        path="/waiter"
         element={
-          <ProtectedRoute allowedRole="staff">
-            <Staff />
+          <ProtectedRoute allowedRole="waiter">
+            <Waiter />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ================= CASHIER ================= */}
+      <Route
+        path="/cashier"
+        element={
+          <ProtectedRoute allowedRole="cashier">
+            <Cashier />
           </ProtectedRoute>
         }
       />

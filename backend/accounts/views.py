@@ -137,11 +137,11 @@ def change_password(request):
 @permission_classes([IsAuthenticated])
 def restaurant_team(request):
     """
-    Restaurant admins only: list or create staff / kitchen users for this restaurant.
+    Restaurant admins only: list or create waiter / cashier / kitchen users for this restaurant.
     """
     if getattr(request.user, "role", None) != "restaurant_admin":
         return Response(
-            {"error": "Only restaurant admins can manage staff and kitchen accounts."},
+            {"error": "Only restaurant admins can manage waiter, cashier, and kitchen accounts."},
             status=status.HTTP_403_FORBIDDEN,
         )
     restaurant = request.user.restaurant
@@ -150,7 +150,7 @@ def restaurant_team(request):
 
     if request.method == "GET":
         team = (
-            User.objects.filter(restaurant_id=restaurant.id, role__in=["staff", "kitchen"])
+            User.objects.filter(restaurant_id=restaurant.id, role__in=["waiter", "cashier", "kitchen"])
             .order_by("role", "email")
         )
         return Response(UserSerializer(team, many=True).data)
@@ -166,9 +166,9 @@ def restaurant_team(request):
             {"error": "email, full_name, password, and role are required."},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    if role not in ("staff", "kitchen"):
+    if role not in ("waiter", "cashier", "kitchen"):
         return Response(
-            {"error": "role must be staff or kitchen."},
+            {"error": "role must be waiter, cashier, or kitchen."},
             status=status.HTTP_400_BAD_REQUEST,
         )
     if User.objects.filter(email__iexact=email).exists():

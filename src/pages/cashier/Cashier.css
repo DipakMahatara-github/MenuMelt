@@ -1,0 +1,251 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap");
+
+.mm-cashier {
+  font-family: "Outfit", system-ui, sans-serif;
+  min-height: 100vh;
+  padding: 2rem;
+  color: #e5eef7;
+  background:
+    radial-gradient(circle at top left, rgba(244, 114, 182, 0.12), transparent 24rem),
+    radial-gradient(circle at top right, rgba(45, 212, 191, 0.12), transparent 18rem),
+    linear-gradient(180deg, #08111f 0%, #101a2e 100%);
+}
+
+.mm-cashier__hero,
+.mm-cashier__stats,
+.mm-cashier__sections {
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.mm-cashier__hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.mm-cashier__eyebrow {
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.76rem;
+  color: #f9a8d4;
+  font-weight: 700;
+}
+
+.mm-cashier h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.mm-cashier__lead {
+  max-width: 44rem;
+  color: #97a6ba;
+  line-height: 1.6;
+}
+
+.mm-cashier__logout {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(15, 23, 42, 0.72);
+  color: #f8fafc;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.mm-cashier__alert {
+  max-width: 1240px;
+  margin: 0 auto 1rem;
+  padding: 0.95rem 1rem;
+  border-radius: 14px;
+  background: rgba(248, 113, 113, 0.14);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  color: #fecaca;
+}
+
+.mm-cashier__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.mm-cashier__stat {
+  border-radius: 20px;
+  padding: 1.1rem 1.2rem;
+  background: rgba(15, 23, 42, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: 0 22px 40px rgba(0, 0, 0, 0.18);
+}
+
+.mm-cashier__stat strong {
+  display: block;
+  font-size: 1.35rem;
+  margin-bottom: 0.3rem;
+}
+
+.mm-cashier__stat span {
+  color: #98a6b8;
+}
+
+.mm-cashier__sections {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.mm-cashier__section {
+  border-radius: 24px;
+  padding: 1.25rem;
+  background: rgba(15, 23, 42, 0.66);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.mm-cashier__section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.mm-cashier__section-head h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.mm-cashier__section-head span {
+  color: #f8fafc;
+  background: rgba(45, 212, 191, 0.18);
+  border: 1px solid rgba(45, 212, 191, 0.2);
+  border-radius: 999px;
+  padding: 0.28rem 0.65rem;
+}
+
+.mm-cashier__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.mm-cashier__card {
+  border-radius: 20px;
+  padding: 1rem;
+  background: linear-gradient(160deg, rgba(7, 15, 30, 0.92), rgba(14, 24, 43, 0.88));
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.mm-cashier__card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.mm-cashier__card-head p,
+.mm-cashier__card-head h3,
+.mm-cashier__meta,
+.mm-cashier__amount {
+  margin: 0;
+}
+
+.mm-cashier__card-head p {
+  color: #9fb0c7;
+  font-size: 0.84rem;
+}
+
+.mm-cashier__card-head h3 {
+  margin-top: 0.2rem;
+  font-size: 1.15rem;
+}
+
+.mm-cashier__card-head span {
+  text-transform: capitalize;
+  border-radius: 999px;
+  padding: 0.28rem 0.62rem;
+  font-size: 0.72rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #e2e8f0;
+}
+
+.mm-cashier__meta {
+  margin-top: 0.55rem;
+  color: #94a3b8;
+}
+
+.mm-cashier__amount {
+  margin-top: 0.75rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.mm-cashier__items {
+  list-style: none;
+  padding: 0;
+  margin: 0.85rem 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.mm-cashier__items li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: #d6deea;
+  font-size: 0.95rem;
+}
+
+.mm-cashier__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.mm-cashier__btn {
+  border: none;
+  border-radius: 12px;
+  padding: 0.72rem 0.9rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.mm-cashier__btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.mm-cashier__btn--primary {
+  color: #04111f;
+  background: linear-gradient(120deg, #67e8f9, #38bdf8);
+}
+
+.mm-cashier__btn--success {
+  color: #06211a;
+  background: linear-gradient(120deg, #6ee7b7, #34d399);
+}
+
+.mm-cashier__btn--warn {
+  color: #2a1700;
+  background: linear-gradient(120deg, #fcd34d, #fb923c);
+}
+
+.mm-cashier__btn--ghost {
+  color: #eef2ff;
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.mm-cashier__empty {
+  color: #7f8ea3;
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .mm-cashier {
+    padding: 1rem;
+  }
+
+  .mm-cashier__hero {
+    flex-direction: column;
+  }
+}

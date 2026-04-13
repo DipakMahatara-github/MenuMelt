@@ -2,6 +2,7 @@ import logging
 import time
 import uuid
 from decimal import Decimal
+from typing import Optional, Tuple
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
@@ -37,8 +38,91 @@ ESEWA_VERIFY_MAX_ATTEMPTS = 10
 ESEWA_VERIFY_RETRY_DELAY_SEC = 2.0
 
 ORDER_STATUS_VALUES = {Order.STATUS_PENDING, Order.STATUS_PREPARING, Order.STATUS_SERVED}
+BILLING_STATUS_VALUES = {
+    Order.BILLING_ST_UNBILLED,
+    Order.BILLING_ST_BILLED,
+    Order.BILLING_ST_PENDING_PAYMENT,
+    Order.BILLING_ST_PAID,
+    Order.BILLING_ST_FAILED,
+    Order.BILLING_ST_REFUNDED,
+}
+BILLING_STATUS_TRANSITIONS = {
+    Order.BILLING_ST_UNBILLED: {Order.BILLING_ST_BILLED, Order.BILLING_ST_PENDING_PAYMENT},
+    Order.BILLING_ST_BILLED: {
+        Order.BILLING_ST_PENDING_PAYMENT,
+        Order.BILLING_ST_PAID,
+    },
+    Order.BILLING_ST_PENDING_PAYMENT: {
+        Order.BILLING_ST_PAID,
+        Order.BILLING_ST_FAILED,
+    },
+    Order.BILLING_ST_FAILED: {
+        Order.BILLING_ST_PENDING_PAYMENT,
+    },
+    Order.BILLING_ST_PAID: {Order.BILLING_ST_REFUNDED},
+    Order.BILLING_ST_REFUNDED: set(),
+}
 
 logger = logging.getLogger(__name__)
+
+
+def _legacy_payment_status_for_billing(billing_status: str) -> str:
+    if billing_status == Order.BILLING_ST_PAID:
+        return Order.PAYMENT_ST_PAID
+    if billing_status in {Order.BILLING_ST_FAILED, Order.BILLING_ST_REFUNDED}:
+        return Order.PAYMENT_ST_FAILED
+    return Order.PAYMENT_ST_PENDING
+
+
+def _apply_billing_state(order: Order, billing_status: str, *, payment_method=None) -> None:
+    now = timezone.now()
+    order.billing_status = billing_status
+    order.payment_status = _legacy_payment_status_for_billing(billing_status)
+    if payment_method is not None:
+        order.payment_method = payment_method
+
+    if billing_status == Order.BILLING_ST_BILLED and order.billed_at is None:
+        order.billed_at = now
+    if billing_status == Order.BILLING_ST_PENDING_PAYMENT and order.billed_at is None:
+        order.billed_at = now
+    if billing_status == Order.BILLING_ST_PAID:
+        if order.billed_at is None:
+            order.billed_at = now
+        order.paid_at = now
+        order.refunded_at = None
+    elif billing_status == Order.BILLING_ST_REFUNDED:
+        if order.paid_at is None:
+            order.paid_at = now
+        order.refunded_at = now
+    else:
+        if billing_status != Order.BILLING_ST_REFUNDED:
+            order.refunded_at = None
+        if billing_status != Order.BILLING_ST_PAID:
+            order.paid_at = None
+
+
+def _validate_billing_transition(order: Order, next_status: str) -> Optional[str]:
+    if next_status not in BILLING_STATUS_VALUES:
+        return f"Invalid billing status. Allowed: {sorted(BILLING_STATUS_VALUES)}"
+    current = order.billing_status or Order.BILLING_ST_UNBILLED
+    if next_status == current:
+        return None
+    allowed = BILLING_STATUS_TRANSITIONS.get(current, set())
+    if next_status not in allowed:
+        return f"Cannot move billing status from {current} to {next_status}."
+    return None
+
+
+def _resolve_restaurant_order_for_user(request, order_id: int) -> Tuple[Optional[Order], Optional[Response]]:
+    if not request.user.restaurant_id:
+        return None, Response({"error": "No restaurant assigned to user"}, status=400)
+    try:
+        order = Order.objects.select_related("restaurant", "table").get(
+            id=order_id, restaurant_id=request.user.restaurant_id
+        )
+        return order, None
+    except Order.DoesNotExist:
+        return None, Response({"error": "Order not found"}, status=404)
 
 
 @api_view(["GET", "POST"])
@@ -62,6 +146,9 @@ def orders_collection(request):
         st = (request.query_params.get("status") or "").strip()
         if st:
             qs = qs.filter(status=st)
+        billing_st = (request.query_params.get("billing_status") or "").strip()
+        if billing_st:
+            qs = qs.filter(billing_status=billing_st)
         return Response(OrderSerializer(qs, many=True).data)
 
     # POST — customer (no login); totals and line prices come only from MenuItem rows we validate.
@@ -126,6 +213,7 @@ def orders_collection(request):
                 session_id=session_id,
                 customer_name=data["customer_name"],
                 total_price=total_price,
+                billing_status=Order.BILLING_ST_UNBILLED,
                 payment_status=Order.PAYMENT_ST_PENDING,
                 status=Order.STATUS_PENDING,
             )
@@ -140,7 +228,7 @@ def orders_collection(request):
         logger.warning("Order create IntegrityError: %s", exc, exc_info=True)
         print("Order IntegrityError:", exc)
         return Response(
-            {"error": "Could not save your order. Please try again or ask staff for help."},
+            {"error": "Could not save your order. Please try again or ask the restaurant team for help."},
             status=status.HTTP_400_BAD_REQUEST,
         )
     except Exception:
@@ -174,19 +262,16 @@ def orders_my(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def confirm_order_for_kitchen(request, order_id):
-    """Staff or restaurant admin: release order to kitchen (required before kitchen role can see it)."""
+    """Waiter or restaurant admin: release order to kitchen."""
     role = getattr(request.user, "role", None)
-    if role not in ("staff", "restaurant_admin"):
-        return Response({"error": "Only staff or restaurant admins can confirm orders for the kitchen."}, status=403)
-    if not request.user.restaurant_id:
-        return Response({"error": "No restaurant assigned to user"}, status=400)
-
-    try:
-        order = Order.objects.select_related("table").get(
-            id=order_id, restaurant_id=request.user.restaurant_id
+    if role not in ("waiter", "restaurant_admin"):
+        return Response(
+            {"error": "Only waiters or restaurant admins can confirm orders for the kitchen."},
+            status=403,
         )
-    except Order.DoesNotExist:
-        return Response({"error": "Order not found"}, status=404)
+    order, err = _resolve_restaurant_order_for_user(request, order_id)
+    if err:
+        return err
 
     if order.confirmed_for_kitchen_at:
         return Response(OrderSerializer(order).data)
@@ -201,15 +286,9 @@ def confirm_order_for_kitchen(request, order_id):
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def update_order_status(request, order_id):
-    if not request.user.restaurant_id:
-        return Response({"error": "No restaurant assigned to user"}, status=400)
-
-    try:
-        order = Order.objects.select_related("table").get(
-            id=order_id, restaurant_id=request.user.restaurant_id
-        )
-    except Order.DoesNotExist:
-        return Response({"error": "Order not found"}, status=404)
+    order, err = _resolve_restaurant_order_for_user(request, order_id)
+    if err:
+        return err
 
     status_value = request.data.get("status")
     if not status_value or status_value not in ORDER_STATUS_VALUES:
@@ -234,7 +313,13 @@ def update_order_status(request, order_id):
                 status=400,
             )
 
-    if role == "staff":
+    if role == "cashier":
+        return Response(
+            {"error": "Cashiers cannot change kitchen or service status."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    if role == "waiter":
         if (
             order.status == Order.STATUS_PENDING
             and status_value == Order.STATUS_PREPARING
@@ -265,6 +350,57 @@ def update_order_status(request, order_id):
     return Response(OrderSerializer(order).data)
 
 
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def update_order_billing(request, order_id):
+    role = getattr(request.user, "role", None)
+    if role not in ("cashier", "restaurant_admin"):
+        return Response(
+            {"error": "Only cashiers or restaurant admins can update billing status."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    order, err = _resolve_restaurant_order_for_user(request, order_id)
+    if err:
+        return err
+
+    next_status = (request.data.get("billing_status") or "").strip()
+    payment_method = request.data.get("payment_method")
+    if payment_method is not None:
+        payment_method = (str(payment_method).strip() or None)
+        if payment_method not in {None, Order.PAYMENT_CASH, Order.PAYMENT_ESEWA}:
+            return Response(
+                {"error": f"Invalid payment method. Allowed: {[Order.PAYMENT_CASH, Order.PAYMENT_ESEWA]}"},
+                status=400,
+            )
+
+    transition_error = _validate_billing_transition(order, next_status)
+    if transition_error:
+        return Response({"error": transition_error}, status=400)
+
+    if next_status in {
+        Order.BILLING_ST_PENDING_PAYMENT,
+        Order.BILLING_ST_PAID,
+    } and not (payment_method or order.payment_method):
+        return Response(
+            {"error": "payment_method is required when moving an order into payment collection."},
+            status=400,
+        )
+
+    _apply_billing_state(order, next_status, payment_method=payment_method)
+    order.save(
+        update_fields=[
+            "billing_status",
+            "payment_status",
+            "payment_method",
+            "billed_at",
+            "paid_at",
+            "refunded_at",
+        ]
+    )
+    return Response(OrderSerializer(order).data)
+
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def pay_cash(request, order_id):
@@ -280,9 +416,21 @@ def pay_cash(request, order_id):
     if order.restaurant_id != table.restaurant_id:
         return Response({"error": "Invalid order"}, status=400)
 
-    order.payment_method = Order.PAYMENT_CASH
-    order.payment_status = Order.PAYMENT_ST_PENDING
-    order.save(update_fields=["payment_method", "payment_status"])
+    _apply_billing_state(
+        order,
+        Order.BILLING_ST_PENDING_PAYMENT,
+        payment_method=Order.PAYMENT_CASH,
+    )
+    order.save(
+        update_fields=[
+            "payment_method",
+            "payment_status",
+            "billing_status",
+            "billed_at",
+            "paid_at",
+            "refunded_at",
+        ]
+    )
     return Response(CustomerOrderSummarySerializer(order).data)
 
 
@@ -309,7 +457,7 @@ def pay_esewa(request, order_id):
     if not merchant_id or not secret_key:
         return Response({"error": "eSewa merchant credentials are incomplete"}, status=400)
 
-    if order.payment_status == Order.PAYMENT_ST_PAID:
+    if order.billing_status == Order.BILLING_ST_PAID:
         return Response({"error": "Order is already paid"}, status=400)
 
     base = (getattr(settings, "FRONTEND_URL", None) or "").rstrip("/")
@@ -321,9 +469,22 @@ def pay_esewa(request, order_id):
     pay_amount_str = format_esewa_amount(order.total_price)
     order.esewa_transaction_uuid = txn
     order.esewa_pay_total_amount = pay_amount_str
-    order.payment_method = Order.PAYMENT_ESEWA
+    _apply_billing_state(
+        order,
+        Order.BILLING_ST_PENDING_PAYMENT,
+        payment_method=Order.PAYMENT_ESEWA,
+    )
     order.save(
-        update_fields=["esewa_transaction_uuid", "esewa_pay_total_amount", "payment_method"]
+        update_fields=[
+            "esewa_transaction_uuid",
+            "esewa_pay_total_amount",
+            "payment_method",
+            "payment_status",
+            "billing_status",
+            "billed_at",
+            "paid_at",
+            "refunded_at",
+        ]
     )
 
     # Path only — eSewa appends query params (e.g. data, transaction_uuid). Set FRONTEND_URL to your
@@ -381,7 +542,7 @@ def _esewa_status_total_amount_str(order: Order) -> str:
 
 
 def _run_esewa_verification_for_order(order: Order) -> Response:
-    """Status polling and payment_status updates. Caller must have resolved `order` and access control."""
+    """Status polling and billing/payment updates. Caller must have resolved `order` and access control."""
     try:
         cfg = order.restaurant.payment_config
     except PaymentConfig.DoesNotExist:
@@ -393,7 +554,7 @@ def _run_esewa_verification_for_order(order: Order) -> Response:
     if not order.esewa_transaction_uuid:
         return Response({"error": "No eSewa transaction was started for this order"}, status=400)
 
-    if order.payment_status == Order.PAYMENT_ST_PAID:
+    if order.billing_status == Order.BILLING_ST_PAID:
         logger.info("eSewa verify skip: order_id=%s already paid", order.pk)
         return Response(
             {
@@ -484,8 +645,21 @@ def _run_esewa_verification_for_order(order: Order) -> Response:
         )
 
         if outcome == "success":
-            order.payment_status = Order.PAYMENT_ST_PAID
-            order.save(update_fields=["payment_status"])
+            _apply_billing_state(
+                order,
+                Order.BILLING_ST_PAID,
+                payment_method=Order.PAYMENT_ESEWA,
+            )
+            order.save(
+                update_fields=[
+                    "payment_method",
+                    "payment_status",
+                    "billing_status",
+                    "billed_at",
+                    "paid_at",
+                    "refunded_at",
+                ]
+            )
             return Response(
                 {
                     "paid": True,
@@ -496,8 +670,21 @@ def _run_esewa_verification_for_order(order: Order) -> Response:
             )
 
         if outcome == "failed":
-            order.payment_status = Order.PAYMENT_ST_FAILED
-            order.save(update_fields=["payment_status"])
+            _apply_billing_state(
+                order,
+                Order.BILLING_ST_FAILED,
+                payment_method=Order.PAYMENT_ESEWA,
+            )
+            order.save(
+                update_fields=[
+                    "payment_method",
+                    "payment_status",
+                    "billing_status",
+                    "billed_at",
+                    "paid_at",
+                    "refunded_at",
+                ]
+            )
             return Response({"paid": False, "pending": False, "esewa": payload}, status=200)
 
         if outcome == "not_found":
@@ -751,6 +938,26 @@ def verify_esewa(request, order_id):
     return _run_esewa_verification_for_order(order)
 
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def cashier_verify_esewa(request, order_id):
+    role = getattr(request.user, "role", None)
+    if role not in ("cashier", "restaurant_admin"):
+        return Response(
+            {"error": "Only cashiers or restaurant admins can verify eSewa payments from back office."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    order, err = _resolve_restaurant_order_for_user(request, order_id)
+    if err:
+        return err
+
+    if order.payment_method != Order.PAYMENT_ESEWA:
+        return Response({"error": "This order is not using eSewa billing."}, status=400)
+
+    return _run_esewa_verification_for_order(order)
+
+
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def debug_esewa(request):
@@ -778,6 +985,7 @@ def debug_esewa(request):
             "esewa_transaction_uuid": order.esewa_transaction_uuid,
             "esewa_pay_total_amount": order.esewa_pay_total_amount,
             "total_price": str(order.total_price),
+            "billing_status": order.billing_status,
             "payment_status": order.payment_status,
             "payment_method": order.payment_method,
             "product_code": mid,

@@ -44,7 +44,8 @@ export default function Login() {
       // ✅ ROLE BASED NAVIGATION
       if (data.role === "admin") navigate("/admin");
       else if (data.role === "restaurant_admin") navigate("/restaurant-admin");
-      else if (data.role === "staff") navigate("/staff");
+      else if (data.role === "waiter") navigate("/waiter");
+      else if (data.role === "cashier") navigate("/cashier");
       else if (data.role === "kitchen") navigate("/kitchen");
 
     } catch (err) {

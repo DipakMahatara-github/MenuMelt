@@ -16,18 +16,8 @@ import { Banknote, ShoppingCart, Receipt, Users, ArrowUpRight, ArrowDownRight } 
 import notificationSound from "../../../assets/notification.mp3";
 import { authFetch, API_BASE } from "../../../lib/api";
 
-const mockPopularItems = [
-  { id: 1, name: "Salmon Bowl", price: 8.50, image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&h=100&fit=crop" },
-  { id: 2, name: "Kale Salad", price: 12.00, image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=100&h=100&fit=crop" },
-  { id: 3, name: "Avocado Toast", price: 12.00, image: "https://images.unsplash.com/photo-1525385133512-2f3bdd039054?w=100&h=100&fit=crop" },
-  { id: 4, name: "Beef Burger", price: 14.50, image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop" }
-];
-
-const occupancyData = [
-  { name: "Occupied", value: 32 },
-  { name: "Empty", value: 13 }
-];
 const OCCUPANCY_COLORS = ["#A1BDAB", "#F0F4F1"];
+const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&h=100&fit=crop";
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
@@ -60,7 +50,21 @@ export default function Dashboard() {
 
   // Use real data where possible, with fallbacks/calculations for the new design metrics
   const totalRevenue = data.revenue;
-  const avgOrderValue = data.today_orders > 0 ? (data.revenue / data.today_orders).toFixed(2) : 0;
+  const avgOrderValue = data.avg_order_value || 0;
+  
+  const occupancyData = [
+    { name: "Occupied", value: data.table_occupancy?.occupied || 0 },
+    { name: "Empty", value: data.table_occupancy?.empty || 0 }
+  ];
+  
+  const totalTables = (data.table_occupancy?.occupied || 0) + (data.table_occupancy?.empty || 0);
+
+  const formatYAxis = (val) => {
+    if (val === 0) return "Rs. 0";
+    if (val >= 100000) return `Rs ${(val / 100000).toFixed(1)}L`;
+    if (val >= 1000) return `Rs ${(val / 1000).toFixed(1)}k`;
+    return `Rs ${val}`;
+  };
 
   return (
     <div className="dashboard">
@@ -72,7 +76,7 @@ export default function Dashboard() {
             <h3>Total Revenue</h3>
             <Banknote className="stat-icon" size={32} />
           </div>
-          <p className="value">${totalRevenue.toLocaleString()}</p>
+          <p className="value">Rs. {totalRevenue.toLocaleString()}</p>
           <span className="stat-change positive"><ArrowUpRight size={14}/> 12.5%</span>
         </div>
 
@@ -90,7 +94,7 @@ export default function Dashboard() {
             <h3>Avg. Order Value</h3>
             <Receipt className="stat-icon" size={32} />
           </div>
-          <p className="value">${avgOrderValue}</p>
+          <p className="value">Rs. {avgOrderValue.toFixed(2)}</p>
           <span className="stat-change positive"><ArrowUpRight size={14}/> 8.1%</span>
         </div>
 
@@ -99,7 +103,7 @@ export default function Dashboard() {
             <h3>New Customers</h3>
             <Users className="stat-icon" size={32} />
           </div>
-          <p className="value">315</p>
+          <p className="value">{data.new_customers || 0}</p>
           <span className="stat-change positive"><ArrowUpRight size={14}/> 14.2%</span>
         </div>
       </div>
@@ -127,7 +131,7 @@ export default function Dashboard() {
                 </linearGradient>
               </defs>
               <XAxis dataKey="date" tick={{fontSize: 12, fill: '#57735D'}} tickLine={false} axisLine={false} />
-              <YAxis tick={{fontSize: 12, fill: '#57735D'}} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val/1000}k`} />
+              <YAxis tick={{fontSize: 12, fill: '#57735D'}} tickLine={false} axisLine={false} width={80} tickFormatter={formatYAxis} />
               <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
               <Area type="monotone" dataKey="revenue" stroke="#3C6647" strokeWidth={3} fillOpacity={1} fill="url(#colorReveu)" />
             </AreaChart>
@@ -155,7 +159,7 @@ export default function Dashboard() {
                     <td>#{order.id}</td>
                     <td>{order.table}</td>
                     <td>{order.items}</td>
-                    <td>${order.amount}</td>
+                    <td>Rs. {order.amount}</td>
                     <td>
                       <span className={`status ${order.status.toLowerCase()}`}>
                         {order.status}
@@ -176,12 +180,12 @@ export default function Dashboard() {
             <h2 className="widget-title">Popular Items</h2>
           </div>
           <div className="popular-grid">
-            {mockPopularItems.map(item => (
+            {data.popular_items?.map(item => (
               <div key={item.id} className="popular-card">
-                <img src={item.image} alt={item.name} />
+                <img src={item.image ? `${API_BASE}${item.image}` : FALLBACK_IMAGE} alt={item.name} />
                 <div className="popular-info">
                   <h4>{item.name}</h4>
-                  <p>${item.price.toFixed(2)}</p>
+                  <p>Rs. {item.price.toFixed(2)}</p>
                 </div>
               </div>
             ))}
@@ -213,7 +217,7 @@ export default function Dashboard() {
               </PieChart>
             </ResponsiveContainer>
             <div className="occupancy-text">
-              32/45
+              {data.table_occupancy?.occupied || 0}/{totalTables}
             </div>
           </div>
         </div>

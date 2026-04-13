@@ -122,7 +122,7 @@ export default function Orders() {
               <p>Table {order.table_number}</p>
               <p>{order.customer_name}</p>
               <p>
-                Payment: {order.payment_status} {order.payment_method ? `· ${order.payment_method}` : ""}
+                Billing: {order.billing_status} {order.payment_method ? `· ${order.payment_method}` : ""}
               </p>
               <p>Rs. {Number(order.total_price).toFixed(2)}</p>
               <p>{new Date(order.created_at).toLocaleTimeString()}</p>

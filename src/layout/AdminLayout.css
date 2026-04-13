@@ -25,7 +25,10 @@
 /* ---------- Shell ---------- */
 .admin-container {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
+  max-width: 100%;
+  overflow: hidden;
   font-family: "Outfit", system-ui, sans-serif;
   color: var(--al-nav-text-strong);
   background-color: var(--al-main-bg);
@@ -143,6 +146,9 @@
 .main-content {
   flex: 1;
   min-width: 0;
+  max-width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 32px 40px;
   display: flex;
   flex-direction: column;

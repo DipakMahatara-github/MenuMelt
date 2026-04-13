@@ -29,7 +29,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     ROLE_CHOICES = (
         ("admin", "Platform Admin"),
         ("restaurant_admin", "Restaurant Admin"),
-        ("staff", "Staff"),
+        ("waiter", "Waiter"),
+        ("cashier", "Cashier"),
         ("kitchen", "Kitchen Staff"),
         ("customer", "Customer"),
     )

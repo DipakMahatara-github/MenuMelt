@@ -33,6 +33,21 @@ class Order(models.Model):
         (PAYMENT_ST_FAILED, "Failed"),
     )
 
+    BILLING_ST_UNBILLED = "unbilled"
+    BILLING_ST_BILLED = "billed"
+    BILLING_ST_PENDING_PAYMENT = "pending_payment"
+    BILLING_ST_PAID = "paid"
+    BILLING_ST_FAILED = "failed"
+    BILLING_ST_REFUNDED = "refunded"
+    BILLING_STATUS_CHOICES = (
+        (BILLING_ST_UNBILLED, "Unbilled"),
+        (BILLING_ST_BILLED, "Billed"),
+        (BILLING_ST_PENDING_PAYMENT, "Pending Payment"),
+        (BILLING_ST_PAID, "Paid"),
+        (BILLING_ST_FAILED, "Failed"),
+        (BILLING_ST_REFUNDED, "Refunded"),
+    )
+
     restaurant = models.ForeignKey(
         Restaurant,
         on_delete=models.CASCADE,
@@ -58,11 +73,19 @@ class Order(models.Model):
         choices=PAYMENT_STATUS_CHOICES,
         default=PAYMENT_ST_PENDING,
     )
+    billing_status = models.CharField(
+        max_length=24,
+        choices=BILLING_STATUS_CHOICES,
+        default=BILLING_ST_UNBILLED,
+    )
+    billed_at = models.DateTimeField(null=True, blank=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    refunded_at = models.DateTimeField(null=True, blank=True)
     esewa_transaction_uuid = models.CharField(max_length=128, blank=True, default="")
     esewa_pay_total_amount = models.CharField(max_length=24, blank=True, null=True)
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
-    # Staff releases to kitchen; kitchen role only sees orders after this is set.
+    # Waiter / restaurant admin releases to kitchen; kitchen role only sees orders after this is set.
     confirmed_for_kitchen_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

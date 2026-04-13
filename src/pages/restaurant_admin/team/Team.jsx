@@ -11,7 +11,7 @@ export default function Team() {
     email: "",
     full_name: "",
     password: "",
-    role: "staff",
+    role: "waiter",
   });
 
   const load = useCallback(async () => {
@@ -52,7 +52,7 @@ export default function Team() {
         return;
       }
       setMsg(`Created access for ${data.email}.`);
-      setForm({ email: "", full_name: "", password: "", role: "staff" });
+      setForm({ email: "", full_name: "", password: "", role: "waiter" });
       load();
     } catch {
       setErr("Network error.");
@@ -67,8 +67,8 @@ export default function Team() {
         <p className="mm-team__eyebrow">Access control</p>
         <h1>Team</h1>
         <p className="mm-team__lead">
-          Create <strong>staff</strong> and <strong>kitchen</strong> logins for your restaurant. Only you as
-          restaurant admin can add these roles.
+          Create <strong>waiter</strong>, <strong>cashier</strong>, and <strong>kitchen</strong> logins for your
+          restaurant. Only you as restaurant admin can add these roles.
         </p>
       </header>
 
@@ -101,7 +101,8 @@ export default function Team() {
             <label>
               Role
               <select value={form.role} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}>
-                <option value="staff">Staff (floor)</option>
+                <option value="waiter">Waiter</option>
+                <option value="cashier">Cashier</option>
                 <option value="kitchen">Kitchen</option>
               </select>
             </label>
@@ -125,7 +126,7 @@ export default function Team() {
         <section className="mm-team__card mm-team__card--list">
           <h2>Current team</h2>
           {members.length === 0 ? (
-            <p className="mm-team__empty">No staff or kitchen accounts yet.</p>
+            <p className="mm-team__empty">No waiter, cashier, or kitchen accounts yet.</p>
           ) : (
             <ul className="mm-team__list">
               {members.map((m) => (
@@ -134,7 +135,9 @@ export default function Team() {
                     <span className="mm-team__name">{m.full_name}</span>
                     <span className="mm-team__email">{m.email}</span>
                   </div>
-                  <span className={`mm-team__role mm-team__role--${m.role}`}>{m.role}</span>
+                  <span className={`mm-team__role mm-team__role--${m.role}`}>
+                    {m.role.replace("_", " ")}
+                  </span>
                 </li>
               ))}
             </ul>

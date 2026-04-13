@@ -2,13 +2,15 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.utils import timezone
+from django.db.models import Avg, Sum
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from orders.models import Order
+from orders.models import Order, OrderItem
 from restaurants.models import PaymentConfig
+from tables.models import Table
 
 
 class PaymentConfigSerializer(serializers.ModelSerializer):
@@ -43,7 +45,7 @@ def dashboard_stats(request):
         )
 
         revenue = Decimal("0")
-        for order in orders.filter(payment_status=Order.PAYMENT_ST_PAID):
+        for order in orders.filter(billing_status=Order.BILLING_ST_PAID):
             revenue += order.total_price
 
         recent_orders = orders.order_by("-created_at")[:5]
@@ -67,7 +69,7 @@ def dashboard_stats(request):
             day = today - timedelta(days=i)
 
             day_total = Decimal("0")
-            for o in orders.filter(created_at__date=day, payment_status=Order.PAYMENT_ST_PAID):
+            for o in orders.filter(created_at__date=day, billing_status=Order.BILLING_ST_PAID):
                 day_total += o.total_price
 
             daily_data.append(
@@ -76,6 +78,42 @@ def dashboard_stats(request):
                     "revenue": float(day_total),
                 }
             )
+
+        # New Customers (Distinct session_id in the last 30 days)
+        new_customers = orders.filter(created_at__gte=today - timedelta(days=30)).values("session_id").distinct().count()
+
+        # Average Order Value (total)
+        avg_order_value = orders.filter(billing_status=Order.BILLING_ST_PAID).aggregate(Avg("total_price"))["total_price__avg"] or str(Decimal("0.00"))
+        
+        # Table Occupancy
+        total_tables = Table.objects.filter(restaurant=restaurant).count()
+        empty_tables = max(0, total_tables - active_tables)
+        table_occupancy = {
+            "occupied": active_tables,
+            "empty": empty_tables
+        }
+
+        # Popular Items
+        popular_items_qs = OrderItem.objects.filter(
+            order__restaurant=restaurant,
+            order__billing_status=Order.BILLING_ST_PAID
+        ).values(
+            "menu_item__id", "menu_item__name", "menu_item__price", "menu_item__image"
+        ).annotate(
+            total_qty=Sum("quantity")
+        ).order_by("-total_qty")[:6]
+
+        popular_items = []
+        for item in popular_items_qs:
+            image_url = ""
+            if item["menu_item__image"]:
+                image_url = f"/media/{item['menu_item__image']}" 
+            popular_items.append({
+                "id": item["menu_item__id"],
+                "name": item["menu_item__name"],
+                "price": float(item["menu_item__price"]),
+                "image": image_url
+            })
 
         return Response(
             {
@@ -86,6 +124,10 @@ def dashboard_stats(request):
                 "revenue": float(revenue),
                 "recent_orders": recent_data,
                 "chart_data": daily_data,
+                "new_customers": new_customers,
+                "avg_order_value": float(avg_order_value),
+                "table_occupancy": table_occupancy,
+                "popular_items": popular_items,
             }
         )
 

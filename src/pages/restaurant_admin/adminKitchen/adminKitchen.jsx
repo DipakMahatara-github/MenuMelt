@@ -66,7 +66,7 @@ export default function AdminKitchen() {
         <div>
           <p className="mm-adm-kitchen__eyebrow">Monitor</p>
           <h1 className="mm-adm-kitchen__title">Kitchen board</h1>
-          <p className="mm-adm-kitchen__sub">Same data as floor staff — unreleased tickets stay off the line.</p>
+          <p className="mm-adm-kitchen__sub">Same data as the waiter console — unreleased tickets stay off the line.</p>
         </div>
         <div className="mm-adm-kitchen__filters">
           {["active", "served", "all"].map((f) => (
@@ -98,7 +98,7 @@ export default function AdminKitchen() {
               <span className="mm-adm-kitchen__badge">{order.status}</span>
             </div>
             {!order.confirmed_for_kitchen ? (
-              <p className="mm-adm-kitchen__flag">Awaiting staff release</p>
+              <p className="mm-adm-kitchen__flag">Awaiting waiter release</p>
             ) : null}
             <p className="mm-adm-kitchen__time">{new Date(order.created_at).toLocaleTimeString()}</p>
             <div className="mm-adm-kitchen__items">

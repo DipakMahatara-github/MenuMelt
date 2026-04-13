@@ -22,7 +22,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    """Restaurant admin / staff / kitchen list."""
+    """Restaurant admin / waiter / cashier / kitchen list."""
 
     items = OrderItemSerializer(many=True, read_only=True)
     table_number = serializers.IntegerField(source="table.number", read_only=True)
@@ -40,6 +40,10 @@ class OrderSerializer(serializers.ModelSerializer):
             "total_price",
             "payment_method",
             "payment_status",
+            "billing_status",
+            "billed_at",
+            "paid_at",
+            "refunded_at",
             "confirmed_for_kitchen_at",
             "confirmed_for_kitchen",
             "created_at",
@@ -63,6 +67,10 @@ class CustomerOrderSummarySerializer(serializers.ModelSerializer):
             "total_price",
             "payment_method",
             "payment_status",
+            "billing_status",
+            "billed_at",
+            "paid_at",
+            "refunded_at",
             "status",
             "created_at",
             "items",

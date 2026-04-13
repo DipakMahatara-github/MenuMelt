@@ -84,7 +84,7 @@ export default function EsewaReturn({ variant }) {
         }
         setPhase("failed");
         setMsg(
-          "We could not confirm your payment in time. Check My orders or ask staff if the amount was deducted."
+          "We could not confirm your payment in time. Check My orders or ask the cashier if the amount was deducted."
         );
         return;
       }
@@ -189,7 +189,7 @@ export default function EsewaReturn({ variant }) {
               /* ignore */
             }
             setPhase("failed");
-            setMsg(data.error || "Could not verify payment. Check My orders or ask staff.");
+            setMsg(data.error || "Could not verify payment. Check My orders or ask the cashier.");
             return;
           }
           scheduleRetry();
@@ -207,7 +207,7 @@ export default function EsewaReturn({ variant }) {
           data.error ||
           (!res.ok
             ? `Verification failed (${res.status}).`
-            : "Payment not confirmed. You can retry from your order or ask staff.");
+            : "Payment not confirmed. You can retry from your order or ask the cashier.");
         if (data.debug && typeof data.debug === "object") {
           text = `${text} (${JSON.stringify(data.debug)})`;
         }
@@ -221,7 +221,7 @@ export default function EsewaReturn({ variant }) {
             /* ignore */
           }
           setPhase("failed");
-          setMsg("Could not verify payment. Check My orders or ask staff.");
+          setMsg("Could not verify payment. Check My orders or ask the cashier.");
           return;
         }
         scheduleRetry();

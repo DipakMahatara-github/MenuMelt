@@ -174,9 +174,14 @@
   color: #cbd5e1;
 }
 
-.mm-team__role--staff {
+.mm-team__role--waiter {
   border-color: rgba(56, 189, 248, 0.4);
   color: #7dd3fc;
+}
+
+.mm-team__role--cashier {
+  border-color: rgba(250, 204, 21, 0.42);
+  color: #fde68a;
 }
 
 .mm-team__role--kitchen {

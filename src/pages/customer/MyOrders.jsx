@@ -88,7 +88,7 @@ export default function MyOrders() {
                         {o.customer_name} · Table {o.table_number}
                       </p>
                       <p className="cx-order-meta">
-                        Kitchen: {o.status} · Payment: {o.payment_status}
+                        Kitchen: {o.status} · Billing: {o.billing_status}
                         {o.payment_method ? ` (${o.payment_method})` : ""}
                       </p>
                     </div>
@@ -101,7 +101,7 @@ export default function MyOrders() {
                       </li>
                     ))}
                   </ul>
-                  {o.payment_status !== "paid" ? (
+                  {o.billing_status !== "paid" && o.billing_status !== "refunded" ? (
                     <Link to={`/billing/${o.id}`} state={{ order: o }} className="cx-order-pay-link">
                       Payment / receipt →
                     </Link>
