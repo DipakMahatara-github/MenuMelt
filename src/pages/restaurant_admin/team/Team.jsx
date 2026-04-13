@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import "./team.css";
 import { authFetch, API_BASE } from "../../../lib/api";
+import PasswordField from "../../../components/PasswordField";
 
 export default function Team() {
   const [members, setMembers] = useState([]);
@@ -62,33 +62,44 @@ export default function Team() {
   };
 
   return (
-    <div className="mm-team">
-      <header className="mm-team__hero">
-        <p className="mm-team__eyebrow">Access control</p>
-        <h1>Team</h1>
-        <p className="mm-team__lead">
+    <div className="mx-auto max-w-[1100px] font-[Outfit,system-ui,sans-serif] text-slate-100">
+      <header className="mb-8">
+        <p className="mb-1.5 text-[0.7rem] font-bold uppercase tracking-[0.2em] text-sky-300">Access control</p>
+        <h1 className="mb-2 text-[clamp(1.85rem,3vw,2.4rem)] font-extrabold tracking-[-0.03em] text-transparent bg-[linear-gradient(120deg,#f8fafc,#7dd3fc)] bg-clip-text">
+          Team
+        </h1>
+        <p className="max-w-[42rem] leading-7 text-slate-400">
           Create <strong>waiter</strong>, <strong>cashier</strong>, and <strong>kitchen</strong> logins for your
           restaurant. Only you as restaurant admin can add these roles.
         </p>
       </header>
 
-      {msg ? <div className="mm-team__banner mm-team__banner--ok">{msg}</div> : null}
-      {err ? <div className="mm-team__banner mm-team__banner--err">{err}</div> : null}
+      {msg ? (
+        <div className="mb-4 rounded-xl border border-emerald-400/35 bg-emerald-400/12 px-4 py-3 text-[0.95rem] text-emerald-200">
+          {msg}
+        </div>
+      ) : null}
+      {err ? (
+        <div className="mb-4 rounded-xl border border-red-400/35 bg-red-400/12 px-4 py-3 text-[0.95rem] text-red-200">
+          {err}
+        </div>
+      ) : null}
 
-      <div className="mm-team__grid">
-        <section className="mm-team__card">
-          <h2>Add member</h2>
-          <form className="mm-team__form" onSubmit={submit}>
-            <label>
+      <div className="grid items-start gap-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))]">
+        <section className="rounded-[20px] border border-sky-300/12 bg-[linear-gradient(155deg,rgba(15,23,42,0.92),rgba(12,18,36,0.88))] px-6 py-6 shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
+          <h2 className="mb-5 text-[1.05rem] font-bold text-slate-300">Add member</h2>
+          <form className="flex flex-col gap-4" onSubmit={submit}>
+            <label className="flex flex-col gap-1.5 text-[0.82rem] font-semibold text-slate-400">
               Full name
               <input
                 value={form.full_name}
                 onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))}
                 required
                 autoComplete="name"
+                className="rounded-xl border border-slate-400/25 bg-slate-950/55 px-3.5 py-2.5 text-base text-slate-100 outline-none transition focus:border-sky-400/55 focus:ring-4 focus:ring-sky-400/15"
               />
             </label>
-            <label>
+            <label className="flex flex-col gap-1.5 text-[0.82rem] font-semibold text-slate-400">
               Email (login)
               <input
                 type="email"
@@ -96,46 +107,65 @@ export default function Team() {
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                 required
                 autoComplete="off"
+                className="rounded-xl border border-slate-400/25 bg-slate-950/55 px-3.5 py-2.5 text-base text-slate-100 outline-none transition focus:border-sky-400/55 focus:ring-4 focus:ring-sky-400/15"
               />
             </label>
-            <label>
+            <label className="flex flex-col gap-1.5 text-[0.82rem] font-semibold text-slate-400">
               Role
-              <select value={form.role} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}>
+              <select
+                value={form.role}
+                onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
+                className="rounded-xl border border-slate-400/25 bg-slate-950/55 px-3.5 py-2.5 text-base text-slate-100 outline-none transition focus:border-sky-400/55 focus:ring-4 focus:ring-sky-400/15"
+              >
                 <option value="waiter">Waiter</option>
                 <option value="cashier">Cashier</option>
                 <option value="kitchen">Kitchen</option>
               </select>
             </label>
-            <label>
+            <label className="flex flex-col gap-1.5 text-[0.82rem] font-semibold text-slate-400">
               Temporary password
-              <input
-                type="password"
+              <PasswordField
                 value={form.password}
                 onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                 required
                 minLength={8}
                 autoComplete="new-password"
+                className="w-full rounded-xl border border-slate-400/25 bg-slate-950/55 px-3.5 py-2.5 pr-11 text-base text-slate-100 outline-none transition focus:border-sky-400/55 focus:ring-4 focus:ring-sky-400/15"
+                buttonClassName="text-slate-400 hover:text-sky-300 focus-visible:ring-sky-400/30"
               />
             </label>
-            <button type="submit" className="mm-team__submit" disabled={busy}>
+            <button
+              type="submit"
+              className="mt-1 rounded-xl bg-[linear-gradient(120deg,#38bdf8,#818cf8)] px-4 py-3 font-bold text-slate-950 shadow-[0_14px_32px_rgba(56,189,248,0.3)] transition hover:brightness-110 disabled:cursor-wait disabled:opacity-60"
+              disabled={busy}
+            >
               {busy ? "Creating…" : "Create account"}
             </button>
           </form>
         </section>
 
-        <section className="mm-team__card mm-team__card--list">
-          <h2>Current team</h2>
+        <section className="rounded-[20px] border border-sky-300/12 bg-[linear-gradient(155deg,rgba(15,23,42,0.92),rgba(12,18,36,0.88))] px-6 py-6 shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
+          <h2 className="mb-5 text-[1.05rem] font-bold text-slate-300">Current team</h2>
           {members.length === 0 ? (
-            <p className="mm-team__empty">No waiter, cashier, or kitchen accounts yet.</p>
+            <p className="m-0 text-slate-500">No waiter, cashier, or kitchen accounts yet.</p>
           ) : (
-            <ul className="mm-team__list">
+            <ul className="m-0 list-none p-0">
               {members.map((m) => (
-                <li key={m.id}>
+                <li key={m.id} className="flex items-center justify-between gap-4 border-b border-slate-400/12 py-3.5">
                   <div>
-                    <span className="mm-team__name">{m.full_name}</span>
-                    <span className="mm-team__email">{m.email}</span>
+                    <span className="block font-bold text-slate-100">{m.full_name}</span>
+                    <span className="text-[0.85rem] text-slate-400">{m.email}</span>
                   </div>
-                  <span className={`mm-team__role mm-team__role--${m.role}`}>
+                  <span
+                    className={[
+                      "rounded-full border px-2.5 py-1 text-[0.72rem] font-extrabold uppercase tracking-[0.08em]",
+                      m.role === "waiter" && "border-sky-300/40 text-sky-300",
+                      m.role === "cashier" && "border-yellow-300/40 text-yellow-200",
+                      m.role === "kitchen" && "border-rose-300/45 text-rose-300",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                  >
                     {m.role.replace("_", " ")}
                   </span>
                 </li>

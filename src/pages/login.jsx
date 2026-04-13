@@ -1,15 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import "./auth.css";
 import { clearAuth, setAuthTokens, setUserSession } from "../lib/auth";
 import { API_BASE } from "../config";
+import PasswordField from "../components/PasswordField";
 
 export default function Login() {
-
   const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const inputClasses =
+    "w-full border-0 border-b border-slate-300 bg-transparent px-0 py-3 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-b-2 focus:border-indigo-500";
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -50,58 +51,61 @@ export default function Login() {
       else if (data.role === "cashier") navigate("/cashier");
       else if (data.role === "kitchen") navigate("/kitchen");
 
-    } catch (err) {
+    } catch {
       alert("Server error");
     }
   };
 
   return (
-    <div className="auth-container">
+    <div className="flex min-h-screen w-full font-sans">
+      <div className="flex flex-1 items-center justify-center bg-white px-6 py-10 sm:px-10">
+        <div className="w-full max-w-[380px]">
+          <h1 className="mb-2 text-[28px] font-bold text-slate-950">Login</h1>
+          <p className="mb-6 text-sm text-slate-500">Access your restaurant dashboard</p>
 
-      <div className="auth-left">
-        <div className="auth-card">
-
-          <h1>Login</h1>
-          <p className="subtitle">Access your restaurant dashboard</p>
-
-          <form onSubmit={handleLogin}>
-            <div className="input-group">
-
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div className="flex flex-col gap-4">
               <input
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className={inputClasses}
               />
 
-              <input
-                type="password"
+              <PasswordField
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className={inputClasses}
+                buttonClassName="text-slate-400 hover:text-amber-500 focus-visible:ring-amber-300"
               />
-
             </div>
 
-            <button className="primary-btn">Log In</button>
+            <button className="w-full rounded-md bg-amber-500 px-4 py-3 font-semibold text-white transition hover:opacity-90">
+              Log In
+            </button>
           </form>
 
-          <p className="switch-text">
-            New here? <span onClick={() => navigate("/register")}>Create account</span>
+          <p className="mt-4 text-[13px] text-slate-500">
+            New here?{" "}
+            <button type="button" className="font-medium text-amber-500" onClick={() => navigate("/register")}>
+              Create account
+            </button>
           </p>
-
         </div>
       </div>
 
-      <div className="auth-right">
-        <div className="auth-overlay"></div>
-
-        <div className="auth-content">
-          <h2>MenuMelt</h2>
-          <p>Smart QR ordering system for modern restaurants</p>
+      <div
+        className="relative hidden flex-1 items-end bg-cover bg-center bg-no-repeat p-10 text-white min-[901px]:flex"
+        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1555396273-367ea4eb4db5")' }}
+      >
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="relative z-10">
+          <h2 className="text-[26px] font-bold">MenuMelt</h2>
+          <p className="mt-2 text-sm text-white/80">Smart QR ordering system for modern restaurants</p>
         </div>
       </div>
-
     </div>
   );
 }

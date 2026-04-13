@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { authFetch, API_BASE } from "../../../lib/api";
-import "./paymentSettings.css";
+import PasswordField from "../../../components/PasswordField";
 
 export default function PaymentSettings() {
   const [loading, setLoading] = useState(true);
@@ -61,41 +61,47 @@ export default function PaymentSettings() {
   };
 
   if (loading) {
-    return <p className="payment-settings__muted">Loading…</p>;
+    return <p className="text-sm text-slate-500">Loading…</p>;
   }
 
   return (
-    <div className="payment-settings">
-      <h1 className="page-title">Payment settings</h1>
-      <p className="payment-settings__intro">
+    <div className="max-w-[520px]">
+      <h1 className="mb-3 text-3xl font-semibold tracking-tight text-slate-950">Payment settings</h1>
+      <p className="mb-5 text-[0.95rem] leading-6 text-slate-500">
         eSewa credentials are stored only on the server and used to sign payment requests. Use your sandbox
         merchant code and secret for testing.
       </p>
 
-      {error ? <p className="payment-settings__error">{error}</p> : null}
+      {error ? <p className="mb-4 text-sm text-red-700">{error}</p> : null}
 
-      <form onSubmit={save} className="payment-settings__form">
-        <label>
+      <form onSubmit={save} className="flex flex-col gap-4">
+        <label className="flex flex-col gap-1.5 text-sm font-semibold text-slate-900">
           Merchant ID (product code)
           <input
             value={merchantId}
             onChange={(e) => setMerchantId(e.target.value)}
             placeholder="e.g. EPAYTEST"
             autoComplete="off"
+            className="rounded-[10px] border border-slate-200 px-3.5 py-2.5 text-base outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
           />
         </label>
-        <label>
+        <label className="flex flex-col gap-1.5 text-sm font-semibold text-slate-900">
           Secret key
-          <input
-            type="password"
+          <PasswordField
             value={secretKey}
             onChange={(e) => setSecretKey(e.target.value)}
             placeholder="From eSewa merchant dashboard"
             autoComplete="new-password"
+            className="w-full rounded-[10px] border border-slate-200 px-3.5 py-2.5 pr-11 text-base outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
+            buttonClassName="text-slate-400 hover:text-slate-700 focus-visible:ring-slate-300"
           />
         </label>
-        {updatedAt ? <p className="payment-settings__muted">Last updated: {updatedAt}</p> : null}
-        <button type="submit" className="payment-settings__submit" disabled={saving}>
+        {updatedAt ? <p className="text-[0.85rem] text-slate-500">Last updated: {updatedAt}</p> : null}
+        <button
+          type="submit"
+          className="mt-2 w-fit rounded-[10px] bg-slate-900 px-5 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={saving}
+        >
           {saving ? "Saving…" : "Save"}
         </button>
       </form>

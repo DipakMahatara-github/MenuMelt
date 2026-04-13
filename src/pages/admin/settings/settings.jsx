@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import "./settings.css";
 import { authFetch, API_BASE } from "../../../lib/api";
+import PasswordField from "../../../components/PasswordField";
 
 export default function Settings() {
   const [profile, setProfile] = useState({ full_name: "", email: "" });
@@ -108,86 +108,105 @@ export default function Settings() {
   };
 
   return (
-    <div className="pa-settings">
-      <header className="pa-settings__hero">
+    <div className="flex flex-col gap-5 text-slate-100">
+      <header className="flex flex-col gap-[18px] xl:flex-row xl:items-start xl:justify-between">
         <div>
-          <p className="pa-settings__eyebrow">Platform controls</p>
-          <h1>Settings</h1>
-          <p className="pa-settings__lead">
+          <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-sky-300">Platform controls</p>
+          <h1 className="my-1.5 text-4xl font-extrabold tracking-[-0.03em] text-white">Settings</h1>
+          <p className="max-w-[720px] text-slate-400">
             Manage the platform admin profile and control whether new restaurant signups are allowed.
           </p>
         </div>
-        <div className="pa-settings__stamp">
-          <span>Last updated</span>
-          <strong>{updatedAt ? new Date(updatedAt).toLocaleString() : "—"}</strong>
+        <div className="min-w-[220px] rounded-[20px] border border-slate-400/15 bg-[linear-gradient(180deg,rgba(15,23,42,0.94),rgba(2,6,23,0.92))] px-[18px] py-4 shadow-[0_24px_80px_rgba(2,6,23,0.36)]">
+          <span className="block text-[0.82rem] text-slate-400">Last updated</span>
+          <strong className="mt-1.5 block text-white">{updatedAt ? new Date(updatedAt).toLocaleString() : "—"}</strong>
         </div>
       </header>
 
-      {error ? <div className="pa-settings__alert is-error">{error}</div> : null}
-      {message ? <div className="pa-settings__alert is-success">{message}</div> : null}
+      {error ? (
+        <div className="rounded-2xl border border-red-400/25 bg-red-950/25 px-4 py-3.5 text-red-200">{error}</div>
+      ) : null}
+      {message ? (
+        <div className="rounded-2xl border border-green-400/20 bg-green-950/25 px-4 py-3.5 text-green-200">{message}</div>
+      ) : null}
 
-      <div className="pa-settings__grid">
-        <section className="pa-settings__card">
-          <h2>Admin profile</h2>
-          <form className="pa-settings__form" onSubmit={saveProfile}>
-            <label>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <section className="rounded-[20px] border border-slate-400/15 bg-[linear-gradient(180deg,rgba(15,23,42,0.94),rgba(2,6,23,0.92))] p-5 shadow-[0_24px_80px_rgba(2,6,23,0.36)]">
+          <h2 className="mb-4 text-xl font-semibold text-white">Admin profile</h2>
+          <form className="grid gap-4" onSubmit={saveProfile}>
+            <label className="grid gap-2 text-[0.92rem] text-slate-200">
               Full name
               <input
                 type="text"
                 value={profile.full_name}
                 onChange={(e) => setProfile((current) => ({ ...current, full_name: e.target.value }))}
+                className="w-full rounded-[14px] border border-slate-400/15 bg-slate-950/80 px-3.5 py-3 text-slate-200 outline-none transition focus:border-sky-400/50 focus:ring-4 focus:ring-sky-400/10"
               />
             </label>
 
-            <label>
+            <label className="grid gap-2 text-[0.92rem] text-slate-200">
               Email
               <input
                 type="email"
                 value={profile.email}
                 onChange={(e) => setProfile((current) => ({ ...current, email: e.target.value }))}
+                className="w-full rounded-[14px] border border-slate-400/15 bg-slate-950/80 px-3.5 py-3 text-slate-200 outline-none transition focus:border-sky-400/50 focus:ring-4 focus:ring-sky-400/10"
               />
             </label>
 
-            <label className="pa-settings__toggle">
+            <label className="flex items-center justify-between gap-[18px] rounded-2xl border border-slate-400/12 bg-slate-950/70 p-4">
               <div>
-                <strong>Allow new restaurant registrations</strong>
-                <span>Turning this off blocks new signup attempts, but existing users can still log in.</span>
+                <strong className="mb-1 block text-white">Allow new restaurant registrations</strong>
+                <span className="text-[0.86rem] text-slate-400">
+                  Turning this off blocks new signup attempts, but existing users can still log in.
+                </span>
               </div>
               <input
                 type="checkbox"
                 checked={allowRegistration}
                 onChange={(e) => setAllowRegistration(e.target.checked)}
+                className="h-5 w-5 accent-sky-500"
               />
             </label>
 
-            <button type="submit" className="pa-settings__btn" disabled={savingProfile}>
+            <button
+              type="submit"
+              className="rounded-[14px] bg-[linear-gradient(135deg,#38bdf8,#2563eb)] px-4 py-3 font-bold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+              disabled={savingProfile}
+            >
               {savingProfile ? "Saving…" : "Save changes"}
             </button>
           </form>
         </section>
 
-        <section className="pa-settings__card">
-          <h2>Change password</h2>
-          <form className="pa-settings__form" onSubmit={savePassword}>
-            <label>
+        <section className="rounded-[20px] border border-slate-400/15 bg-[linear-gradient(180deg,rgba(15,23,42,0.94),rgba(2,6,23,0.92))] p-5 shadow-[0_24px_80px_rgba(2,6,23,0.36)]">
+          <h2 className="mb-4 text-xl font-semibold text-white">Change password</h2>
+          <form className="grid gap-4" onSubmit={savePassword}>
+            <label className="grid gap-2 text-[0.92rem] text-slate-200">
               Current password
-              <input
-                type="password"
+              <PasswordField
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
+                className="w-full rounded-[14px] border border-slate-400/15 bg-slate-950/80 px-3.5 py-3 pr-11 text-slate-200 outline-none transition focus:border-sky-400/50 focus:ring-4 focus:ring-sky-400/10"
+                buttonClassName="text-slate-400 hover:text-sky-300 focus-visible:ring-sky-400/30"
               />
             </label>
 
-            <label>
+            <label className="grid gap-2 text-[0.92rem] text-slate-200">
               New password
-              <input
-                type="password"
+              <PasswordField
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full rounded-[14px] border border-slate-400/15 bg-slate-950/80 px-3.5 py-3 pr-11 text-slate-200 outline-none transition focus:border-sky-400/50 focus:ring-4 focus:ring-sky-400/10"
+                buttonClassName="text-slate-400 hover:text-sky-300 focus-visible:ring-sky-400/30"
               />
             </label>
 
-            <button type="submit" className="pa-settings__btn pa-settings__btn--secondary" disabled={savingPassword}>
+            <button
+              type="submit"
+              className="rounded-[14px] bg-[linear-gradient(135deg,#22c55e,#15803d)] px-4 py-3 font-bold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+              disabled={savingPassword}
+            >
               {savingPassword ? "Updating…" : "Update password"}
             </button>
           </form>
