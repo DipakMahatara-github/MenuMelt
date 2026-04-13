@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Cashier.css";
 import { authFetch, API_BASE } from "../../lib/api";
-import { clearAuth } from "../../lib/auth";
+import { clearAuth, getRestaurantName } from "../../lib/auth";
 
 const SECTIONS = [
   { key: "unbilled", label: "Unbilled" },
@@ -15,6 +15,7 @@ const SECTIONS = [
 
 export default function Cashier() {
   const navigate = useNavigate();
+  const restaurantName = getRestaurantName();
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState("");
   const [busyKey, setBusyKey] = useState("");
@@ -203,6 +204,7 @@ export default function Cashier() {
         <div>
           <p className="mm-cashier__eyebrow">Cashier</p>
           <h1>Billing console</h1>
+          {restaurantName ? <p className="mm-cashier__restaurant">{restaurantName}</p> : null}
           <p className="mm-cashier__lead">
             Manage billing states, accept cash, verify eSewa, and keep payment closure separate from kitchen flow.
           </p>

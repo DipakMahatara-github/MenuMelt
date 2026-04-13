@@ -184,6 +184,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 # Set only in backend/.env — no default, so links never fall back to loopback or LAN IPs.
 FRONTEND_URL = os.getenv("FRONTEND_URL")
 
+PLATFORM_ESEWA_MERCHANT_ID = os.getenv("PLATFORM_ESEWA_MERCHANT_ID", "")
+PLATFORM_ESEWA_SECRET_KEY = os.getenv("PLATFORM_ESEWA_SECRET_KEY", "")
+
 # Optional extra status host; verification tries rc-epay, uat, rc, then this if set.
 # ePay v2 form is on rc-epay — that status API usually has the transaction first.
 ESEWA_STATUS_URL = os.getenv(

@@ -7,9 +7,22 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from admin_dashboard.models import PlatformSettings
 from .models import User
 from .serializers import UserSerializer
 from restaurants.models import Restaurant
+
+
+def _session_payload(user):
+    restaurant = getattr(user, "restaurant", None)
+    return {
+        "email": user.email,
+        "role": user.role,
+        "name": user.full_name,
+        "restaurant": restaurant.name if restaurant else None,
+        "restaurant_active": bool(restaurant.is_active) if restaurant else False,
+        "subscription_status": restaurant.current_subscription_status if restaurant else "inactive",
+    }
 
 
 # ================= LOGIN =================
@@ -30,20 +43,26 @@ def login_user(request):
 
     refresh = RefreshToken.for_user(user)
 
-    return Response({
+    payload = _session_payload(user)
+    payload.update({
         "access": str(refresh.access_token),
         "refresh": str(refresh),
-        "email": user.email,
-        "role": user.role,
-        "name": user.full_name,
-        "restaurant": user.restaurant.name if user.restaurant else None
     })
+    return Response(payload)
 
 
 # ================= REGISTER =================
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def register_user(request):
+    platform_settings = PlatformSettings.get_solo()
+    if not platform_settings.allow_restaurant_registration:
+        return Response(
+            {
+                "error": "New restaurant registrations are currently paused. Please contact MenuMelt support or the platform admin."
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
     full_name = request.data.get("full_name")
     email = request.data.get("email")
@@ -63,11 +82,21 @@ def register_user(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+    prospective_user = User(
+        email=User.objects.normalize_email(email),
+        full_name=(full_name or "").strip(),
+        role="restaurant_admin",
+    )
+    try:
+        validate_password(password or "", prospective_user)
+    except DjangoValidationError as exc:
+        return Response({"error": "; ".join(exc.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
     try:
         # ✅ 1. Create User (restaurant admin)
         user = User.objects.create_user(
-            email=email,
-            full_name=full_name,
+            email=prospective_user.email,
+            full_name=prospective_user.full_name,
             password=password,
             role="restaurant_admin"
         )
@@ -76,7 +105,8 @@ def register_user(request):
         restaurant = Restaurant.objects.create(
             name=restaurant_name,
             owner=user,
-            address="Default Address"
+            address="Default Address",
+            is_active=False,
         )
 
         # ✅ 3. Link User → Restaurant
@@ -86,14 +116,13 @@ def register_user(request):
         # ✅ 4. Generate JWT (auto login)
         refresh = RefreshToken.for_user(user)
 
-        return Response({
+        payload = _session_payload(user)
+        payload.update({
             "message": "Restaurant registered successfully",
             "access": str(refresh.access_token),
             "refresh": str(refresh),
-            "role": user.role,
-            "name": user.full_name,
-            "restaurant": restaurant.name
         })
+        return Response(payload)
 
     except Exception as e:
         return Response(

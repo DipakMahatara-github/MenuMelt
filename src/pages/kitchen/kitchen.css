@@ -184,6 +184,13 @@
   letter-spacing: -0.02em;
 }
 
+.mm-kitchen .mm-ops-restaurant {
+  margin: 0.4rem 0 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
 .mm-kitchen .mm-ops-sub {
   margin: 0.35rem 0 0;
   color: var(--mm-muted);

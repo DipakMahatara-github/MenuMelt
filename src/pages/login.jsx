@@ -39,6 +39,8 @@ export default function Login() {
         role: data.role,
         restaurant: data.restaurant,
         name: data.name,
+        restaurant_active: data.restaurant_active,
+        subscription_status: data.subscription_status,
       });
 
       // ✅ ROLE BASED NAVIGATION

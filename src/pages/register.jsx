@@ -2,10 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./auth.css";
 import { API_BASE } from "../config";
+import { clearAuth, setAuthTokens, setUserSession } from "../lib/auth";
 
 export default function Register() {
 
   const navigate = useNavigate();
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState({
     full_name: "",
@@ -20,6 +23,8 @@ export default function Register() {
 
   // 🔥 CONNECT BACKEND
   const handleSubmit = async () => {
+    setError("");
+    setSubmitting(true);
     try {
       const res = await fetch(`${API_BASE}/api/auth/register/`, {
         method: "POST",
@@ -32,17 +37,25 @@ export default function Register() {
       const data = await res.json();
 
       if (res.ok) {
-        alert("Registration successful");
-
-        // later we will auto login
-        navigate("/login");
+        clearAuth();
+        setAuthTokens({ access: data.access, refresh: data.refresh });
+        setUserSession({
+          role: data.role,
+          restaurant: data.restaurant,
+          name: data.name,
+          restaurant_active: data.restaurant_active,
+          subscription_status: data.subscription_status,
+        });
+        navigate("/restaurant-admin/subscription");
       } else {
-        alert("Error: " + JSON.stringify(data));
+        setError(data.error || "Could not create the restaurant account.");
       }
 
     } catch (err) {
       console.error(err);
-      alert("Something went wrong");
+      setError("Something went wrong.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -89,8 +102,10 @@ export default function Register() {
           </div>
 
           <button className="primary-btn" onClick={handleSubmit}>
-            Create Restaurant
+            {submitting ? "Creating..." : "Create Restaurant"}
           </button>
+
+          {error ? <p className="subtitle" style={{ color: "#fca5a5" }}>{error}</p> : null}
 
           <p className="switch-text">
             Already registered?{" "}

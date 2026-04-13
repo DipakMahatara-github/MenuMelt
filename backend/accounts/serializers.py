@@ -1,8 +1,5 @@
 from rest_framework import serializers
 from .models import User
-from restaurants.models import Restaurant
-
-
 class RegisterSerializer(serializers.ModelSerializer):
 
     restaurant_name = serializers.CharField(write_only=True)
@@ -36,12 +33,33 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     restaurant_name = serializers.SerializerMethodField()
+    restaurant_active = serializers.SerializerMethodField()
+    subscription_status = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["id", "email", "full_name", "role", "restaurant", "restaurant_name"]
+        fields = [
+            "id",
+            "email",
+            "full_name",
+            "role",
+            "restaurant",
+            "restaurant_name",
+            "restaurant_active",
+            "subscription_status",
+        ]
 
     def get_restaurant_name(self, obj):
         if obj.restaurant_id and obj.restaurant:
             return obj.restaurant.name
         return None
+
+    def get_restaurant_active(self, obj):
+        if obj.restaurant_id and obj.restaurant:
+            return bool(obj.restaurant.is_active)
+        return False
+
+    def get_subscription_status(self, obj):
+        if obj.restaurant_id and obj.restaurant:
+            return obj.restaurant.current_subscription_status
+        return "inactive"

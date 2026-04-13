@@ -46,6 +46,13 @@
   line-height: 1.6;
 }
 
+.mm-cashier__restaurant {
+  margin: 0.45rem 0 0;
+  color: #f8fafc;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
 .mm-cashier__logout {
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(15, 23, 42, 0.72);

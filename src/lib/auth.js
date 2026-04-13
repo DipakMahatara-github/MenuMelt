@@ -5,6 +5,8 @@ export const LEGACY_TOKEN_KEY = "token";
 export const ROLE_KEY = "role";
 export const RESTAURANT_KEY = "restaurant";
 export const NAME_KEY = "name";
+export const RESTAURANT_ACTIVE_KEY = "restaurant_active";
+export const SUBSCRIPTION_STATUS_KEY = "subscription_status";
 
 const sessionGet = (key) => sessionStorage.getItem(key);
 const localGet = (key) => localStorage.getItem(key);
@@ -25,6 +27,11 @@ export const getRefreshToken = () =>
   sessionGet(REFRESH_TOKEN_KEY) || localGet(REFRESH_TOKEN_KEY);
 
 export const getUserRole = () => sessionGet(ROLE_KEY) || localGet(ROLE_KEY);
+export const getRestaurantName = () => sessionGet(RESTAURANT_KEY) || localGet(RESTAURANT_KEY) || "";
+export const getRestaurantActive = () =>
+  (sessionGet(RESTAURANT_ACTIVE_KEY) || localGet(RESTAURANT_ACTIVE_KEY) || "") === "true";
+export const getSubscriptionStatus = () =>
+  sessionGet(SUBSCRIPTION_STATUS_KEY) || localGet(SUBSCRIPTION_STATUS_KEY) || "inactive";
 
 export const setAuthTokens = ({ access, refresh }) => {
   if (access) {
@@ -42,7 +49,7 @@ export const setAuthTokens = ({ access, refresh }) => {
   }
 };
 
-export const setUserSession = ({ role, restaurant, name }) => {
+export const setUserSession = ({ role, restaurant, name, restaurant_active, subscription_status }) => {
   if (role) {
     sessionSet(ROLE_KEY, role);
     localSet(ROLE_KEY, role);
@@ -55,6 +62,14 @@ export const setUserSession = ({ role, restaurant, name }) => {
     sessionSet(NAME_KEY, name);
     localSet(NAME_KEY, name);
   }
+  if (typeof restaurant_active === "boolean") {
+    sessionSet(RESTAURANT_ACTIVE_KEY, String(restaurant_active));
+    localSet(RESTAURANT_ACTIVE_KEY, String(restaurant_active));
+  }
+  if (subscription_status) {
+    sessionSet(SUBSCRIPTION_STATUS_KEY, subscription_status);
+    localSet(SUBSCRIPTION_STATUS_KEY, subscription_status);
+  }
 };
 
 export const clearAuth = () => {
@@ -65,5 +80,7 @@ export const clearAuth = () => {
     ROLE_KEY,
     RESTAURANT_KEY,
     NAME_KEY,
+    RESTAURANT_ACTIVE_KEY,
+    SUBSCRIPTION_STATUS_KEY,
   ].forEach(clearKey);
 };

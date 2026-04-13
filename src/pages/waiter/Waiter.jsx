@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Waiter.css";
 import { authFetch, API_BASE } from "../../lib/api";
-import { clearAuth, getUserRole } from "../../lib/auth";
+import { clearAuth, getRestaurantName, getUserRole } from "../../lib/auth";
 
 const ROLE_COPY = {
   waiter: {
@@ -17,6 +17,7 @@ const ROLE_COPY = {
 export default function Waiter() {
   const navigate = useNavigate();
   const role = getUserRole();
+  const restaurantName = getRestaurantName();
   const copy = ROLE_COPY[role] || ROLE_COPY.waiter;
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState("");
@@ -156,6 +157,7 @@ export default function Waiter() {
         <div>
           <p className="mm-ops-eyebrow">{copy.eyebrow}</p>
           <h1 className="mm-ops-title">{copy.title}</h1>
+          {restaurantName ? <p className="mm-ops-restaurant">{restaurantName}</p> : null}
           <p className="mm-ops-sub">{copy.subtitle}</p>
         </div>
         <button type="button" className="mm-ops-logout" onClick={logout}>

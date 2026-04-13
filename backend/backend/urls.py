@@ -12,6 +12,7 @@ urlpatterns = [
     path('api/categories/', include('menu.category_urls')),
     path('api/auth/', include('accounts.urls')),  
     path('api/orders/', include('orders.urls')),
+    path('api/restaurants/', include('restaurants.urls')),
     path('api/debug-esewa/', debug_esewa),
     path('api/tables/', include('tables.urls')),
 

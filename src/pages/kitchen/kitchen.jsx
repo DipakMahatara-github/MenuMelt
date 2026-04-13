@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./kitchen.css";
 import { authFetch, API_BASE } from "../../lib/api";
-import { clearAuth } from "../../lib/auth";
+import { clearAuth, getRestaurantName } from "../../lib/auth";
 
 export default function Kitchen() {
   const navigate = useNavigate();
+  const restaurantName = getRestaurantName();
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState(null);
@@ -82,6 +83,7 @@ export default function Kitchen() {
         <div>
           <p className="mm-ops-eyebrow">Kitchen</p>
           <h1 className="mm-ops-title">Live line</h1>
+          {restaurantName ? <p className="mm-ops-restaurant">{restaurantName}</p> : null}
           <p className="mm-ops-sub">Only orders released by waiters or admins appear here.</p>
         </div>
         <div className="mm-kitchen-top-meta">

@@ -1,38 +1,231 @@
-.subscriptions-page {
+.mm-admin-subscriptions {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.mm-admin-subscriptions__hero {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
 }
 
-.plans {
+.mm-admin-subscriptions__eyebrow {
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.74rem;
+  color: #8bc5a0;
+  font-weight: 700;
+}
+
+.mm-admin-subscriptions__hero h1 {
+  margin: 0;
+}
+
+.mm-admin-subscriptions__lead {
+  margin: 0.5rem 0 0;
+  max-width: 42rem;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.mm-admin-subscriptions__controls {
   display: flex;
-  gap: 20px;
+  gap: 0.75rem;
 }
 
-.plan-card {
-  flex: 1;
-  background: rgba(30, 41, 59, 0.6);
-  padding: 25px;
-  border-radius: 16px;
-  text-align: center;
-  transition: 0.3s;
+.mm-admin-subscriptions__controls input,
+.mm-admin-subscriptions__controls button {
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  padding: 0.85rem 1rem;
 }
 
-.plan-card:hover {
-  transform: scale(1.05);
+.mm-admin-subscriptions__controls input {
+  min-width: 260px;
+  background: #fff;
 }
 
-.plan-card h1 {
-  font-size: 32px;
-  margin: 10px 0;
-}
-
-button {
-  margin-top: 10px;
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  background: #3b82f6;
-  color: white;
+.mm-admin-subscriptions__controls button,
+.mm-admin-subscriptions__actions button {
+  background: #0f172a;
+  color: #f8fafc;
   cursor: pointer;
+}
+
+.mm-admin-subscriptions__alert {
+  border-radius: 14px;
+  padding: 0.95rem 1rem;
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  color: #b91c1c;
+}
+
+.mm-admin-subscriptions__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.mm-admin-subscriptions__stat {
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  padding: 1rem 1.1rem;
+}
+
+.mm-admin-subscriptions__stat strong {
+  display: block;
+  font-size: 1.35rem;
+  margin-bottom: 0.25rem;
+}
+
+.mm-admin-subscriptions__stat.warn strong {
+  color: #b45309;
+}
+
+.mm-admin-subscriptions__stat.danger strong {
+  color: #b91c1c;
+}
+
+.mm-admin-subscriptions__filters {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.mm-admin-subscriptions__tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.mm-admin-subscriptions__tabs button {
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.55rem 0.85rem;
+  text-transform: capitalize;
+  cursor: pointer;
+}
+
+.mm-admin-subscriptions__tabs button.is-active {
+  background: #0f172a;
+  color: #fff;
+}
+
+.mm-admin-subscriptions__toggle {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  color: #475569;
+}
+
+.mm-admin-subscriptions__table-wrap {
+  overflow: auto;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.mm-admin-subscriptions__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mm-admin-subscriptions__table th,
+.mm-admin-subscriptions__table td {
+  text-align: left;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  vertical-align: top;
+}
+
+.mm-admin-subscriptions__table th {
+  color: #475569;
+  font-size: 0.88rem;
+}
+
+.mm-admin-subscriptions__empty {
+  text-align: center !important;
+  color: #64748b;
+}
+
+.muted {
+  margin-top: 0.25rem;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.danger-text {
+  color: #b91c1c;
+}
+
+.status-chip {
+  display: inline-block;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  text-transform: capitalize;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.status-chip.is-active {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+
+.status-chip.is-pending {
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+}
+
+.status-chip.is-failed,
+.status-chip.is-cancelled {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+}
+
+.status-chip.is-expired {
+  background: rgba(251, 191, 36, 0.16);
+  color: #b45309;
+}
+
+.mm-admin-subscriptions__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.mm-admin-subscriptions__actions button {
+  border: none;
+  border-radius: 10px;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.82rem;
+}
+
+.mm-admin-subscriptions__actions button.warn {
+  background: #f59e0b;
+}
+
+.mm-admin-subscriptions__actions button.danger {
+  background: #dc2626;
+}
+
+@media (max-width: 900px) {
+  .mm-admin-subscriptions__hero {
+    flex-direction: column;
+  }
+
+  .mm-admin-subscriptions__controls {
+    width: 100%;
+  }
+
+  .mm-admin-subscriptions__controls input {
+    min-width: 0;
+    flex: 1;
+  }
 }

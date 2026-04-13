@@ -56,6 +56,13 @@
   line-height: 1.5;
 }
 
+.mm-ops-restaurant {
+  margin: 0.4rem 0 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
 .mm-ops-logout {
   border: 1px solid var(--mm-border);
   background: rgba(255, 255, 255, 0.04);
