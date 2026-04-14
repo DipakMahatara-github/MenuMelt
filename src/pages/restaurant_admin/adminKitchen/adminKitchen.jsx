@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./adminKitchen.css";
 import { authFetch, API_BASE } from "../../../lib/api";
+import { SERVICE_STATUS_LABELS, subscribeToOrderStream, upsertOrder } from "../../../lib/orderLive";
 
 export default function AdminKitchen() {
   const [orders, setOrders] = useState([]);
   const [filter, setFilter] = useState("active");
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
+  const [liveState, setLiveState] = useState("connecting");
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -22,13 +24,22 @@ export default function AdminKitchen() {
 
   useEffect(() => {
     fetchOrders();
-    const interval = setInterval(fetchOrders, 4000);
-    return () => clearInterval(interval);
+    const unsubscribe = subscribeToOrderStream({
+      audience: "staff",
+      onStateChange: setLiveState,
+      onEvent: (event) => {
+        const incoming = event?.staff_order;
+        if (!incoming) return;
+        setOrders((current) => upsertOrder(current, incoming));
+      },
+    });
+    return unsubscribe;
   }, [fetchOrders]);
 
   const filteredOrders = useMemo(() => {
     if (filter === "all") return orders;
     if (filter === "served") return orders.filter((o) => o.status === "served");
+    if (filter === "ready") return orders.filter((o) => o.status === "ready");
     return orders.filter((o) => o.status !== "served");
   }, [orders, filter]);
 
@@ -67,16 +78,17 @@ export default function AdminKitchen() {
           <p className="mm-adm-kitchen__eyebrow">Monitor</p>
           <h1 className="mm-adm-kitchen__title">Kitchen board</h1>
           <p className="mm-adm-kitchen__sub">Same data as the waiter console — unreleased tickets stay off the line.</p>
+          <p className={`mm-adm-kitchen__live mm-adm-kitchen__live--${liveState}`}>Live feed: {liveState}</p>
         </div>
         <div className="mm-adm-kitchen__filters">
-          {["active", "served", "all"].map((f) => (
+          {["active", "ready", "served", "all"].map((f) => (
             <button
               key={f}
               type="button"
               className={filter === f ? "is-on" : ""}
               onClick={() => setFilter(f)}
             >
-              {f === "active" ? "Active" : f === "served" ? "Served" : "All"}
+              {f === "active" ? "Active" : f === "ready" ? "Ready" : f === "served" ? "Served" : "All"}
             </button>
           ))}
         </div>
@@ -95,7 +107,7 @@ export default function AdminKitchen() {
                 <span className="mm-adm-kitchen__table">Table {order.table_number}</span>
                 <h2>#{order.id}</h2>
               </div>
-              <span className="mm-adm-kitchen__badge">{order.status}</span>
+              <span className="mm-adm-kitchen__badge">{SERVICE_STATUS_LABELS[order.status] || order.status}</span>
             </div>
             {!order.confirmed_for_kitchen ? (
               <p className="mm-adm-kitchen__flag">Awaiting waiter release</p>
@@ -121,6 +133,16 @@ export default function AdminKitchen() {
                 </button>
               )}
               {order.confirmed_for_kitchen && order.status === "preparing" && (
+                <button
+                  type="button"
+                  className="mm-adm-kitchen__btn mm-adm-kitchen__btn--mint"
+                  disabled={busyId === order.id}
+                  onClick={() => updateStatus(order.id, "ready")}
+                >
+                  Ready
+                </button>
+              )}
+              {order.confirmed_for_kitchen && order.status === "ready" && (
                 <button
                   type="button"
                   className="mm-adm-kitchen__btn mm-adm-kitchen__btn--mint"

@@ -1,14 +1,63 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronLeft, ShoppingCart } from "lucide-react";
 import { authFetch, API_BASE } from "../../lib/api";
+import { SERVICE_STATUS_FLOW, SERVICE_STATUS_LABELS, subscribeToOrderStream, upsertOrder } from "../../lib/orderLive";
 import "./MyOrders.css";
+
+function formatBillingLabel(value) {
+  return String(value || "unbilled").replaceAll("_", " ");
+}
+
+function LivePill({ state }) {
+  const label =
+    state === "connected"
+      ? "Live updates on"
+      : state === "reconnecting"
+        ? "Reconnecting live updates…"
+        : state === "error"
+          ? "Live updates interrupted"
+          : "Connecting live updates…";
+  return <div className={`cx-live-pill cx-live-pill--${state}`}>{label}</div>;
+}
+
+function StatusTimeline({ status }) {
+  const currentIndex = Math.max(SERVICE_STATUS_FLOW.indexOf(status), 0);
+  return (
+    <ol className="cx-status-track" aria-label="Order progress">
+      {SERVICE_STATUS_FLOW.map((step, index) => {
+        const done = index <= currentIndex;
+        return (
+          <li key={step} className={`cx-status-step ${done ? "is-done" : ""}`}>
+            <span className="cx-status-dot" aria-hidden />
+            <span className="cx-status-label">{SERVICE_STATUS_LABELS[step]}</span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
 
 export default function MyOrders() {
   const location = useLocation();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [flash, setFlash] = useState(location.state?.flash || "");
+  const [liveState, setLiveState] = useState("connecting");
+
+  const fetchOrders = useCallback(async () => {
+    try {
+      const res = await authFetch(`${API_BASE}/api/orders/my/`);
+      const data = await res.json();
+      if (res.ok && Array.isArray(data)) {
+        setOrders(data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (flash) {
@@ -22,22 +71,24 @@ export default function MyOrders() {
       setLoading(false);
       return;
     }
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await authFetch(`${API_BASE}/api/orders/my/`);
-        const data = await res.json();
-        if (!cancelled && res.ok && Array.isArray(data)) setOrders(data);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    fetchOrders();
+    const unsubscribe = subscribeToOrderStream({
+      audience: "customer",
+      onStateChange: setLiveState,
+      onEvent: (event) => {
+        const incoming = event?.customer_order;
+        if (!incoming) return;
+        setOrders((current) => {
+          const previous = current.find((item) => item.id === incoming.id);
+          if (previous && previous.status !== incoming.status && incoming.status === "ready") {
+            setFlash(`Order #${incoming.id} is ready for service.`);
+          }
+          return upsertOrder(current, incoming);
+        });
+      },
+    });
+    return unsubscribe;
+  }, [fetchOrders]);
 
   if (!sessionStorage.getItem("table_token")) {
     return (
@@ -66,6 +117,7 @@ export default function MyOrders() {
             <span className="cx-page-spacer" aria-hidden />
           </header>
 
+          <LivePill state={liveState} />
           {flash ? <div className="cx-flash">{flash}</div> : null}
 
           {loading ? (
@@ -87,13 +139,17 @@ export default function MyOrders() {
                       <p className="cx-order-sub">
                         {o.customer_name} · Table {o.table_number}
                       </p>
-                      <p className="cx-order-meta">
-                        Kitchen: {o.status} · Billing: {o.billing_status}
-                        {o.payment_method ? ` (${o.payment_method})` : ""}
-                      </p>
+                      <div className="cx-order-meta-row">
+                        <span className={`cx-order-status cx-order-status--${o.status}`}>{SERVICE_STATUS_LABELS[o.status] || o.status}</span>
+                        <span className="cx-order-meta">
+                          Billing: {formatBillingLabel(o.billing_status)}
+                          {o.payment_method ? ` (${o.payment_method})` : ""}
+                        </span>
+                      </div>
                     </div>
                     <span className="cx-order-price">Rs. {Number(o.total_price).toFixed(2)}</span>
                   </div>
+                  <StatusTimeline status={o.status} />
                   <ul className="cx-order-items">
                     {(o.items || []).map((it) => (
                       <li key={it.id}>

@@ -10,10 +10,12 @@ from tables.models import Table
 class Order(models.Model):
     STATUS_PENDING = "pending"
     STATUS_PREPARING = "preparing"
+    STATUS_READY = "ready"
     STATUS_SERVED = "served"
     STATUS_CHOICES = (
         (STATUS_PENDING, "Pending"),
         (STATUS_PREPARING, "Preparing"),
+        (STATUS_READY, "Ready"),
         (STATUS_SERVED, "Served"),
     )
 

@@ -73,6 +73,10 @@
   border-left-color: var(--mm-amber);
 }
 
+.mm-kitchen-card--ready {
+  border-left-color: #2dd4bf;
+}
+
 .mm-kitchen-card--served {
   border-left-color: var(--mm-mint);
   opacity: 0.88;
@@ -83,6 +87,14 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 0.75rem;
+}
+
+.mm-kitchen-status {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #bfdbfe;
 }
 
 .mm-kitchen-table {
@@ -153,6 +165,12 @@
   cursor: wait;
 }
 
+.mm-kitchen-note {
+  margin: 1rem 0 0;
+  color: var(--mm-muted);
+  font-size: 0.88rem;
+}
+
 .mm-kitchen-empty {
   color: var(--mm-muted);
   margin: 0;
@@ -196,6 +214,24 @@
   color: var(--mm-muted);
   max-width: 36rem;
   line-height: 1.5;
+}
+
+.mm-kitchen .mm-ops-live {
+  margin: 0.5rem 0 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.mm-kitchen .mm-ops-live--connected {
+  color: #6ee7b7;
+}
+
+.mm-kitchen .mm-ops-live--connecting,
+.mm-kitchen .mm-ops-live--reconnecting,
+.mm-kitchen .mm-ops-live--error {
+  color: #fde68a;
 }
 
 .mm-kitchen .mm-ops-logout {

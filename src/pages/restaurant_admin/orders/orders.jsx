@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import "./orders.css";
 import { authFetch, API_BASE } from "../../../lib/api";
+import { SERVICE_STATUS_LABELS, subscribeToOrderStream, upsertOrder } from "../../../lib/orderLive";
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState("");
   const [busyId, setBusyId] = useState(null);
+  const [liveState, setLiveState] = useState("connecting");
 
   const fetchOrders = async () => {
     try {
-      const q = statusFilter ? `?status=${encodeURIComponent(statusFilter)}` : "";
-      const res = await authFetch(`${API_BASE}/api/orders/${q}`);
+      const res = await authFetch(`${API_BASE}/api/orders/`);
       const data = await res.json();
       setOrders(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -20,9 +21,17 @@ export default function Orders() {
 
   useEffect(() => {
     fetchOrders();
-    const interval = setInterval(fetchOrders, 5000);
-    return () => clearInterval(interval);
-  }, [statusFilter]);
+    const unsubscribe = subscribeToOrderStream({
+      audience: "staff",
+      onStateChange: setLiveState,
+      onEvent: (event) => {
+        const incoming = event?.staff_order;
+        if (!incoming) return;
+        setOrders((current) => upsertOrder(current, incoming));
+      },
+    });
+    return unsubscribe;
+  }, []);
 
   const confirmKitchen = async (id) => {
     setBusyId(id);
@@ -59,9 +68,15 @@ export default function Orders() {
     ).length;
     const pending = orders.filter((o) => o.status === "pending").length;
     const preparing = orders.filter((o) => o.status === "preparing").length;
+    const ready = orders.filter((o) => o.status === "ready").length;
     const served = orders.filter((o) => o.status === "served").length;
-    return { total, awaitingRelease, pending, preparing, served };
+    return { total, awaitingRelease, pending, preparing, ready, served };
   }, [orders]);
+
+  const filteredOrders = useMemo(() => {
+    if (!statusFilter) return orders;
+    return orders.filter((order) => order.status === statusFilter);
+  }, [orders, statusFilter]);
 
   return (
     <div className="orders-page mm-orders-pro">
@@ -70,6 +85,7 @@ export default function Orders() {
           <p className="mm-orders-pro__eyebrow">Operations</p>
           <h1 className="page-title">Orders</h1>
           <p className="mm-orders-pro__sub">Release orders to the kitchen after you verify payment or service.</p>
+          <p className={`mm-orders-pro__live mm-orders-pro__live--${liveState}`}>Live feed: {liveState}</p>
         </div>
         <label className="mm-orders-pro__filter">
           <span>Status</span>
@@ -77,6 +93,7 @@ export default function Orders() {
             <option value="">All</option>
             <option value="pending">Pending</option>
             <option value="preparing">Preparing</option>
+            <option value="ready">Ready</option>
             <option value="served">Served</option>
           </select>
         </label>
@@ -99,6 +116,10 @@ export default function Orders() {
           <h2>{stats.preparing}</h2>
           <p>Preparing</p>
         </div>
+        <div className="stat-card ready">
+          <h2>{stats.ready}</h2>
+          <p>Ready</p>
+        </div>
         <div className="stat-card completed">
           <h2>{stats.served}</h2>
           <p>Served</p>
@@ -106,11 +127,11 @@ export default function Orders() {
       </div>
 
       <div className="orders-grid">
-        {orders.map((order) => (
+        {filteredOrders.map((order) => (
           <div key={order.id} className={`order-card ${order.status}`}>
             <div className="order-head">
               <h3>Order #{order.id}</h3>
-              <span className="badge">{order.status}</span>
+              <span className="badge">{SERVICE_STATUS_LABELS[order.status] || order.status}</span>
             </div>
             {!order.confirmed_for_kitchen ? (
               <div className="mm-orders-chip mm-orders-chip--warn">Not sent to kitchen</div>
@@ -151,7 +172,7 @@ export default function Orders() {
                 </button>
               )}
 
-              {order.confirmed_for_kitchen && order.status === "preparing" && (
+              {order.confirmed_for_kitchen && order.status === "ready" && (
                 <button
                   type="button"
                   className="btn done"

@@ -47,7 +47,7 @@ INSTALLED_APPS = [
 
     'accounts',
     'menu',  
-    'orders', 
+    'orders.apps.OrdersConfig', 
     'tables',
     'dashboard',
     'admin_dashboard',
@@ -85,6 +85,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "backend.wsgi.application"
+ASGI_APPLICATION = "backend.asgi.application"
 
 
 # Database (local Postgres — not exposed via ngrok).

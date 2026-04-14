@@ -27,6 +27,7 @@ from .esewa import (
     format_esewa_amount,
     get_esewa_status_url,
 )
+from .live import publish_order_event
 from .models import Order, OrderItem
 from .serializers import (
     CustomerOrderCreateSerializer,
@@ -37,7 +38,18 @@ from .serializers import (
 ESEWA_VERIFY_MAX_ATTEMPTS = 10
 ESEWA_VERIFY_RETRY_DELAY_SEC = 2.0
 
-ORDER_STATUS_VALUES = {Order.STATUS_PENDING, Order.STATUS_PREPARING, Order.STATUS_SERVED}
+ORDER_STATUS_VALUES = {
+    Order.STATUS_PENDING,
+    Order.STATUS_PREPARING,
+    Order.STATUS_READY,
+    Order.STATUS_SERVED,
+}
+ORDER_STATUS_TRANSITIONS = {
+    Order.STATUS_PENDING: {Order.STATUS_PREPARING},
+    Order.STATUS_PREPARING: {Order.STATUS_READY},
+    Order.STATUS_READY: {Order.STATUS_SERVED},
+    Order.STATUS_SERVED: set(),
+}
 BILLING_STATUS_VALUES = {
     Order.BILLING_ST_UNBILLED,
     Order.BILLING_ST_BILLED,
@@ -64,6 +76,13 @@ BILLING_STATUS_TRANSITIONS = {
 }
 
 logger = logging.getLogger(__name__)
+
+
+def _notify_order_change(order: Order, *, event_type: str = "updated") -> None:
+    try:
+        publish_order_event(order, event_type=event_type)
+    except Exception:
+        logger.exception("Failed to publish live order event for order_id=%s", order.pk)
 
 
 def _legacy_payment_status_for_billing(billing_status: str) -> str:
@@ -111,6 +130,41 @@ def _validate_billing_transition(order: Order, next_status: str) -> Optional[str
     if next_status not in allowed:
         return f"Cannot move billing status from {current} to {next_status}."
     return None
+
+
+def _validate_service_transition(order: Order, next_status: str, role: Optional[str]) -> Optional[str]:
+    current = order.status
+    if next_status not in ORDER_STATUS_VALUES:
+        return f"Invalid status. Allowed: {sorted(ORDER_STATUS_VALUES)}"
+    if next_status == current:
+        return None
+
+    if role == "cashier":
+        return "Cashiers cannot change kitchen or service status."
+
+    allowed = ORDER_STATUS_TRANSITIONS.get(current, set())
+    if next_status not in allowed:
+        return f"Cannot move order status from {current} to {next_status}."
+
+    if current == Order.STATUS_PENDING and next_status == Order.STATUS_PREPARING and not order.confirmed_for_kitchen_at:
+        return "Use Send to kitchen to release this order before changing status."
+
+    if role == "kitchen":
+        if not order.confirmed_for_kitchen_at:
+            return "This order has not been released to the kitchen yet."
+        if not (current == Order.STATUS_PREPARING and next_status == Order.STATUS_READY):
+            return "Kitchen can only mark orders as ready after they are preparing."
+        return None
+
+    if role == "waiter":
+        if not (current == Order.STATUS_READY and next_status == Order.STATUS_SERVED):
+            return "Waiters can only mark ready orders as served."
+        return None
+
+    if role == "restaurant_admin":
+        return None
+
+    return "You do not have permission to change order status."
 
 
 def _resolve_restaurant_order_for_user(request, order_id: int) -> Tuple[Optional[Order], Optional[Response]]:
@@ -238,6 +292,8 @@ def orders_collection(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
+    _notify_order_change(order, event_type="created")
+
     return Response(
         CustomerOrderSummarySerializer(order).data,
         status=status.HTTP_201_CREATED,
@@ -280,6 +336,7 @@ def confirm_order_for_kitchen(request, order_id):
     order.status = Order.STATUS_PREPARING
     order.save(update_fields=["confirmed_for_kitchen_at", "status"])
     logger.info("Order %s confirmed for kitchen by user=%s", order.pk, request.user.pk)
+    _notify_order_change(order)
     return Response(OrderSerializer(order).data)
 
 
@@ -291,62 +348,18 @@ def update_order_status(request, order_id):
         return err
 
     status_value = request.data.get("status")
-    if not status_value or status_value not in ORDER_STATUS_VALUES:
-        return Response(
-            {"error": f"Invalid status. Allowed: {sorted(ORDER_STATUS_VALUES)}"},
-            status=400,
-        )
-
     role = getattr(request.user, "role", None)
-
-    if role == "kitchen":
-        if not order.confirmed_for_kitchen_at:
-            return Response(
-                {"error": "This order has not been released to the kitchen yet."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        if status_value != Order.STATUS_SERVED or order.status != Order.STATUS_PREPARING:
-            return Response(
-                {
-                    "error": "Kitchen can only mark orders as served when they are in preparing state.",
-                },
-                status=400,
-            )
-
-    if role == "cashier":
+    transition_error = _validate_service_transition(order, status_value, role)
+    if transition_error:
+        forbidden_roles = {"cashier", None}
         return Response(
-            {"error": "Cashiers cannot change kitchen or service status."},
-            status=status.HTTP_403_FORBIDDEN,
+            {"error": transition_error},
+            status=status.HTTP_403_FORBIDDEN if role in forbidden_roles else 400,
         )
-
-    if role == "waiter":
-        if (
-            order.status == Order.STATUS_PENDING
-            and status_value == Order.STATUS_PREPARING
-            and not order.confirmed_for_kitchen_at
-        ):
-            return Response(
-                {
-                    "error": "Confirm the order for the kitchen first (Send to kitchen).",
-                },
-                status=400,
-            )
-
-    if role == "restaurant_admin":
-        if (
-            order.status == Order.STATUS_PENDING
-            and status_value == Order.STATUS_PREPARING
-            and not order.confirmed_for_kitchen_at
-        ):
-            return Response(
-                {
-                    "error": "Use Send to kitchen to release this order before changing status.",
-                },
-                status=400,
-            )
 
     order.status = status_value
     order.save(update_fields=["status"])
+    _notify_order_change(order)
     return Response(OrderSerializer(order).data)
 
 
@@ -398,6 +411,7 @@ def update_order_billing(request, order_id):
             "refunded_at",
         ]
     )
+    _notify_order_change(order)
     return Response(OrderSerializer(order).data)
 
 
@@ -431,6 +445,7 @@ def pay_cash(request, order_id):
             "refunded_at",
         ]
     )
+    _notify_order_change(order)
     return Response(CustomerOrderSummarySerializer(order).data)
 
 
@@ -486,6 +501,7 @@ def pay_esewa(request, order_id):
             "refunded_at",
         ]
     )
+    _notify_order_change(order)
 
     # Path only — eSewa appends query params (e.g. data, transaction_uuid). Set FRONTEND_URL to your
     # public HTTPS origin (e.g. https://xxxx.ngrok-free.app) so this URL is reachable after payment.
@@ -660,6 +676,7 @@ def _run_esewa_verification_for_order(order: Order) -> Response:
                     "refunded_at",
                 ]
             )
+            _notify_order_change(order)
             return Response(
                 {
                     "paid": True,
@@ -685,6 +702,7 @@ def _run_esewa_verification_for_order(order: Order) -> Response:
                     "refunded_at",
                 ]
             )
+            _notify_order_change(order)
             return Response({"paid": False, "pending": False, "esewa": payload}, status=200)
 
         if outcome == "not_found":

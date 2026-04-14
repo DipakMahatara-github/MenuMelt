@@ -42,6 +42,24 @@
   line-height: 1.5;
 }
 
+.mm-adm-kitchen__live {
+  margin: 0.45rem 0 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.mm-adm-kitchen__live--connected {
+  color: #047857;
+}
+
+.mm-adm-kitchen__live--connecting,
+.mm-adm-kitchen__live--reconnecting,
+.mm-adm-kitchen__live--error {
+  color: #4338ca;
+}
+
 .mm-adm-kitchen__filters {
   display: flex;
   gap: 0.5rem;
@@ -101,6 +119,12 @@
   background: linear-gradient(165deg, #f4fdf7 0%, #e8f8ee 100%);
   border-color: rgba(5, 150, 105, 0.14);
   opacity: 0.96;
+}
+
+.mm-adm-kitchen__card--ready {
+  border-left-color: #14b8a6;
+  background: linear-gradient(165deg, #ecfeff 0%, #def7f6 100%);
+  border-color: rgba(20, 184, 166, 0.14);
 }
 
 .mm-adm-kitchen__top {

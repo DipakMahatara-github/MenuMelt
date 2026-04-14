@@ -63,6 +63,24 @@
   color: #f8fafc;
 }
 
+.mm-ops-live {
+  margin: 0.5rem 0 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.mm-ops-live--connected {
+  color: #6ee7b7;
+}
+
+.mm-ops-live--connecting,
+.mm-ops-live--reconnecting,
+.mm-ops-live--error {
+  color: #7dd3fc;
+}
+
 .mm-ops-logout {
   border: 1px solid var(--mm-border);
   background: rgba(255, 255, 255, 0.04);
@@ -200,10 +218,16 @@
   border-color: rgba(167, 139, 250, 0.35);
 }
 
-.mm-waiter-badge--served {
+.mm-waiter-badge--ready {
   background: rgba(52, 211, 153, 0.15);
-  color: #6ee7b7;
+  color: #a7f3d0;
   border-color: rgba(52, 211, 153, 0.35);
+}
+
+.mm-waiter-badge--served {
+  background: rgba(59, 130, 246, 0.15);
+  color: #bfdbfe;
+  border-color: rgba(59, 130, 246, 0.35);
 }
 
 .mm-waiter-card__who {

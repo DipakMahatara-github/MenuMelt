@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./Waiter.css";
 import { authFetch, API_BASE } from "../../lib/api";
 import { clearAuth, getRestaurantName, getUserRole } from "../../lib/auth";
+import { SERVICE_STATUS_LABELS, subscribeToOrderStream, upsertOrder } from "../../lib/orderLive";
 
 const ROLE_COPY = {
   waiter: {
@@ -22,6 +23,7 @@ export default function Waiter() {
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState(null);
+  const [liveState, setLiveState] = useState("connecting");
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -42,14 +44,23 @@ export default function Waiter() {
 
   useEffect(() => {
     fetchOrders();
-    const interval = setInterval(fetchOrders, 4000);
-    return () => clearInterval(interval);
+    const unsubscribe = subscribeToOrderStream({
+      audience: "staff",
+      onStateChange: setLiveState,
+      onEvent: (event) => {
+        const incoming = event?.staff_order;
+        if (!incoming) return;
+        setOrders((current) => upsertOrder(current, incoming));
+      },
+    });
+    return unsubscribe;
   }, [fetchOrders]);
 
-  const { awaiting, inKitchen } = useMemo(() => {
+  const { awaiting, preparing, ready } = useMemo(() => {
     const awaitingList = orders.filter((o) => !o.confirmed_for_kitchen);
-    const inKitchenList = orders.filter((o) => o.confirmed_for_kitchen);
-    return { awaiting: awaitingList, inKitchen: inKitchenList };
+    const preparingList = orders.filter((o) => o.confirmed_for_kitchen && o.status === "preparing");
+    const readyList = orders.filter((o) => o.confirmed_for_kitchen && o.status === "ready");
+    return { awaiting: awaitingList, preparing: preparingList, ready: readyList };
   }, [orders]);
 
   const confirmForKitchen = async (id) => {
@@ -100,9 +111,9 @@ export default function Waiter() {
   };
 
   const payLabel = (o) => {
-    if (o.payment_method === "esewa") return `eSewa · ${o.billing_status}`;
-    if (o.payment_method === "cash") return `Cash · ${o.billing_status}`;
-    return `Billing · ${o.billing_status}`;
+    if (o.payment_method === "esewa") return `eSewa · ${String(o.billing_status).replaceAll("_", " ")}`;
+    if (o.payment_method === "cash") return `Cash · ${String(o.billing_status).replaceAll("_", " ")}`;
+    return `Billing · ${String(o.billing_status).replaceAll("_", " ")}`;
   };
 
   const OrderCard = ({ order, mode }) => (
@@ -112,7 +123,9 @@ export default function Waiter() {
           <span className="mm-waiter-card__table">Table {order.table_number}</span>
           <h3 className="mm-waiter-card__title">Order #{order.id}</h3>
         </div>
-        <span className={`mm-waiter-badge mm-waiter-badge--${order.status}`}>{order.status}</span>
+        <span className={`mm-waiter-badge mm-waiter-badge--${order.status}`}>
+          {SERVICE_STATUS_LABELS[order.status] || order.status}
+        </span>
       </header>
       <p className="mm-waiter-card__who">{order.customer_name}</p>
       <p className="mm-waiter-card__pay">{payLabel(order)}</p>
@@ -136,7 +149,7 @@ export default function Waiter() {
         </button>
       ) : (
         <div className="mm-waiter-card__actions">
-          {order.status === "preparing" && (
+          {order.status === "ready" && (
             <button
               type="button"
               className="mm-waiter-btn mm-waiter-btn--ghost"
@@ -159,6 +172,7 @@ export default function Waiter() {
           <h1 className="mm-ops-title">{copy.title}</h1>
           {restaurantName ? <p className="mm-ops-restaurant">{restaurantName}</p> : null}
           <p className="mm-ops-sub">{copy.subtitle}</p>
+          <p className={`mm-ops-live mm-ops-live--${liveState}`}>Live feed: {liveState}</p>
         </div>
         <button type="button" className="mm-ops-logout" onClick={logout}>
           Log out
@@ -185,14 +199,30 @@ export default function Waiter() {
 
       <section className="mm-waiter-section mm-waiter-section--dim">
         <div className="mm-waiter-section__head">
-          <h2>In service · kitchen queue</h2>
-          <span className="mm-waiter-count">{inKitchen.length}</span>
+          <h2>Kitchen is preparing</h2>
+          <span className="mm-waiter-count">{preparing.length}</span>
         </div>
-        {inKitchen.length === 0 ? (
+        {preparing.length === 0 ? (
           <p className="mm-waiter-empty">{copy.emptyInKitchen}</p>
         ) : (
           <div className="mm-waiter-grid">
-            {inKitchen.map((o) => (
+            {preparing.map((o) => (
+              <OrderCard key={o.id} order={o} mode="floor" />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="mm-waiter-section">
+        <div className="mm-waiter-section__head">
+          <h2>Ready to serve</h2>
+          <span className="mm-waiter-count">{ready.length}</span>
+        </div>
+        {ready.length === 0 ? (
+          <p className="mm-waiter-empty">Kitchen has not marked any orders ready yet.</p>
+        ) : (
+          <div className="mm-waiter-grid">
+            {ready.map((o) => (
               <OrderCard key={o.id} order={o} mode="floor" />
             ))}
           </div>

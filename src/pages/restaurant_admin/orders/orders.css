@@ -42,6 +42,24 @@
   line-height: 1.55;
 }
 
+.mm-orders-pro__live {
+  margin: 0.45rem 0 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.mm-orders-pro__live--connected {
+  color: #059669;
+}
+
+.mm-orders-pro__live--connecting,
+.mm-orders-pro__live--reconnecting,
+.mm-orders-pro__live--error {
+  color: #2563eb;
+}
+
 .mm-orders-pro__filter {
   display: flex;
   flex-direction: column;
@@ -95,6 +113,10 @@
   border-left: 5px solid green;
 }
 
+.stat-card.ready {
+  border-left: 5px solid #0d9488;
+}
+
 /* GRID */
 .orders-grid {
   display: grid;
@@ -120,8 +142,17 @@
   border-top: 5px solid orange;
 }
 
-.order-card.completed {
+.order-card.completed,
+.order-card.served {
   border-top: 5px solid green;
+}
+
+.order-card.preparing {
+  border-top: 5px solid #8b5cf6;
+}
+
+.order-card.ready {
+  border-top: 5px solid #14b8a6;
 }
 
 /* HEAD */

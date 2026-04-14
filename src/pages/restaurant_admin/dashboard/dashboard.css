@@ -141,7 +141,8 @@
   text-transform: capitalize;
 }
 
-.status.completed {
+.status.completed,
+.status.served {
   background: #DCEBE0;
   color: #1F3D26;
 }
@@ -149,6 +150,16 @@
 .status.pending, .status.processing {
   background: #FEF08A;
   color: #854D0E;
+}
+
+.status.preparing {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.status.ready {
+  background: #ccfbf1;
+  color: #115e59;
 }
 
 .status.cancelled {
