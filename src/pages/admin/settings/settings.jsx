@@ -108,56 +108,56 @@ export default function Settings() {
   };
 
   return (
-    <div className="flex flex-col gap-5 text-slate-100">
+    <div className="flex flex-col gap-5 text-[#172E1B]">
       <header className="flex flex-col gap-[18px] xl:flex-row xl:items-start xl:justify-between">
         <div>
-          <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-sky-300">Platform controls</p>
-          <h1 className="my-1.5 text-4xl font-extrabold tracking-[-0.03em] text-white">Settings</h1>
-          <p className="max-w-[720px] text-slate-400">
+          <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-[#57735D]">Platform controls</p>
+          <h1 className="my-1.5 text-4xl font-extrabold tracking-[-0.03em] text-[#1A3120]">Settings</h1>
+          <p className="max-w-[720px] text-[#57735D]">
             Manage the platform admin profile and control whether new restaurant signups are allowed.
           </p>
         </div>
-        <div className="min-w-[220px] rounded-[20px] border border-slate-400/15 bg-[linear-gradient(180deg,rgba(15,23,42,0.94),rgba(2,6,23,0.92))] px-[18px] py-4 shadow-[0_24px_80px_rgba(2,6,23,0.36)]">
-          <span className="block text-[0.82rem] text-slate-400">Last updated</span>
-          <strong className="mt-1.5 block text-white">{updatedAt ? new Date(updatedAt).toLocaleString() : "—"}</strong>
+        <div className="min-w-[220px] rounded-[20px] border border-[#2A442E]/10 bg-white px-[18px] py-4 shadow-[0_4px_12px_rgba(42,68,46,0.04)]">
+          <span className="block text-[0.82rem] text-[#57735D]">Last updated</span>
+          <strong className="mt-1.5 block text-[#172E1B]">{updatedAt ? new Date(updatedAt).toLocaleString() : "—"}</strong>
         </div>
       </header>
 
       {error ? (
-        <div className="rounded-2xl border border-red-400/25 bg-red-950/25 px-4 py-3.5 text-red-200">{error}</div>
+        <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3.5 text-red-800 font-medium">{error}</div>
       ) : null}
       {message ? (
-        <div className="rounded-2xl border border-green-400/20 bg-green-950/25 px-4 py-3.5 text-green-200">{message}</div>
+        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3.5 text-emerald-800 font-medium">{message}</div>
       ) : null}
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <section className="rounded-[20px] border border-slate-400/15 bg-[linear-gradient(180deg,rgba(15,23,42,0.94),rgba(2,6,23,0.92))] p-5 shadow-[0_24px_80px_rgba(2,6,23,0.36)]">
-          <h2 className="mb-4 text-xl font-semibold text-white">Admin profile</h2>
+        <section className="rounded-[20px] border border-[#2A442E]/10 bg-white p-5 shadow-[0_4px_12px_rgba(42,68,46,0.04)]">
+          <h2 className="mb-4 text-xl font-semibold text-[#172E1B]">Admin profile</h2>
           <form className="grid gap-4" onSubmit={saveProfile}>
-            <label className="grid gap-2 text-[0.92rem] text-slate-200">
+            <label className="grid gap-2 text-[0.92rem] text-[#57735D]">
               Full name
               <input
                 type="text"
                 value={profile.full_name}
                 onChange={(e) => setProfile((current) => ({ ...current, full_name: e.target.value }))}
-                className="w-full rounded-[14px] border border-slate-400/15 bg-slate-950/80 px-3.5 py-3 text-slate-200 outline-none transition focus:border-sky-400/50 focus:ring-4 focus:ring-sky-400/10"
+                className="w-full rounded-[14px] border border-[#2A442E]/20 bg-white px-3.5 py-3 text-[#172E1B] outline-none transition focus:border-[#A1BDAB] focus:ring-4 focus:ring-[#A1BDAB]/20"
               />
             </label>
 
-            <label className="grid gap-2 text-[0.92rem] text-slate-200">
+            <label className="grid gap-2 text-[0.92rem] text-[#57735D]">
               Email
               <input
                 type="email"
                 value={profile.email}
                 onChange={(e) => setProfile((current) => ({ ...current, email: e.target.value }))}
-                className="w-full rounded-[14px] border border-slate-400/15 bg-slate-950/80 px-3.5 py-3 text-slate-200 outline-none transition focus:border-sky-400/50 focus:ring-4 focus:ring-sky-400/10"
+                className="w-full rounded-[14px] border border-[#2A442E]/20 bg-white px-3.5 py-3 text-[#172E1B] outline-none transition focus:border-[#A1BDAB] focus:ring-4 focus:ring-[#A1BDAB]/20"
               />
             </label>
 
-            <label className="flex items-center justify-between gap-[18px] rounded-2xl border border-slate-400/12 bg-slate-950/70 p-4">
+            <label className="flex items-center justify-between gap-[18px] rounded-2xl border border-[#2A442E]/10 bg-[#FAF6ED] p-4">
               <div>
-                <strong className="mb-1 block text-white">Allow new restaurant registrations</strong>
-                <span className="text-[0.86rem] text-slate-400">
+                <strong className="mb-1 block text-[#172E1B]">Allow new restaurant registrations</strong>
+                <span className="text-[0.86rem] text-[#57735D]">
                   Turning this off blocks new signup attempts, but existing users can still log in.
                 </span>
               </div>
@@ -171,7 +171,7 @@ export default function Settings() {
 
             <button
               type="submit"
-              className="rounded-[14px] bg-[linear-gradient(135deg,#38bdf8,#2563eb)] px-4 py-3 font-bold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+              className="rounded-[14px] bg-[linear-gradient(120deg,#A1BDAB,#7DA389)] px-4 py-3 font-bold text-white shadow-[0_8px_20px_rgba(161,189,171,0.3)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
               disabled={savingProfile}
             >
               {savingProfile ? "Saving…" : "Save changes"}
@@ -179,32 +179,32 @@ export default function Settings() {
           </form>
         </section>
 
-        <section className="rounded-[20px] border border-slate-400/15 bg-[linear-gradient(180deg,rgba(15,23,42,0.94),rgba(2,6,23,0.92))] p-5 shadow-[0_24px_80px_rgba(2,6,23,0.36)]">
-          <h2 className="mb-4 text-xl font-semibold text-white">Change password</h2>
+        <section className="rounded-[20px] border border-[#2A442E]/10 bg-white p-5 shadow-[0_4px_12px_rgba(42,68,46,0.04)]">
+          <h2 className="mb-4 text-xl font-semibold text-[#172E1B]">Change password</h2>
           <form className="grid gap-4" onSubmit={savePassword}>
-            <label className="grid gap-2 text-[0.92rem] text-slate-200">
+            <label className="grid gap-2 text-[0.92rem] text-[#57735D]">
               Current password
               <PasswordField
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full rounded-[14px] border border-slate-400/15 bg-slate-950/80 px-3.5 py-3 pr-11 text-slate-200 outline-none transition focus:border-sky-400/50 focus:ring-4 focus:ring-sky-400/10"
-                buttonClassName="text-slate-400 hover:text-sky-300 focus-visible:ring-sky-400/30"
+                className="w-full rounded-[14px] border border-[#2A442E]/20 bg-white px-3.5 py-3 pr-11 text-[#172E1B] outline-none transition focus:border-[#A1BDAB] focus:ring-4 focus:ring-[#A1BDAB]/20"
+                buttonClassName="text-[#57735D] hover:text-[#172E1B] focus-visible:ring-[#A1BDAB]/30"
               />
             </label>
 
-            <label className="grid gap-2 text-[0.92rem] text-slate-200">
+            <label className="grid gap-2 text-[0.92rem] text-[#57735D]">
               New password
               <PasswordField
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full rounded-[14px] border border-slate-400/15 bg-slate-950/80 px-3.5 py-3 pr-11 text-slate-200 outline-none transition focus:border-sky-400/50 focus:ring-4 focus:ring-sky-400/10"
-                buttonClassName="text-slate-400 hover:text-sky-300 focus-visible:ring-sky-400/30"
+                className="w-full rounded-[14px] border border-[#2A442E]/20 bg-white px-3.5 py-3 pr-11 text-[#172E1B] outline-none transition focus:border-[#A1BDAB] focus:ring-4 focus:ring-[#A1BDAB]/20"
+                buttonClassName="text-[#57735D] hover:text-[#172E1B] focus-visible:ring-[#A1BDAB]/30"
               />
             </label>
 
             <button
               type="submit"
-              className="rounded-[14px] bg-[linear-gradient(135deg,#22c55e,#15803d)] px-4 py-3 font-bold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+              className="rounded-[14px] bg-[linear-gradient(135deg,#10B981,#059669)] px-4 py-3 font-bold text-white shadow-[0_8px_20px_rgba(16,185,129,0.3)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
               disabled={savingPassword}
             >
               {savingPassword ? "Updating…" : "Update password"}

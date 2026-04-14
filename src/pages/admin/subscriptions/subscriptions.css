@@ -15,7 +15,7 @@
   text-transform: uppercase;
   letter-spacing: 0.16em;
   font-size: 0.74rem;
-  color: #8bc5a0;
+  color: #57735D;
   font-weight: 700;
 }
 
@@ -26,7 +26,7 @@
 .mm-admin-subscriptions__lead {
   margin: 0.5rem 0 0;
   max-width: 42rem;
-  color: #64748b;
+  color: #57735D;
   line-height: 1.6;
 }
 
@@ -70,8 +70,9 @@
 
 .mm-admin-subscriptions__stat {
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(148, 163, 184, 0.15);
+  background: #FFFFFF;
+  border: 1px solid rgba(43, 89, 61, 0.12);
+  box-shadow: 0 8px 24px rgba(42, 68, 46, 0.06);
   padding: 1rem 1.1rem;
 }
 
@@ -126,9 +127,10 @@
 
 .mm-admin-subscriptions__table-wrap {
   overflow: auto;
-  background: rgba(255, 255, 255, 0.72);
+  background: #FFFFFF;
   border-radius: 20px;
-  border: 1px solid rgba(148, 163, 184, 0.16);
+  border: 1px solid rgba(43, 89, 61, 0.12);
+  box-shadow: 0 8px 24px rgba(42, 68, 46, 0.04);
 }
 
 .mm-admin-subscriptions__table {
@@ -145,18 +147,18 @@
 }
 
 .mm-admin-subscriptions__table th {
-  color: #475569;
+  color: #57735D;
   font-size: 0.88rem;
 }
 
 .mm-admin-subscriptions__empty {
   text-align: center !important;
-  color: #64748b;
+  color: #57735D;
 }
 
 .muted {
   margin-top: 0.25rem;
-  color: #64748b;
+  color: #57735D;
   font-size: 0.88rem;
 }
 

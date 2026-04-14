@@ -2,7 +2,7 @@
 
 .mm-subscription {
   font-family: "Outfit", system-ui, sans-serif;
-  color: #e7eef8;
+  color: #172E1B;
 }
 
 .mm-subscription__hero {
@@ -18,7 +18,7 @@
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  color: #7dd3fc;
+  color: #57735D;
   font-weight: 700;
 }
 
@@ -30,12 +30,12 @@
 .mm-subscription__restaurant {
   margin: 0.4rem 0 0;
   font-weight: 700;
-  color: #f8fafc;
+  color: #2A442E;
 }
 
 .mm-subscription__lead {
   max-width: 45rem;
-  color: #94a3b8;
+  color: #57735D;
   line-height: 1.6;
 }
 
@@ -54,14 +54,14 @@
 }
 
 .mm-subscription__btn--primary {
-  color: #03121f;
-  background: linear-gradient(120deg, #7dd3fc, #38bdf8);
+  color: #FFFFFF;
+  background: linear-gradient(120deg, #A1BDAB, #7DA389);
 }
 
 .mm-subscription__btn--ghost {
-  color: #e2e8f0;
-  background: rgba(15, 23, 42, 0.72);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #2A442E;
+  background: rgba(43, 89, 61, 0.08); /* sage accent background */
+  border: 1px solid rgba(43, 89, 61, 0.15);
 }
 
 .mm-subscription__banner {
@@ -93,13 +93,14 @@
 .mm-subscription__plan {
   border-radius: 22px;
   padding: 1.2rem;
-  background: rgba(15, 23, 42, 0.76);
-  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: #FFFFFF;
+  border: 1px solid rgba(43, 89, 61, 0.12);
+  box-shadow: 0 4px 12px rgba(42, 68, 46, 0.04);
 }
 
 .mm-subscription__status-card span {
   display: block;
-  color: #94a3b8;
+  color: #57735D;
   margin-bottom: 0.4rem;
 }
 
@@ -114,8 +115,8 @@
 }
 
 .mm-subscription__plan.is-current {
-  border-color: rgba(52, 211, 153, 0.35);
-  box-shadow: 0 18px 42px rgba(52, 211, 153, 0.12);
+  border-color: rgba(161, 189, 171, 0.6);
+  box-shadow: 0 12px 32px rgba(161, 189, 171, 0.2);
 }
 
 .mm-subscription__plan-top {
@@ -132,7 +133,7 @@
 
 .mm-subscription__plan-top p {
   margin: 0;
-  color: #94a3b8;
+  color: #57735D;
   line-height: 1.5;
 }
 
@@ -141,8 +142,8 @@
   font-size: 0.82rem;
   padding: 0.3rem 0.65rem;
   border-radius: 999px;
-  background: rgba(125, 211, 252, 0.12);
-  color: #bae6fd;
+  background: rgba(161, 189, 171, 0.2);
+  color: #2A442E;
 }
 
 .mm-subscription__price {
