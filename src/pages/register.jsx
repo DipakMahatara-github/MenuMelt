@@ -63,7 +63,7 @@ export default function Register() {
 
   return (
     <div className="flex min-h-screen w-full font-sans">
-      <div className="flex flex-1 items-center justify-center bg-white px-6 py-10 sm:px-10">
+      <div className="flex flex-1 items-center justify-center bg-[#f8faf5] px-6 py-10 sm:px-10">
         <div className="w-full max-w-[380px]">
           <h1 className="mb-2 text-[28px] font-bold text-slate-950">Create Account</h1>
           <p className="mb-6 text-sm text-slate-500">Register your restaurant</p>

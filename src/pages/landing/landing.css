@@ -1,168 +1,373 @@
-.home-container {
+/* Sage Bistro Light Theme */
+.sage-landing {
   min-height: 100vh;
-  background: linear-gradient(to bottom, #1c1c1c, #000);
-  color: #ffffff;
-  font-family: "Segoe UI", sans-serif;
+  background-color: #f8faf5; /* Soft, warm off-white */
+  color: #2d3a2d; /* Deep forest/sage green for text */
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
 }
 
 /* NAVBAR */
-.home-navbar {
+.sage-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 60px;
+  padding: 24px 60px;
+  background-color: rgba(248, 250, 245, 0.95);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid rgba(124, 154, 124, 0.15);
 }
 
-.logo {
-  font-size: 28px;
-  font-weight: bold;
-  color: #f4c430;
+.sage-logo {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #557855;
 }
 
-.nav-links {
+.sage-nav-links {
   list-style: none;
   display: flex;
-  gap: 30px;
+  gap: 32px;
+  margin: 0;
+  padding: 0;
+  align-items: center;
 }
 
-.nav-links li {
+.sage-nav-links li {
+  font-weight: 500;
+  font-size: 15px;
+  color: #4a5d4a;
   cursor: pointer;
-  opacity: 0.8;
+  transition: color 0.2s ease;
 }
 
-.nav-links li:hover {
-  opacity: 1;
+.sage-nav-links li:hover {
+  color: #2d3a2d;
 }
 
-.nav-actions {
-  display: flex;
-  gap: 15px;
+.sage-nav-login {
+  margin-left: 16px;
 }
 
 /* BUTTONS */
-.btn-fill {
-  padding: 10px 22px;
-  background: #f4c430;
+.sage-btn-primary {
+  padding: 12px 24px;
+  background-color: #7c9a7c;
+  color: white;
   border: none;
-  border-radius: 25px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 15px;
   cursor: pointer;
-  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(124, 154, 124, 0.3);
 }
 
-.btn-outline {
-  padding: 10px 22px;
-  background: transparent;
-  border: 1px solid #f4c430;
-  color: #f4c430;
-  border-radius: 25px;
-  cursor: pointer;
+.sage-btn-primary:hover {
+  background-color: #617b61;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(124, 154, 124, 0.4);
 }
 
-/* HERO */
-.hero-section {
+.sage-btn-secondary {
+  padding: 12px 24px;
+  background-color: transparent;
+  color: #557855;
+  border: 1.5px solid #7c9a7c;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sage-btn-secondary:hover {
+  background-color: rgba(124, 154, 124, 0.08);
+}
+
+/* HERO SECTION */
+.sage-hero {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  padding: 80px 60px;
+  padding: 60px 60px 100px;
+  max-width: 1300px;
+  margin: 0 auto;
+  gap: 60px;
 }
 
-.hero-text {
+.sage-hero-content {
+  flex: 1;
   max-width: 550px;
+  animation: fadeUp 0.8s ease-out;
 }
 
-.hero-text h1 {
-  font-size: 48px;
-  line-height: 1.2;
+.sage-hero-content h1 {
+  font-size: 56px;
+  line-height: 1.1;
+  margin-bottom: 24px;
+  color: #2d3a2d;
+  font-weight: 800;
+  letter-spacing: -1px;
 }
 
-.hero-text span {
-  color: #f4c430;
+.sage-hero-content p {
+  font-size: 18px;
+  line-height: 1.6;
+  color: #4a5d4a;
+  margin-bottom: 40px;
 }
 
-.hero-text p {
-  margin-top: 20px;
-  opacity: 0.8;
-}
-
-.hero-buttons {
-  margin-top: 30px;
+.sage-hero-buttons {
   display: flex;
-  gap: 15px;
+  gap: 16px;
 }
 
-/* MOCKUPS */
-.hero-visual {
+.sage-hero-image-container {
+  flex: 1.2;
   position: relative;
-  width: 300px;
-  height: 300px;
-}
-
-.mockup {
-  position: absolute;
-  width: 160px;
-  height: 280px;
-  background: #2a2a2a;
-  border-radius: 20px;
   display: flex;
+  justify-content: flex-end;
+  animation: fadeIn 1s ease-out 0.2s backwards;
+}
+
+.sage-hero-image {
+  width: 100%;
+  max-width: 600px;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(45, 58, 45, 0.15);
+}
+
+/* WHY MENUMELT */
+.sage-features {
+  padding: 100px 60px;
+  background-color: #ffffff;
+  text-align: center;
+}
+
+.sage-features h2 {
+  font-size: 36px;
+  color: #2d3a2d;
+  margin-bottom: 60px;
+  font-weight: 700;
+}
+
+.sage-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Make sure images in operation card scale and don't distort */
+.sage-operation-card img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+.sage-feature-card {
+  padding: 32px;
+  border-radius: 16px;
+  background-color: #f8faf5;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(124, 154, 124, 0.1);
+}
+
+.sage-feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 32px rgba(45, 58, 45, 0.08);
+}
+
+.sage-feature-icon {
+  font-size: 40px;
+  margin-bottom: 20px;
+}
+
+.sage-feature-card h3 {
+  font-size: 20px;
+  color: #2d3a2d;
+  margin-bottom: 16px;
+}
+
+.sage-feature-card p {
+  line-height: 1.6;
+  color: #5d705d;
+}
+
+/* OPERATIONS SECTION */
+.sage-operations {
+  padding: 120px 60px;
+  background-color: #f0f4ec; /* Slightly darker sage for contrast */
+}
+
+.sage-operations-header {
+  text-align: center;
+  margin-bottom: 70px;
+}
+
+.sage-operations-header h2 {
+  font-size: 36px;
+  color: #2d3a2d;
+  margin-bottom: 16px;
+}
+
+.sage-operations-header p {
+  font-size: 18px;
+  color: #4a5d4a;
+}
+
+/* We are using sage-grid-4 instead */
+
+.sage-operation-card {
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(45, 58, 45, 0.06);
+  transition: transform 0.3s ease;
+}
+
+.sage-operation-card:hover {
+  transform: translateY(-5px);
+}
+
+.sage-operation-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.sage-operation-info {
+  padding: 24px;
+}
+
+.sage-operation-info h4 {
+  font-size: 18px;
+  color: #2d3a2d;
+  margin-bottom: 12px;
+}
+
+.sage-operation-info p {
+  color: #5d705d;
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+/* CTA SECTION */
+.sage-cta {
+  padding: 100px 60px;
+  text-align: center;
+  background-color: #7c9a7c;
+  color: white;
+}
+
+.sage-cta h2 {
+  font-size: 40px;
+  margin-bottom: 20px;
+}
+
+.sage-cta p {
+  font-size: 18px;
+  margin-bottom: 40px;
+  opacity: 0.9;
+}
+
+.sage-cta .sage-btn-primary {
+  background-color: white;
+  color: #557855;
+  font-size: 16px;
+  padding: 16px 32px;
+}
+
+.sage-cta .sage-btn-primary:hover {
+  background-color: #f8faf5;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+/* FOOTER */
+.sage-footer {
+  background-color: #2d3a2d;
+  color: #a8bfa8;
+  padding: 40px 60px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-weight: 500;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  gap: 24px;
 }
 
-.mockup.phone {
-  left: 0;
-  top: 20px;
-  transform: rotate(-10deg);
+.sage-footer-logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
 }
 
-.mockup.tablet {
-  right: 0;
-  top: 0;
-  transform: rotate(10deg);
+.sage-footer-links {
+  display: flex;
+  gap: 32px;
 }
 
-/* HOW IT WORKS */
-.how-section {
-  padding: 60px;
-  text-align: center;
+.sage-footer-links span {
+  cursor: pointer;
+  transition: color 0.2s;
 }
 
-.steps {
-  margin-top: 40px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+.sage-footer-links span:hover {
+  color: white;
 }
 
-.step-card {
-  background: #1f1f1f;
-  padding: 25px;
-  border-radius: 12px;
+.sage-footer-copyright {
+  font-size: 14px;
+  opacity: 0.6;
 }
 
-/* FEATURES */
-.features-section {
-  padding: 60px;
-  text-align: center;
+/* Keyframes */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.feature-grid {
-  margin-top: 40px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.feature-box {
-  background: #1f1f1f;
-  padding: 25px;
-  border-radius: 12px;
-}
-
-/* CTA */
-.cta-section {
-  padding: 80px 60px;
-  text-align: center;
-  background: #111;
+/* Responsive */
+@media (max-width: 900px) {
+  .sage-hero {
+    flex-direction: column;
+    text-align: center;
+    padding: 40px 20px;
+  }
+  
+  .sage-hero-buttons {
+    justify-content: center;
+  }
+  
+  .sage-grid-4 {
+    grid-template-columns: 1fr;
+  }
+  
+  .sage-nav {
+    padding: 20px;
+  }
+  .sage-nav-links {
+    display: none; /* simple mobile version */
+  }
 }
