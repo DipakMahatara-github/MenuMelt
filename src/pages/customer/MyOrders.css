@@ -239,3 +239,163 @@
   color: var(--cx-slate);
   font-size: 0.95rem;
 }
+
+.cx-order-price-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.cx-order-price-note {
+  font-size: 0.72rem;
+  color: #0f766e;
+  font-weight: 700;
+}
+
+.cx-order-items li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cx-order-item-options,
+.cx-order-offers {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.cx-order-item-options span,
+.cx-order-offers p {
+  font-size: 0.74rem;
+  color: var(--cx-slate);
+}
+
+.cx-review-card {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: var(--cx-radius-md);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.cx-review-card-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #0f766e;
+}
+
+.cx-review-card p {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: var(--cx-slate-dark);
+  line-height: 1.45;
+}
+
+.cx-order-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.cx-order-review-btn {
+  border: none;
+  background: transparent;
+  color: #0f766e;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cx-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 20px;
+  z-index: 50;
+}
+
+.cx-modal-card {
+  width: min(100%, 420px);
+  max-height: 85vh;
+  overflow: auto;
+  border-radius: 24px 24px 18px 18px;
+  background: #fff;
+  padding: 20px;
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.25);
+}
+
+.cx-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.cx-modal-kicker {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cx-green);
+}
+
+.cx-modal-head h2 {
+  margin: 4px 0 0;
+  color: var(--cx-navy);
+  font-size: 1.2rem;
+}
+
+.cx-modal-close {
+  border: none;
+  background: rgba(148, 163, 184, 0.16);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--cx-slate-dark);
+}
+
+.cx-review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cx-review-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cx-review-field span {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--cx-slate-dark);
+}
+
+.cx-review-field select,
+.cx-review-field textarea {
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 0.92rem;
+  color: var(--cx-navy);
+  background: #fff;
+}
+
+.cx-review-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

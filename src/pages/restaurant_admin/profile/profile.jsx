@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { authFetch, API_BASE } from "../../../lib/api";
 import PasswordField from "../../../components/PasswordField";
+import ToastStack from "../../../components/ToastStack";
+import { useToastQueue } from "../../../hooks/useToastQueue";
 
 export default function Profile() {
   const [user, setUser] = useState(null);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const { toasts, pushToast, removeToast } = useToastQueue();
 
   useEffect(() => {
     authFetch(`${API_BASE}/api/auth/profile/`)
@@ -17,6 +20,11 @@ export default function Profile() {
   }, []);
 
   const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword) {
+      pushToast("warning", "Enter both your current and new password.");
+      return;
+    }
+
     try {
       const res = await authFetch(`${API_BASE}/api/auth/change-password/`, {
         method: "POST",
@@ -29,18 +37,19 @@ export default function Profile() {
         })
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
-        alert("Password updated successfully");
+        pushToast("success", "Password updated successfully.");
         setCurrentPassword("");
         setNewPassword("");
       } else {
-        alert(data.error || "Error updating password");
+        pushToast("error", data.error || "Error updating password");
       }
 
     } catch (err) {
       console.error(err);
+      pushToast("error", "Network error while updating password.");
     }
   };
 
@@ -93,6 +102,8 @@ export default function Profile() {
           Update Password
         </button>
       </div>
+
+      <ToastStack toasts={toasts} onDismiss={removeToast} />
     </div>
   );
 }

@@ -108,3 +108,17 @@
   padding: 48px 16px;
   color: var(--cx-slate);
 }
+
+.cx-billing-option-list,
+.cx-billing-offers {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.cx-billing-option-list span,
+.cx-billing-offers p {
+  font-size: 0.74rem;
+  color: var(--cx-slate);
+}

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, Minus, Plus, ShoppingCart } from "lucide-react";
 import { loadCart, saveCart } from "../../lib/customerCart";
-import { API_BASE } from "../../lib/api";
+import { authFetch, API_BASE } from "../../lib/api";
 import { ensureCustomerSession, getCustomerRestaurantName } from "../../lib/customerSession";
 import "./Cart.css";
 
@@ -16,6 +16,8 @@ export default function Cart() {
   const navigate = useNavigate();
   const [cart, setCart] = useState([]);
   const [restaurantName, setRestaurantName] = useState(() => getCustomerRestaurantName());
+  const [quote, setQuote] = useState(null);
+  const [quoteError, setQuoteError] = useState("");
 
   useEffect(() => {
     ensureCustomerSession();
@@ -23,21 +25,58 @@ export default function Cart() {
     setCart(loadCart());
   }, []);
 
+  useEffect(() => {
+    const fetchQuote = async () => {
+      if (!cart.length) {
+        setQuote(null);
+        setQuoteError("");
+        return;
+      }
+      try {
+        const res = await authFetch(`${API_BASE}/api/orders/quote/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: cart.map((line) => ({
+              menu_item: Number(line.id),
+              quantity: line.quantity,
+              selected_option_ids: line.selectedOptionIds || [],
+            })),
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setQuote(null);
+          setQuoteError(data.error || data.detail || "Could not calculate the latest total.");
+          return;
+        }
+        setQuote(data);
+        setQuoteError("");
+      } catch (error) {
+        console.error(error);
+        setQuote(null);
+        setQuoteError("Could not calculate the latest total.");
+      }
+    };
+
+    fetchQuote();
+  }, [cart]);
+
   const persist = (next) => {
     setCart(next);
     saveCart(next);
   };
 
-  const total = useMemo(
-    () => cart.reduce((s, l) => s + Number(l.price) * l.quantity, 0),
+  const localTotal = useMemo(
+    () => cart.reduce((sum, line) => sum + Number(line.price) * line.quantity, 0),
     [cart]
   );
 
   const adjust = (lineKey, delta) => {
     persist(
       cart
-        .map((l) => (l.lineKey === lineKey ? { ...l, quantity: l.quantity + delta } : l))
-        .filter((l) => l.quantity > 0)
+        .map((line) => (line.lineKey === lineKey ? { ...line, quantity: line.quantity + delta } : line))
+        .filter((line) => line.quantity > 0)
     );
   };
 
@@ -84,6 +123,15 @@ export default function Cart() {
                   )}
                   <div className="cx-cart-line-meta">
                     <p className="cx-cart-line-name">{item.label}</p>
+                    {item.selectedOptions?.length ? (
+                      <div className="cx-cart-line-options">
+                        {item.selectedOptions.map((option) => (
+                          <span key={`${item.lineKey}-${option.group_name}-${option.option_name}`}>
+                            {option.group_name}: {option.option_name}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
                     <p className="cx-cart-line-price">Rs. {Number(item.price).toFixed(2)} each</p>
                     <div className="cx-cart-qty">
                       <button type="button" onClick={() => adjust(item.lineKey, -1)} aria-label="Decrease">
@@ -100,17 +148,39 @@ export default function Cart() {
             )}
           </div>
 
+          {quoteError ? <p className="cx-form-error">{quoteError}</p> : null}
+
+          <div className="cx-cart-total">
+            <span>Subtotal</span>
+            <strong>Rs. {Number(quote?.subtotal_price || localTotal).toFixed(2)}</strong>
+          </div>
+          {(quote?.discount_total || 0) > 0 ? (
+            <div className="cx-cart-total cx-cart-total--discount">
+              <span>Offers applied</span>
+              <strong>- Rs. {Number(quote.discount_total).toFixed(2)}</strong>
+            </div>
+          ) : null}
           <div className="cx-cart-total">
             <span>Total</span>
-            <strong>Rs. {total.toFixed(2)}</strong>
+            <strong>Rs. {Number(quote?.total_price || localTotal).toFixed(2)}</strong>
           </div>
+
+          {quote?.applied_offers?.length ? (
+            <div className="cx-cart-offers">
+              {quote.applied_offers.map((offer) => (
+                <p key={`${offer.offer_type}-${offer.name}`}>
+                  {offer.badge_text || offer.name} saved Rs. {Number(offer.discount_amount).toFixed(2)}
+                </p>
+              ))}
+            </div>
+          ) : null}
 
           <div className="cx-secondary-actions">
             <button
               type="button"
               className="cx-btn-block"
               disabled={cart.length === 0}
-              onClick={() => navigate("/checkout")}
+              onClick={() => navigate("/checkout", { state: { quote } })}
             >
               Checkout
             </button>

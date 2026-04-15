@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { authFetch, API_BASE } from "../../lib/api";
 import { formatApiError } from "../../lib/apiErrors";
@@ -9,10 +9,12 @@ import "./Checkout.css";
 
 export default function Checkout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [restaurantName, setRestaurantName] = useState(() => getCustomerRestaurantName());
+  const [quote, setQuote] = useState(location.state?.quote || null);
 
   useEffect(() => {
     ensureCustomerSession();
@@ -20,7 +22,40 @@ export default function Checkout() {
   }, []);
 
   const cart = loadCart();
-  const total = cart.reduce((s, l) => s + Number(l.price) * l.quantity, 0);
+  const localTotal = useMemo(
+    () => cart.reduce((sum, line) => sum + Number(line.price) * line.quantity, 0),
+    [cart]
+  );
+
+  useEffect(() => {
+    const fetchQuote = async () => {
+      if (!cart.length) {
+        setQuote(null);
+        return;
+      }
+      try {
+        const res = await authFetch(`${API_BASE}/api/orders/quote/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: cart.map((line) => ({
+              menu_item: Number(line.id),
+              quantity: line.quantity,
+              selected_option_ids: line.selectedOptionIds || [],
+            })),
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          setQuote(data);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchQuote();
+  }, [cart]);
 
   const placeOrder = async (e) => {
     e.preventDefault();
@@ -47,7 +82,11 @@ export default function Checkout() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customer_name: trimmed,
-          items: cart.map((l) => ({ menu_item: Number(l.id), quantity: l.quantity })),
+          items: cart.map((line) => ({
+            menu_item: Number(line.id),
+            quantity: line.quantity,
+            selected_option_ids: line.selectedOptionIds || [],
+          })),
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -96,11 +135,34 @@ export default function Checkout() {
           </header>
 
           <div className="cx-checkout-summary">
-            Total <strong>Rs. {total.toFixed(2)}</strong>
+            Total <strong>Rs. {Number(quote?.total_price || localTotal).toFixed(2)}</strong>
             <br />
             <span>
               {cart.length} line{cart.length === 1 ? "" : "s"} in your cart
             </span>
+          </div>
+
+          {(quote?.discount_total || 0) > 0 ? (
+            <div className="cx-checkout-discount">
+              <span>Offers applied</span>
+              <strong>- Rs. {Number(quote.discount_total).toFixed(2)}</strong>
+            </div>
+          ) : null}
+
+          <div className="cx-checkout-lines">
+            {cart.map((line) => (
+              <div key={line.lineKey} className="cx-checkout-line">
+                <div>
+                  <strong>{line.label}</strong>
+                  {line.selectedOptions?.length ? (
+                    <p>
+                      {line.selectedOptions.map((option) => `${option.group_name}: ${option.option_name}`).join(" · ")}
+                    </p>
+                  ) : null}
+                </div>
+                <span>x {line.quantity}</span>
+              </div>
+            ))}
           </div>
 
           <form className="cx-form" onSubmit={placeOrder}>

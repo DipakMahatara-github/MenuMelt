@@ -16,7 +16,7 @@ export default function Kitchen() {
   const fetchOrders = useCallback(async () => {
     try {
       const res = await authFetch(`${API_BASE}/api/orders/`);
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(data.detail || data.error || "Could not load orders.");
         setOrders([]);

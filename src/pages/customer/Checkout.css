@@ -84,3 +84,48 @@
   font-weight: 600;
   color: var(--cx-danger);
 }
+
+.cx-checkout-discount {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: var(--cx-radius-md);
+  background: rgba(15, 118, 110, 0.08);
+  border: 1px solid rgba(15, 118, 110, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #0f766e;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.cx-checkout-lines {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cx-checkout-line {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--cx-radius-md);
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid var(--cx-border);
+}
+
+.cx-checkout-line strong {
+  display: block;
+  color: var(--cx-navy);
+  font-size: 0.88rem;
+}
+
+.cx-checkout-line p {
+  margin: 6px 0 0;
+  color: var(--cx-slate);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}

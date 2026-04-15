@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import "./tables.css";
 import { authFetch, API_BASE } from "../../../lib/api";
+import ConfirmDialog from "../../../components/ConfirmDialog";
+import ToastStack from "../../../components/ToastStack";
+import { useToastQueue } from "../../../hooks/useToastQueue";
 
 export default function Tables() {
 
@@ -17,12 +20,15 @@ export default function Tables() {
 
   const [number, setNumber] = useState("");
   const [selectedTable, setSelectedTable] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+  const [busyDeleteId, setBusyDeleteId] = useState("");
+  const { toasts, pushToast, removeToast } = useToastQueue();
 
   // ✅ FETCH TABLES
   const fetchTables = async () => {
     try {
       const res = await authFetch(API);
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       const tableList = Array.isArray(data)
         ? data
@@ -34,6 +40,7 @@ export default function Tables() {
     } catch (error) {
       console.error("Failed to fetch tables:", error);
       setTables([]);
+      pushToast("error", "Failed to load tables.");
     }
   };
 
@@ -46,11 +53,11 @@ export default function Tables() {
     if (!number) return;
 
     if (tables.find(t => t.number === Number(number))) {
-      alert("Table already exists");
+      pushToast("warning", "Table already exists.");
       return;
     }
 
-    await authFetch(API, {
+    const res = await authFetch(API, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -59,18 +66,39 @@ export default function Tables() {
         number: Number(number),
       }),
     });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      pushToast("error", data.error || "Could not create table.");
+      return;
+    }
 
     setNumber("");
+    pushToast("success", `Table ${Number(number)} created.`);
     fetchTables();
   };
 
   // ✅ DELETE TABLE
-  const deleteTable = async (id) => {
-    await authFetch(API + id + "/", {
-      method: "DELETE",
-    });
-
-    fetchTables();
+  const deleteTable = async (table) => {
+    setBusyDeleteId(String(table.id));
+    try {
+      const res = await authFetch(`${API}${table.id}/`, {
+        method: "DELETE",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        pushToast("error", data.error || "Could not delete table.");
+        return;
+      }
+      pushToast("success", `Table ${table.number} removed.`);
+      setConfirmState(null);
+      fetchTables();
+    } catch (error) {
+      console.error("Failed to delete table:", error);
+      pushToast("error", "Network error while deleting table.");
+    } finally {
+      setBusyDeleteId("");
+    }
   };
 
   return (
@@ -120,7 +148,16 @@ export default function Tables() {
                 <button
                   type="button"
                   className="mm-tables__btn mm-tables__btn--delete"
-                  onClick={() => deleteTable(table.id)}
+                  onClick={() =>
+                    setConfirmState({
+                      title: `Delete table ${table.number}?`,
+                      description: "The table and its QR code will be removed from the restaurant setup.",
+                      confirmLabel: "Delete table",
+                      tone: "danger",
+                      meta: [`Table ${table.number}`],
+                      table,
+                    })
+                  }
                 >
                   Remove
                 </button>
@@ -171,6 +208,26 @@ export default function Tables() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(confirmState)}
+        title={confirmState?.title}
+        description={confirmState?.description}
+        confirmLabel={confirmState?.confirmLabel}
+        tone={confirmState?.tone}
+        meta={confirmState?.meta || []}
+        busy={Boolean(busyDeleteId)}
+        onCancel={() => {
+          if (busyDeleteId) return;
+          setConfirmState(null);
+        }}
+        onConfirm={() => {
+          if (!confirmState?.table) return;
+          deleteTable(confirmState.table);
+        }}
+      />
+
+      <ToastStack toasts={toasts} onDismiss={removeToast} />
     </div>
   );
 }

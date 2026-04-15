@@ -11,7 +11,7 @@ import {
   Pie,
   Cell
 } from "recharts";
-import { Banknote, ShoppingCart, Receipt, Users, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Banknote, ShoppingCart, Receipt, Users, ArrowUpRight, ArrowDownRight, MessageSquare, Star } from "lucide-react";
 
 import notificationSound from "../../../assets/notification.mp3";
 import { authFetch, API_BASE } from "../../../lib/api";
@@ -21,12 +21,18 @@ const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1546069901-ba9599a7e63
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
+  const [error, setError] = useState("");
   const [lastOrderCount, setLastOrderCount] = useState(0);
 
   const fetchDashboard = async () => {
     try {
       const res = await authFetch(`${API_BASE}/api/dashboard/`);
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json?.error || json?.detail || "Could not load dashboard.");
+        setData(null);
+        return;
+      }
 
       if (json.recent_orders?.length > lastOrderCount) {
         const audio = new Audio(notificationSound);
@@ -35,8 +41,11 @@ export default function Dashboard() {
 
       setLastOrderCount(json.recent_orders?.length || 0);
       setData(json);
+      setError("");
     } catch (err) {
       console.error(err);
+      setError("Network error while loading dashboard.");
+      setData(null);
     }
   };
 
@@ -46,11 +55,31 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  if (error) {
+    return (
+      <div className="dashboard">
+        <div className="widget">
+          <div className="widget-header">
+            <h2 className="widget-title">Dashboard unavailable</h2>
+          </div>
+          <p style={{ margin: 0, color: "#7c2d12", fontWeight: 600 }}>{error}</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!data) return <p>Loading dashboard...</p>;
 
   // Use real data where possible, with fallbacks/calculations for the new design metrics
   const totalRevenue = data.revenue;
   const avgOrderValue = data.avg_order_value || 0;
+  const reviews = data.reviews || {
+    count: 0,
+    average_overall: null,
+    average_food: null,
+    average_service: null,
+    recent: [],
+  };
   
   const occupancyData = [
     { name: "Occupied", value: data.table_occupancy?.occupied || 0 },
@@ -220,6 +249,76 @@ export default function Dashboard() {
               {data.table_occupancy?.occupied || 0}/{totalTables}
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="reviews-grid">
+        <div className="widget">
+          <div className="widget-header">
+            <h2 className="widget-title">Customer Feedback</h2>
+          </div>
+          <div className="review-metrics">
+            <div className="review-metric-card">
+              <Star className="review-metric-icon" size={18} />
+              <div>
+                <span>Overall rating</span>
+                <strong>{reviews.average_overall ? Number(reviews.average_overall).toFixed(1) : "—"}</strong>
+              </div>
+            </div>
+            <div className="review-metric-card">
+              <MessageSquare className="review-metric-icon" size={18} />
+              <div>
+                <span>Total reviews</span>
+                <strong>{reviews.count || 0}</strong>
+              </div>
+            </div>
+            <div className="review-metric-card">
+              <Star className="review-metric-icon" size={18} />
+              <div>
+                <span>Food quality</span>
+                <strong>{reviews.average_food ? Number(reviews.average_food).toFixed(1) : "—"}</strong>
+              </div>
+            </div>
+            <div className="review-metric-card">
+              <Star className="review-metric-icon" size={18} />
+              <div>
+                <span>Service</span>
+                <strong>{reviews.average_service ? Number(reviews.average_service).toFixed(1) : "—"}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="widget">
+          <div className="widget-header">
+            <h2 className="widget-title">Recent Reviews</h2>
+          </div>
+          {reviews.recent?.length ? (
+            <div className="review-feed">
+              {reviews.recent.map((review) => (
+                <article key={review.id} className="review-card">
+                  <div className="review-card-head">
+                    <div>
+                      <h3>{review.customer_name || `Order #${review.order_id}`}</h3>
+                      <p>Order #{review.order_id}</p>
+                    </div>
+                    <strong>{Number(review.overall_experience || 0).toFixed(1)} / 5</strong>
+                  </div>
+                  <p className="review-card-breakdown">
+                    Food {review.food_quality}/5 · Service {review.service}/5 · Overall {review.overall_experience}/5
+                  </p>
+                  <p className="review-card-comment">
+                    {review.comment?.trim() || "No written comment, but the customer still left a rating."}
+                  </p>
+                  <span className="review-card-date">
+                    {new Date(review.created_at).toLocaleString()}
+                  </span>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="review-empty">Reviews from customers will appear here after served orders are rated.</p>
+          )}
         </div>
       </div>
 

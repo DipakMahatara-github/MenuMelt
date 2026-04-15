@@ -25,10 +25,11 @@
 /* ---------- Shell ---------- */
 .admin-container {
   display: flex;
-  height: 100vh;
-  width: 100vw;
+  min-height: 100vh;
+  height: auto;
+  width: 100%;
   max-width: 100%;
-  overflow: hidden;
+  overflow: clip;
   font-family: "Outfit", system-ui, sans-serif;
   color: var(--al-nav-text-strong);
   background-color: var(--al-main-bg);
@@ -36,13 +37,17 @@
 
 /* ================= SIDEBAR ================= */
 .sidebar {
-  position: relative;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
   z-index: 2;
   width: 260px;
+  height: 100vh;
   flex-shrink: 0;
   padding: 32px 24px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
   background: var(--al-sidebar-bg);
   border-right: 1px solid var(--al-sidebar-border);
 }
@@ -147,11 +152,13 @@
   flex: 1;
   min-width: 0;
   max-width: 100%;
+  min-height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 32px 40px;
   display: flex;
   flex-direction: column;
+  background: var(--al-main-bg);
 }
 
 /* ================= TOP BAR ================= */
@@ -305,4 +312,3 @@
   }
   .menu { flex-direction: row; flex-wrap: wrap; }
 }
-

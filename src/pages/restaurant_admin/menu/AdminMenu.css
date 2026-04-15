@@ -797,6 +797,13 @@
   font-size: 1rem;
 }
 
+.admin-menu-item-price-note {
+  margin: -0.15rem 0 0;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--am-success);
+}
+
 .admin-menu-size-prices {
   margin: 0;
   padding: 0;
@@ -900,6 +907,215 @@
   background: #f1f5f9;
   color: var(--am-text);
   border: 1px solid var(--am-border);
+}
+
+.admin-menu-custom-card {
+  padding: 1rem;
+  border-radius: var(--am-radius-sm);
+  background: linear-gradient(160deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid var(--am-border);
+}
+
+.admin-menu-custom-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.admin-menu-custom-head h3 {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--am-text);
+}
+
+.admin-menu-custom-head p {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--am-muted);
+}
+
+.admin-menu-custom-empty {
+  padding: 1rem;
+  border-radius: var(--am-radius-sm);
+  border: 1px dashed var(--am-border-strong);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--am-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.admin-menu-custom-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.admin-menu-custom-group {
+  padding: 0.95rem;
+  border-radius: var(--am-radius-sm);
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--am-border);
+}
+
+.admin-menu-custom-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.admin-menu-custom-group-head h4 {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--am-text);
+}
+
+.admin-menu-custom-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.admin-menu-custom-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin: 0.9rem 0;
+}
+
+.admin-menu-custom-option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 130px auto;
+  gap: 0.6rem;
+}
+
+.admin-menu-card-meta,
+.admin-menu-card-badges,
+.admin-menu-offer-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.admin-menu-badge--soft {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.admin-menu-badge--accent {
+  background: #ecfeff;
+  color: #0f766e;
+}
+
+.admin-menu-offer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-menu-offer-editing {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 1rem;
+  border-radius: var(--am-radius-sm);
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.admin-menu-offer-editing strong {
+  display: block;
+  color: #1d4ed8;
+  font-size: 0.9rem;
+}
+
+.admin-menu-offer-editing p {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #475569;
+}
+
+.admin-menu-offer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.admin-menu-offer-items {
+  padding: 1rem;
+  border-radius: var(--am-radius-sm);
+  background: #f8fafc;
+  border: 1px solid var(--am-border);
+}
+
+.admin-menu-offer-item-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px auto;
+  gap: 0.6rem;
+  margin-top: 0.7rem;
+}
+
+.admin-menu-offer-list {
+  margin-top: 1.2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.9rem;
+}
+
+.admin-menu-offer-card {
+  padding: 1rem;
+  border-radius: var(--am-radius-sm);
+  background: #fff;
+  border: 1px solid var(--am-border);
+  box-shadow: var(--am-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.admin-menu-offer-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.admin-menu-offer-card-head h3 {
+  margin: 0;
+  font-size: 0.96rem;
+  color: var(--am-text);
+}
+
+.admin-menu-offer-card-head p,
+.admin-menu-offer-badge-line,
+.admin-menu-offer-card-meta span {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  color: var(--am-muted);
+}
+
+.admin-menu-offer-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+@media (max-width: 720px) {
+  .admin-menu-custom-grid,
+  .admin-menu-offer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-menu-custom-option,
+  .admin-menu-offer-item-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .admin-menu-btn--secondary:hover:not(:disabled) {

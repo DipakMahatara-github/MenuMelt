@@ -6,13 +6,16 @@ from typing import Optional, Tuple
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
+from django.db.models import Prefetch
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from menu.models import MenuItem
+from menu.models import MenuItem, MenuItemCustomizationGroup, MenuItemCustomizationOption
+from menu.pricing import active_offer_queryset, quote_order_lines
 from restaurants.models import PaymentConfig
 
 from .customer_utils import assert_customer_can_access_order, resolve_customer_table_and_session
@@ -28,9 +31,18 @@ from .esewa import (
     get_esewa_status_url,
 )
 from .live import publish_order_event
-from .models import Order, OrderItem
+from .models import (
+    Order,
+    OrderAppliedOffer,
+    OrderItem,
+    OrderItemCustomizationSelection,
+    OrderReview,
+)
 from .serializers import (
     CustomerOrderCreateSerializer,
+    CustomerOrderQuoteSerializer,
+    OrderReviewSerializer,
+    CustomerOrderReviewCreateSerializer,
     CustomerOrderSummarySerializer,
     OrderSerializer,
 )
@@ -76,6 +88,86 @@ BILLING_STATUS_TRANSITIONS = {
 }
 
 logger = logging.getLogger(__name__)
+
+
+def _customer_menu_item_queryset(restaurant_id: int, menu_ids):
+    return (
+        MenuItem.objects.filter(id__in=menu_ids, restaurant_id=restaurant_id, is_available=True)
+        .select_related("category", "restaurant")
+        .prefetch_related(
+            Prefetch(
+                "customization_groups",
+                queryset=MenuItemCustomizationGroup.objects.order_by("sort_order", "id").prefetch_related(
+                    Prefetch(
+                        "options",
+                        queryset=MenuItemCustomizationOption.objects.order_by("sort_order", "id"),
+                    )
+                ),
+            )
+        )
+    )
+
+
+def _order_prefetch():
+    return [
+        "applied_offers",
+        "review",
+        Prefetch(
+            "items",
+            queryset=OrderItem.objects.select_related("menu_item").prefetch_related("selected_options"),
+        ),
+    ]
+
+
+def _quote_customer_order(*, restaurant, items_in):
+    menu_ids = [row["menu_item"] for row in items_in]
+    menu_items = list(_customer_menu_item_queryset(restaurant.id, menu_ids))
+    by_id = {menu_item.id: menu_item for menu_item in menu_items}
+    if len(by_id) != len(set(menu_ids)):
+        raise PermissionDenied("One or more items are missing, unavailable, or not from this restaurant.")
+    offers = list(active_offer_queryset(restaurant.id))
+    return quote_order_lines(
+        restaurant_id=restaurant.id,
+        menu_items_by_id=by_id,
+        items_in=items_in,
+        offers=offers,
+    )
+
+
+def _serialize_quote(quote):
+    return {
+        "subtotal_price": str(quote["subtotal_price"]),
+        "discount_total": str(quote["discount_total"]),
+        "total_price": str(quote["total_price"]),
+        "items": [
+            {
+                "menu_item": line["menu_item"].id,
+                "item_name": line["menu_item"].name,
+                "quantity": line["quantity"],
+                "base_price": str(line["base_unit_price"]),
+                "price": str(line["unit_price"]),
+                "line_total": str(line["line_total"]),
+                "selected_options": [
+                    {
+                        "group_name": option["group_name"],
+                        "option_name": option["option_name"],
+                        "price_delta": str(option["price_delta"]),
+                    }
+                    for option in line["selected_options"]
+                ],
+            }
+            for line in quote["lines"]
+        ],
+        "applied_offers": [
+            {
+                "name": offer["name"],
+                "badge_text": offer["badge_text"],
+                "offer_type": offer["offer_type"],
+                "discount_amount": str(offer["discount_amount"]),
+            }
+            for offer in quote["applied_offers"]
+        ],
+    }
 
 
 def _notify_order_change(order: Order, *, event_type: str = "updated") -> None:
@@ -191,7 +283,7 @@ def orders_collection(request):
         qs = (
             Order.objects.filter(restaurant_id=request.user.restaurant_id)
             .select_related("table")
-            .prefetch_related("items__menu_item")
+            .prefetch_related(*_order_prefetch())
             .order_by("-created_at")
         )
         role = getattr(request.user, "role", None)
@@ -205,13 +297,10 @@ def orders_collection(request):
             qs = qs.filter(billing_status=billing_st)
         return Response(OrderSerializer(qs, many=True).data)
 
-    # POST — customer (no login); totals and line prices come only from MenuItem rows we validate.
+    # POST — customer (no login); totals and discounts come only from server-side validation.
     ok, table, session_id, ctx_err = resolve_customer_table_and_session(request)
     if not ok:
         return ctx_err
-
-    print("TABLE:", table)
-    print("SESSION:", session_id)
 
     ser = CustomerOrderCreateSerializer(data=request.data)
     if not ser.is_valid():
@@ -224,40 +313,15 @@ def orders_collection(request):
     if not items_in:
         return Response({"error": "At least one item is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-    menu_ids = [row["menu_item"] for row in items_in]
-    if len(menu_ids) != len(set(menu_ids)):
-        return Response({"error": "Each menu item may only appear once per order."}, status=400)
-
-    menu_items = list(
-        MenuItem.objects.filter(id__in=menu_ids, restaurant_id=restaurant.id, is_available=True)
-    )
-    by_id = {m.id: m for m in menu_items}
-    if len(by_id) != len(menu_ids):
-        return Response(
-            {"error": "One or more items are missing, unavailable, or not from this restaurant."},
-            status=400,
-        )
-
-    total_price = Decimal("0")
-    lines = []
-    for row in items_in:
-        mi = by_id[row["menu_item"]]
-        if mi.restaurant_id != restaurant.id:
-            return Response(
-                {"error": "All items must belong to the same restaurant as this table."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        qty = int(row["quantity"])
-        if qty < 1:
-            return Response({"error": "Each item must have quantity at least 1."}, status=400)
-        # Authoritative price from DB only — never from the client payload.
-        unit_price = mi.price
-        if unit_price is None:
-            return Response({"error": "Menu item has no valid price."}, status=400)
-        total_price += unit_price * qty
-        lines.append((mi, qty, unit_price))
-
-    total_price = total_price.quantize(Decimal("0.01"))
+    try:
+        quote = _quote_customer_order(restaurant=restaurant, items_in=items_in)
+    except PermissionDenied as exc:
+        return Response({"error": str(exc.detail)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as exc:
+        if hasattr(exc, "detail"):
+            return Response(exc.detail, status=status.HTTP_400_BAD_REQUEST)
+        logger.exception("Order quote failed")
+        return Response({"error": "Could not validate this order."}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         with transaction.atomic():
@@ -266,21 +330,41 @@ def orders_collection(request):
                 table=table,
                 session_id=session_id,
                 customer_name=data["customer_name"],
-                total_price=total_price,
+                subtotal_price=quote["subtotal_price"],
+                discount_total=quote["discount_total"],
+                total_price=quote["total_price"],
                 billing_status=Order.BILLING_ST_UNBILLED,
                 payment_status=Order.PAYMENT_ST_PENDING,
                 status=Order.STATUS_PENDING,
             )
-            for mi, qty, unit_price in lines:
-                OrderItem.objects.create(
+            for line in quote["lines"]:
+                order_item = OrderItem.objects.create(
                     order=order,
-                    menu_item=mi,
-                    quantity=qty,
-                    unit_price=unit_price,
+                    menu_item=line["menu_item"],
+                    quantity=line["quantity"],
+                    base_unit_price=line["base_unit_price"],
+                    unit_price=line["unit_price"],
+                )
+                for option in line["selected_options"]:
+                    OrderItemCustomizationSelection.objects.create(
+                        order_item=order_item,
+                        customization_option=option["customization_option"],
+                        group_name=option["group_name"],
+                        option_name=option["option_name"],
+                        price_delta=option["price_delta"],
+                    )
+            for offer in quote["applied_offers"]:
+                offer_obj = offer.get("offer")
+                OrderAppliedOffer.objects.create(
+                    order=order,
+                    offer=offer_obj if hasattr(offer_obj, "pk") else offer_obj.get("offer") if isinstance(offer_obj, dict) else None,
+                    name=offer["name"],
+                    badge_text=offer["badge_text"],
+                    offer_type=offer["offer_type"],
+                    discount_amount=offer["discount_amount"],
                 )
     except IntegrityError as exc:
         logger.warning("Order create IntegrityError: %s", exc, exc_info=True)
-        print("Order IntegrityError:", exc)
         return Response(
             {"error": "Could not save your order. Please try again or ask the restaurant team for help."},
             status=status.HTTP_400_BAD_REQUEST,
@@ -293,6 +377,7 @@ def orders_collection(request):
         )
 
     _notify_order_change(order, event_type="created")
+    order = Order.objects.select_related("table").prefetch_related(*_order_prefetch()).get(pk=order.pk)
 
     return Response(
         CustomerOrderSummarySerializer(order).data,
@@ -309,10 +394,115 @@ def orders_my(request):
     qs = (
         Order.objects.filter(table_id=table.id, session_id=session_id)
         .select_related("table")
-        .prefetch_related("items__menu_item")
+        .prefetch_related(*_order_prefetch())
         .order_by("-created_at")
     )
     return Response(CustomerOrderSummarySerializer(qs, many=True).data)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def order_quote(request):
+    ok, table, session_id, ctx_err = resolve_customer_table_and_session(request)
+    if not ok:
+        return ctx_err
+
+    ser = CustomerOrderQuoteSerializer(data=request.data)
+    if not ser.is_valid():
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    items_in = ser.validated_data["items"]
+    if not items_in:
+        return Response({"error": "At least one item is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        quote = _quote_customer_order(restaurant=table.restaurant, items_in=items_in)
+    except PermissionDenied as exc:
+        return Response({"error": str(exc.detail)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as exc:
+        if hasattr(exc, "detail"):
+            return Response(exc.detail, status=status.HTTP_400_BAD_REQUEST)
+        logger.exception("Order quote failed")
+        return Response({"error": "Could not validate this order."}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(_serialize_quote(quote))
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def create_order_review(request, order_id):
+    ok, table, session_id, ctx_err = resolve_customer_table_and_session(request)
+    if not ok:
+        return ctx_err
+
+    try:
+        order = Order.objects.select_related("restaurant", "table").get(id=order_id)
+    except Order.DoesNotExist:
+        return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        assert_customer_can_access_order(order, table, session_id)
+    except PermissionDenied as exc:
+        return Response({"error": str(exc.detail)}, status=status.HTTP_403_FORBIDDEN)
+
+    if order.status != Order.STATUS_SERVED:
+        return Response(
+            {"error": "You can review an order only after it has been served."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    existing_review = OrderReview.objects.filter(order=order).first()
+    if existing_review:
+        return Response(
+            {"error": "A review has already been submitted for this order."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    serializer = CustomerOrderReviewCreateSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    review = None
+    try:
+        with transaction.atomic():
+            review = OrderReview.objects.create(
+                order=order,
+                restaurant=order.restaurant,
+                session_id=session_id,
+                customer_name=order.customer_name,
+                **serializer.validated_data,
+            )
+    except IntegrityError:
+        existing_review = OrderReview.objects.filter(order=order).first()
+        if existing_review:
+            return Response(
+                {"error": "A review has already been submitted for this order."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        logger.exception("Review creation hit an IntegrityError for order_id=%s", order_id)
+        return Response(
+            {"error": "Could not submit your review right now. Please try again."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    except Exception:
+        logger.exception("Review creation failed for order_id=%s", order_id)
+        return Response(
+            {"error": "Could not submit your review right now. Please try again."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    try:
+        order = Order.objects.select_related("table").prefetch_related(*_order_prefetch()).get(pk=order.pk)
+        _notify_order_change(order)
+        return Response(CustomerOrderSummarySerializer(order).data, status=status.HTTP_201_CREATED)
+    except Exception:
+        logger.exception("Review submit succeeded but order refresh failed for order_id=%s", order_id)
+        return Response(
+            {
+                "id": order.id,
+                "review": OrderReviewSerializer(review).data if review else None,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 @api_view(["POST"])

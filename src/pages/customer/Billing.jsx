@@ -4,16 +4,8 @@ import { ChevronLeft } from "lucide-react";
 import { authFetch, API_BASE } from "../../lib/api";
 import "./Billing.css";
 
-/** Coalesce duplicate submits in the same JS turn (e.g. React 18 Strict Mode double layout effect). */
 let esewaSubmitCoalesce = false;
 
-/**
- * Full-page redirect to eSewa ePay v2: POST via a real HTML form (not fetch / not window.location).
- * All field names and values must match the backend signature exactly.
- *
- * @param {{ bypassSubmitGuard?: boolean }} [opts] — use bypassSubmitGuard: true for a manual retry so
- *        coalescing does not skip the second intentional submit.
- */
 export function submitEpayV2Form(formUrl, fields, opts = {}) {
   if (!formUrl || typeof formUrl !== "string") {
     throw new Error("Missing eSewa form URL");
@@ -31,13 +23,13 @@ export function submitEpayV2Form(formUrl, fields, opts = {}) {
     form.style.cssText = "position:absolute;left:-9999px;width:1px;height:1px;opacity:0;";
     form.setAttribute("target", "_self");
 
-    for (const [name, value] of Object.entries(fields)) {
+    Object.entries(fields).forEach(([name, value]) => {
       const input = document.createElement("input");
       input.type = "hidden";
       input.name = name;
       input.value = value == null ? "" : String(value);
       form.appendChild(input);
-    }
+    });
 
     document.body.appendChild(form);
     form.submit();
@@ -66,9 +58,7 @@ export default function Billing() {
   const [error, setError] = useState("");
   const [esewaWarning, setEsewaWarning] = useState("");
   const [busy, setBusy] = useState(false);
-  /** Set after /pay-esewa/ succeeds; triggers DOM form + submit (avoids SPA re-render racing navigation). */
   const [epayPayload, setEpayPayload] = useState(null);
-  /** Bumps when a new eSewa payload arrives so the <form> remounts (fresh hidden fields; safe Strict Mode + retries). */
   const [epayFormNonce, setEpayFormNonce] = useState(0);
 
   useEffect(() => {
@@ -79,7 +69,7 @@ export default function Billing() {
         const res = await authFetch(`${API_BASE}/api/orders/my/`);
         const list = await res.json();
         if (!res.ok || cancelled) return;
-        const found = Array.isArray(list) ? list.find((o) => String(o.id) === String(orderId)) : null;
+        const found = Array.isArray(list) ? list.find((item) => String(item.id) === String(orderId)) : null;
         if (found) setOrder(found);
       } catch {
         /* ignore */
@@ -149,9 +139,7 @@ export default function Billing() {
       }
 
       if (Array.isArray(data.warnings) && data.warnings.length) {
-        const w = data.warnings.join(" ");
-        console.warn("eSewa:", w);
-        setEsewaWarning(w);
+        setEsewaWarning(data.warnings.join(" "));
       }
 
       try {
@@ -164,9 +152,7 @@ export default function Billing() {
       }
 
       redirecting = true;
-      // Render a real <form> in the document, then submit in useLayoutEffect so navigation
-      // is not interrupted by React state updates (e.g. setBusy(false) in finally).
-      setEpayFormNonce((n) => n + 1);
+      setEpayFormNonce((current) => current + 1);
       setEpayPayload({ formUrl, fields });
     } catch (e) {
       console.error(e);
@@ -229,24 +215,55 @@ export default function Billing() {
             <p className="cx-billing-order-line">
               Order <strong>#{order.id}</strong> · Table {order.table_number}
             </p>
+            {Number(order.discount_total || 0) > 0 ? (
+              <p className="cx-billing-order-line">
+                Subtotal <strong>Rs. {Number(order.subtotal_price).toFixed(2)}</strong>
+              </p>
+            ) : null}
             <p className="cx-billing-total">
               Rs. <span>{Number(order.total_price).toFixed(2)}</span>
             </p>
+            {Number(order.discount_total || 0) > 0 ? (
+              <p className="cx-billing-order-line">
+                Discounts <strong>- Rs. {Number(order.discount_total).toFixed(2)}</strong>
+              </p>
+            ) : null}
             <p className="cx-billing-order-line">
               Billing status <strong>{String(order.billing_status || "unbilled").replaceAll("_", " ")}</strong>
             </p>
           </div>
 
           <ul className="cx-line-items">
-            {(order.items || []).map((it) => (
-              <li key={it.id} className="cx-line-item">
-                <span>
-                  {it.item_name} × {it.quantity}
-                </span>
-                <span>Rs. {(Number(it.price) * it.quantity).toFixed(2)}</span>
+            {(order.items || []).map((item) => (
+              <li key={item.id} className="cx-line-item">
+                <div>
+                  <span>
+                    {item.item_name} × {item.quantity}
+                  </span>
+                  {item.selected_options?.length ? (
+                    <div className="cx-billing-option-list">
+                      {item.selected_options.map((option) => (
+                        <span key={`${item.id}-${option.group_name}-${option.option_name}`}>
+                          {option.group_name}: {option.option_name}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+                <span>Rs. {Number(item.line_total).toFixed(2)}</span>
               </li>
             ))}
           </ul>
+
+          {order.applied_offers?.length ? (
+            <div className="cx-billing-offers">
+              {order.applied_offers.map((offer) => (
+                <p key={`${offer.offer_type}-${offer.name}`}>
+                  {offer.badge_text || offer.name} saved Rs. {Number(offer.discount_amount).toFixed(2)}
+                </p>
+              ))}
+            </div>
+          ) : null}
 
           {error ? <p className="cx-billing-error">{error}</p> : null}
           {esewaWarning ? (

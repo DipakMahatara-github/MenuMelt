@@ -78,3 +78,34 @@
 .cx-footer-pill a:hover {
   box-shadow: 0 10px 24px rgba(148, 163, 184, 0.28);
 }
+
+.cx-cart-line-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.cx-cart-line-options span {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--cx-slate-dark);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.cx-cart-total--discount strong {
+  color: #0f766e;
+}
+
+.cx-cart-offers {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--cx-slate-dark);
+  font-size: 0.8rem;
+}

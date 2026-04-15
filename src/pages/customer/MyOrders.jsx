@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ChevronLeft, ShoppingCart } from "lucide-react";
+import { ChevronLeft, ShoppingCart, Star } from "lucide-react";
 import { authFetch, API_BASE } from "../../lib/api";
-import { SERVICE_STATUS_FLOW, SERVICE_STATUS_LABELS, subscribeToOrderStream, upsertOrder } from "../../lib/orderLive";
+import {
+  SERVICE_STATUS_FLOW,
+  SERVICE_STATUS_LABELS,
+  subscribeToOrderStream,
+  upsertOrder,
+} from "../../lib/orderLive";
 import "./MyOrders.css";
 
 function formatBillingLabel(value) {
@@ -38,12 +43,35 @@ function StatusTimeline({ status }) {
   );
 }
 
+const initialReviewForm = {
+  food_quality: 5,
+  service: 5,
+  overall_experience: 5,
+  comment: "",
+};
+
+function parseReviewErrorPayload(data) {
+  if (!data || typeof data !== "object") return "Could not submit your review.";
+  if (typeof data.error === "string" && data.error.trim()) return data.error;
+  if (typeof data.detail === "string" && data.detail.trim()) return data.detail;
+  const parts = [];
+  Object.values(data).forEach((value) => {
+    if (Array.isArray(value)) parts.push(value.join(", "));
+    else if (typeof value === "string") parts.push(value);
+  });
+  return parts.join(" ").trim() || "Could not submit your review.";
+}
+
 export default function MyOrders() {
   const location = useLocation();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [flash, setFlash] = useState(location.state?.flash || "");
   const [liveState, setLiveState] = useState("connecting");
+  const [reviewingOrder, setReviewingOrder] = useState(null);
+  const [reviewForm, setReviewForm] = useState(initialReviewForm);
+  const [reviewBusy, setReviewBusy] = useState(false);
+  const [reviewError, setReviewError] = useState("");
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -90,6 +118,44 @@ export default function MyOrders() {
     return unsubscribe;
   }, [fetchOrders]);
 
+  const openReview = (order) => {
+    setReviewingOrder(order);
+    setReviewForm(initialReviewForm);
+    setReviewError("");
+  };
+
+  const submitReview = async (event) => {
+    event.preventDefault();
+    if (!reviewingOrder) return;
+    setReviewBusy(true);
+    setReviewError("");
+    try {
+      const res = await authFetch(`${API_BASE}/api/orders/${reviewingOrder.id}/review/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reviewForm),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setReviewError(parseReviewErrorPayload(data));
+        return;
+      }
+      if (data?.id) {
+        setOrders((current) => upsertOrder(current, data));
+      } else {
+        await fetchOrders();
+      }
+      setFlash("Thanks for sharing your feedback.");
+      setReviewingOrder(null);
+      setReviewForm(initialReviewForm);
+    } catch (error) {
+      console.error(error);
+      setReviewError("Could not submit your review.");
+    } finally {
+      setReviewBusy(false);
+    }
+  };
+
   if (!sessionStorage.getItem("table_token")) {
     return (
       <div className="cx-shell">
@@ -131,37 +197,87 @@ export default function MyOrders() {
             </div>
           ) : (
             <ul className="cx-orders-list">
-              {orders.map((o) => (
-                <li key={o.id} className="cx-order-card">
+              {orders.map((order) => (
+                <li key={order.id} className="cx-order-card">
                   <div className="cx-order-card-head">
                     <div>
-                      <p className="cx-order-id">Order #{o.id}</p>
+                      <p className="cx-order-id">Order #{order.id}</p>
                       <p className="cx-order-sub">
-                        {o.customer_name} · Table {o.table_number}
+                        {order.customer_name} · Table {order.table_number}
                       </p>
                       <div className="cx-order-meta-row">
-                        <span className={`cx-order-status cx-order-status--${o.status}`}>{SERVICE_STATUS_LABELS[o.status] || o.status}</span>
+                        <span className={`cx-order-status cx-order-status--${order.status}`}>
+                          {SERVICE_STATUS_LABELS[order.status] || order.status}
+                        </span>
                         <span className="cx-order-meta">
-                          Billing: {formatBillingLabel(o.billing_status)}
-                          {o.payment_method ? ` (${o.payment_method})` : ""}
+                          Billing: {formatBillingLabel(order.billing_status)}
+                          {order.payment_method ? ` (${order.payment_method})` : ""}
                         </span>
                       </div>
                     </div>
-                    <span className="cx-order-price">Rs. {Number(o.total_price).toFixed(2)}</span>
+                    <div className="cx-order-price-stack">
+                      {Number(order.discount_total || 0) > 0 ? (
+                        <span className="cx-order-price-note">Saved Rs. {Number(order.discount_total).toFixed(2)}</span>
+                      ) : null}
+                      <span className="cx-order-price">Rs. {Number(order.total_price).toFixed(2)}</span>
+                    </div>
                   </div>
-                  <StatusTimeline status={o.status} />
+                  <StatusTimeline status={order.status} />
                   <ul className="cx-order-items">
-                    {(o.items || []).map((it) => (
-                      <li key={it.id}>
-                        {it.item_name} × {it.quantity}
+                    {(order.items || []).map((item) => (
+                      <li key={item.id}>
+                        <div>
+                          <span>
+                            {item.item_name} × {item.quantity}
+                          </span>
+                          {item.selected_options?.length ? (
+                            <div className="cx-order-item-options">
+                              {item.selected_options.map((option) => (
+                                <span key={`${item.id}-${option.group_name}-${option.option_name}`}>
+                                  {option.group_name}: {option.option_name}
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                        <span>Rs. {Number(item.line_total).toFixed(2)}</span>
                       </li>
                     ))}
                   </ul>
-                  {o.billing_status !== "paid" && o.billing_status !== "refunded" ? (
-                    <Link to={`/billing/${o.id}`} state={{ order: o }} className="cx-order-pay-link">
-                      Payment / receipt →
-                    </Link>
+                  {order.applied_offers?.length ? (
+                    <div className="cx-order-offers">
+                      {order.applied_offers.map((offer) => (
+                        <p key={`${order.id}-${offer.offer_type}-${offer.name}`}>
+                          {offer.badge_text || offer.name} saved Rs. {Number(offer.discount_amount).toFixed(2)}
+                        </p>
+                      ))}
+                    </div>
                   ) : null}
+                  {order.review ? (
+                    <div className="cx-review-card">
+                      <div className="cx-review-card-head">
+                        <Star size={16} strokeWidth={2.1} />
+                        <strong>{Number(order.review.average_rating).toFixed(1)} / 5</strong>
+                      </div>
+                      <p>
+                        Food {order.review.food_quality}/5 · Service {order.review.service}/5 · Overall{" "}
+                        {order.review.overall_experience}/5
+                      </p>
+                      {order.review.comment ? <p>{order.review.comment}</p> : null}
+                    </div>
+                  ) : null}
+                  <div className="cx-order-actions">
+                    {order.billing_status !== "paid" && order.billing_status !== "refunded" ? (
+                      <Link to={`/billing/${order.id}`} state={{ order }} className="cx-order-pay-link">
+                        Payment / receipt →
+                      </Link>
+                    ) : null}
+                    {order.status === "served" && !order.review ? (
+                      <button type="button" className="cx-order-review-btn" onClick={() => openReview(order)}>
+                        Leave a review
+                      </button>
+                    ) : null}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -178,6 +294,89 @@ export default function MyOrders() {
           </nav>
         </section>
       </div>
+
+      {reviewingOrder ? (
+        <div className="cx-modal-backdrop" role="dialog" aria-modal="true">
+          <div className="cx-modal-card">
+            <div className="cx-modal-head">
+              <div>
+                <p className="cx-modal-kicker">Review order #{reviewingOrder.id}</p>
+                <h2>Share your experience</h2>
+              </div>
+              <button type="button" className="cx-modal-close" onClick={() => setReviewingOrder(null)} aria-label="Close">
+                ×
+              </button>
+            </div>
+            <form className="cx-review-form" onSubmit={submitReview}>
+              <label className="cx-review-field">
+                <span>Food quality</span>
+                <select
+                  value={reviewForm.food_quality}
+                  onChange={(event) =>
+                    setReviewForm((current) => ({ ...current, food_quality: Number(event.target.value) }))
+                  }
+                >
+                  {[5, 4, 3, 2, 1].map((value) => (
+                    <option key={value} value={value}>
+                      {value} / 5
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="cx-review-field">
+                <span>Service</span>
+                <select
+                  value={reviewForm.service}
+                  onChange={(event) =>
+                    setReviewForm((current) => ({ ...current, service: Number(event.target.value) }))
+                  }
+                >
+                  {[5, 4, 3, 2, 1].map((value) => (
+                    <option key={value} value={value}>
+                      {value} / 5
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="cx-review-field">
+                <span>Overall experience</span>
+                <select
+                  value={reviewForm.overall_experience}
+                  onChange={(event) =>
+                    setReviewForm((current) => ({ ...current, overall_experience: Number(event.target.value) }))
+                  }
+                >
+                  {[5, 4, 3, 2, 1].map((value) => (
+                    <option key={value} value={value}>
+                      {value} / 5
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="cx-review-field">
+                <span>Comment (optional)</span>
+                <textarea
+                  rows={4}
+                  value={reviewForm.comment}
+                  onChange={(event) =>
+                    setReviewForm((current) => ({ ...current, comment: event.target.value }))
+                  }
+                  placeholder="Tell the restaurant what stood out."
+                />
+              </label>
+              {reviewError ? <p className="cx-form-error">{reviewError}</p> : null}
+              <div className="cx-review-actions">
+                <button type="button" className="cx-btn-secondary" onClick={() => setReviewingOrder(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className="cx-btn-block" disabled={reviewBusy}>
+                  {reviewBusy ? "Submitting…" : "Submit review"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

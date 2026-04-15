@@ -62,6 +62,8 @@ class Order(models.Model):
     )
     session_id = models.CharField(max_length=64, db_index=True)
     customer_name = models.CharField(max_length=255)
+    subtotal_price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    discount_total = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
 
     payment_method = models.CharField(
@@ -109,6 +111,12 @@ class OrderItem(models.Model):
         on_delete=models.CASCADE,
     )
     quantity = models.PositiveIntegerField()
+    base_unit_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Menu item unit price after item-level offers but before customization extras.",
+    )
     unit_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -120,3 +128,110 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.menu_item.name} x {self.quantity}"
+
+
+class OrderItemCustomizationSelection(models.Model):
+    order_item = models.ForeignKey(
+        OrderItem,
+        on_delete=models.CASCADE,
+        related_name="selected_options",
+    )
+    customization_option = models.ForeignKey(
+        "menu.MenuItemCustomizationOption",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    group_name = models.CharField(max_length=100)
+    option_name = models.CharField(max_length=100)
+    price_delta = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+
+    class Meta:
+        ordering = ["id"]
+
+    def __str__(self):
+        return f"{self.order_item} · {self.group_name}: {self.option_name}"
+
+
+class OrderAppliedOffer(models.Model):
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="applied_offers",
+    )
+    offer = models.ForeignKey(
+        "menu.MenuOffer",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    name = models.CharField(max_length=120)
+    badge_text = models.CharField(max_length=40, blank=True, default="")
+    offer_type = models.CharField(max_length=16)
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    class Meta:
+        ordering = ["id"]
+
+    def __str__(self):
+        return f"{self.order} · {self.name}"
+
+
+class OrderReview(models.Model):
+    order = models.OneToOneField(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="review",
+    )
+    restaurant = models.ForeignKey(
+        Restaurant,
+        on_delete=models.CASCADE,
+        related_name="reviews",
+    )
+    session_id = models.CharField(max_length=64, db_index=True)
+    customer_name = models.CharField(max_length=255, blank=True, default="")
+    # These legacy columns are still required in the live database schema.
+    # Keep them in sync so review submission works before a cleanup migration.
+    food_quality_legacy = models.PositiveSmallIntegerField(
+        db_column="food_quality_rating",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    service_legacy = models.PositiveSmallIntegerField(
+        db_column="service_rating",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    overall_experience_legacy = models.PositiveSmallIntegerField(
+        db_column="overall_rating",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    food_quality = models.PositiveSmallIntegerField()
+    service = models.PositiveSmallIntegerField()
+    overall_experience = models.PositiveSmallIntegerField()
+    comment = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["restaurant", "session_id", "order"],
+                name="orders_unique_review_session_order",
+            )
+        ]
+
+    def __str__(self):
+        return f"Review for order {self.order_id}"
+
+    def save(self, *args, **kwargs):
+        self.food_quality_legacy = self.food_quality
+        self.service_legacy = self.service
+        self.overall_experience_legacy = self.overall_experience
+        super().save(*args, **kwargs)

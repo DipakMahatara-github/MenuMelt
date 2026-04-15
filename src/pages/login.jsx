@@ -3,11 +3,14 @@ import { useState } from "react";
 import { clearAuth, setAuthTokens, setUserSession } from "../lib/auth";
 import { API_BASE } from "../config";
 import PasswordField from "../components/PasswordField";
+import ToastStack from "../components/ToastStack";
+import { useToastQueue } from "../hooks/useToastQueue";
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { toasts, pushToast, removeToast } = useToastQueue();
 
   const inputClasses =
     "w-full border-0 border-b border-slate-300 bg-transparent px-0 py-3 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-b-2 focus:border-indigo-500";
@@ -24,10 +27,10 @@ export default function Login() {
         body: JSON.stringify({ email, password })
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        alert(data.error || "Invalid email or password");
+        pushToast("error", data.error || "Invalid email or password");
         return;
       }
 
@@ -52,7 +55,7 @@ export default function Login() {
       else if (data.role === "kitchen") navigate("/kitchen");
 
     } catch {
-      alert("Server error");
+      pushToast("error", "Server error");
     }
   };
 
@@ -106,6 +109,8 @@ export default function Login() {
           <p className="mt-2 text-sm text-white/80">Smart QR ordering system for modern restaurants</p>
         </div>
       </div>
+
+      <ToastStack toasts={toasts} onDismiss={removeToast} />
     </div>
   );
 }

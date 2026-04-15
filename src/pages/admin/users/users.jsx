@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Search, ShieldCheck, UserRound, UserX } from "lucide-react";
 import "./users.css";
 import { authFetch, API_BASE } from "../../../lib/api";
+import ConfirmDialog from "../../../components/ConfirmDialog";
+import ToastStack from "../../../components/ToastStack";
+import { useToastQueue } from "../../../hooks/useToastQueue";
 
 function formatDateTime(value) {
   if (!value) return "—";
@@ -17,24 +20,7 @@ export default function Users() {
   const [data, setData] = useState({ users: [], roles: [] });
   const [busyId, setBusyId] = useState("");
   const [confirmState, setConfirmState] = useState(null);
-  const [toasts, setToasts] = useState([]);
-
-  const pushToast = (tone, text) => {
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    setToasts((current) => [...current, { id, tone, text }]);
-  };
-
-  const removeToast = (id) => {
-    setToasts((current) => current.filter((toast) => toast.id !== id));
-  };
-
-  useEffect(() => {
-    if (!toasts.length) return undefined;
-    const timer = window.setTimeout(() => {
-      removeToast(toasts[0].id);
-    }, 3200);
-    return () => window.clearTimeout(timer);
-  }, [toasts]);
+  const { toasts, pushToast, removeToast } = useToastQueue();
 
   useEffect(() => {
     let cancelled = false;
@@ -290,44 +276,27 @@ export default function Users() {
         </div>
       </section>
 
-      {confirmState ? (
-        <div className="pa-users__modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="pa-users-confirm-title">
-          <div className="pa-users__modal">
-            <p className="pa-users__modal-kicker">Please confirm</p>
-            <h2 id="pa-users-confirm-title">{confirmState.title}</h2>
-            <p className="pa-users__modal-text">{confirmState.description}</p>
-            <div className="pa-users__modal-meta">
-              <span>{confirmState.user.full_name}</span>
-              <span>{confirmState.user.email}</span>
-              <span>{confirmState.user.role.replaceAll("_", " ")}</span>
-            </div>
-            <div className="pa-users__modal-actions">
-              <button type="button" className="pa-users__ghost" onClick={closeConfirm} disabled={Boolean(busyId)}>
-                Cancel
-              </button>
-              <button
-                type="button"
-                className={`pa-users__solid is-${confirmState.tone}`}
-                onClick={handleConfirmedAction}
-                disabled={Boolean(busyId)}
-              >
-                {busyId ? "Working…" : confirmState.confirmLabel}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <ConfirmDialog
+        open={Boolean(confirmState)}
+        title={confirmState?.title}
+        description={confirmState?.description}
+        confirmLabel={confirmState?.confirmLabel}
+        tone={confirmState?.tone}
+        meta={
+          confirmState
+            ? [
+                confirmState.user.full_name,
+                confirmState.user.email,
+                confirmState.user.role.replaceAll("_", " "),
+              ]
+            : []
+        }
+        busy={Boolean(busyId)}
+        onCancel={closeConfirm}
+        onConfirm={handleConfirmedAction}
+      />
 
-      <div className="pa-users__toasts" aria-live="polite" aria-atomic="true">
-        {toasts.map((toast) => (
-          <div key={toast.id} className={`pa-users__toast is-${toast.tone}`}>
-            <span>{toast.text}</span>
-            <button type="button" onClick={() => removeToast(toast.id)} aria-label="Dismiss notification">
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
+      <ToastStack toasts={toasts} onDismiss={removeToast} />
     </div>
   );
 }

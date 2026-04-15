@@ -57,7 +57,12 @@ def _build_event_payload(
     order = (
         Order.objects.filter(pk=order_id)
         .select_related("table", "restaurant")
-        .prefetch_related("items__menu_item")
+        .prefetch_related(
+            "applied_offers",
+            "review",
+            "items__menu_item",
+            "items__selected_options",
+        )
         .first()
     )
     if not order:

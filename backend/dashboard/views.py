@@ -2,15 +2,25 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.utils import timezone
-from django.db.models import Avg, Sum
+from django.db.models import Avg, Count, Sum
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from orders.models import Order, OrderItem
+from orders.models import Order, OrderItem, OrderReview
 from restaurants.models import PaymentConfig
 from tables.models import Table
+
+
+def _resolve_user_restaurant(user):
+    restaurant = getattr(user, "restaurant", None)
+    if restaurant:
+        return restaurant
+    try:
+        return user.owned_restaurant
+    except Exception:
+        return None
 
 
 class PaymentConfigSerializer(serializers.ModelSerializer):
@@ -25,7 +35,7 @@ class PaymentConfigSerializer(serializers.ModelSerializer):
 def dashboard_stats(request):
 
     try:
-        restaurant = request.user.restaurant
+        restaurant = _resolve_user_restaurant(request.user)
 
         if not restaurant:
             return Response({"error": "No restaurant assigned"}, status=400)
@@ -115,6 +125,18 @@ def dashboard_stats(request):
                 "image": image_url
             })
 
+        review_summary = OrderReview.objects.filter(restaurant=restaurant).aggregate(
+            review_count=Count("id"),
+            average_overall=Avg("overall_experience"),
+            average_food=Avg("food_quality"),
+            average_service=Avg("service"),
+        )
+        recent_reviews = (
+            OrderReview.objects.filter(restaurant=restaurant)
+            .select_related("order")
+            .order_by("-created_at")[:5]
+        )
+
         return Response(
             {
                 "today_orders": today_orders,
@@ -128,6 +150,25 @@ def dashboard_stats(request):
                 "avg_order_value": float(avg_order_value),
                 "table_occupancy": table_occupancy,
                 "popular_items": popular_items,
+                "reviews": {
+                    "count": int(review_summary.get("review_count") or 0),
+                    "average_overall": float(review_summary["average_overall"]) if review_summary.get("average_overall") is not None else None,
+                    "average_food": float(review_summary["average_food"]) if review_summary.get("average_food") is not None else None,
+                    "average_service": float(review_summary["average_service"]) if review_summary.get("average_service") is not None else None,
+                    "recent": [
+                        {
+                            "id": review.id,
+                            "order_id": review.order_id,
+                            "customer_name": review.customer_name,
+                            "food_quality": review.food_quality,
+                            "service": review.service,
+                            "overall_experience": review.overall_experience,
+                            "comment": review.comment,
+                            "created_at": review.created_at.isoformat(),
+                        }
+                        for review in recent_reviews
+                    ],
+                },
             }
         )
 
@@ -141,7 +182,7 @@ def payment_config_view(request):
     user = request.user
     if getattr(user, "role", None) == "admin":
         return Response({"error": "Platform admin cannot edit payment config here."}, status=403)
-    restaurant = user.restaurant
+    restaurant = _resolve_user_restaurant(user)
     if not restaurant:
         return Response({"error": "No restaurant assigned"}, status=400)
 
