@@ -9,7 +9,10 @@ export default function Landing() {
     <div className="sage-landing">
       {/* NAVBAR */}
       <nav className="sage-nav">
-        <div className="sage-logo">MenuMelt</div>
+        <div className="sage-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => navigate("/")}>
+          <img src="/logo.png" alt="MenuMelt Logo" style={{ height: '32px', width: 'auto' }} />
+          <span style={{ color: '#557855' }}>MenuMelt</span>
+        </div>
         <ul className="sage-nav-links">
           <li>How It Works</li>
           <li>Features</li>
@@ -119,7 +122,10 @@ export default function Landing() {
 
       {/* FOOTER */}
       <footer className="sage-footer">
-        <div className="sage-footer-logo">MenuMelt</div>
+        <div className="sage-footer-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => navigate("/")}>
+          <img src="/logo.png" alt="MenuMelt Logo" style={{ height: '32px', width: 'auto' }} />
+          <span style={{ color: '#557855' }}>MenuMelt</span>
+        </div>
         <div className="sage-footer-links">
             <span>How It Works</span>
             <span>Features</span>

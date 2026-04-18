@@ -105,7 +105,13 @@ export default function Login() {
       >
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10">
-          <h2 className="text-[26px] font-bold">MenuMelt</h2>
+          <div 
+            className="flex items-center gap-3 mb-2 cursor-pointer transition hover:opacity-80"
+            onClick={() => navigate("/")}
+          >
+            <img src="/logo.png" alt="MenuMelt Logo" className="h-[38px] w-auto rounded-md shadow-sm" />
+            <h2 className="text-[26px] font-bold text-[#557855]">MenuMelt</h2>
+          </div>
           <p className="mt-2 text-sm text-white/80">Smart QR ordering system for modern restaurants</p>
         </div>
       </div>
