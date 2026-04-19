@@ -228,6 +228,134 @@
   border: 2px solid var(--al-main-bg);
 }
 
+/* ── Notification Dropdown ── */
+.notif-wrapper {
+  position: relative;
+}
+
+.notif-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 320px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(42, 68, 46, 0.14);
+  border: 1px solid rgba(43, 89, 61, 0.08);
+  z-index: 200;
+  overflow: hidden;
+  animation: notif-drop-in 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes notif-drop-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.notif-dropdown__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid rgba(43, 89, 61, 0.07);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1A3120;
+}
+
+.notif-dropdown__clear {
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #57735D;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.notif-dropdown__clear:hover {
+  background: #E8F0EA;
+  color: #274C30;
+}
+
+.notif-dropdown__list {
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.notif-dropdown__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 20px;
+  color: #A1BDAB;
+  text-align: center;
+}
+
+.notif-dropdown__empty p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #57735D;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 18px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  border-bottom: 1px solid rgba(43, 89, 61, 0.05);
+}
+
+.notif-item:last-child {
+  border-bottom: none;
+}
+
+.notif-item:hover {
+  background: #F0F6F2;
+}
+
+.notif-item__icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  background: #E8F5EC;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3C6647;
+  margin-top: 2px;
+}
+
+.notif-item__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.notif-item__body p {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1A3120;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notif-item__body span {
+  font-size: 0.75rem;
+  color: #8FA898;
+}
+
 .admin-profile-wrapper {
   position: relative;
 }

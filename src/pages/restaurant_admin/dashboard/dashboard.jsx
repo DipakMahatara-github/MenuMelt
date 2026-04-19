@@ -22,7 +22,6 @@ const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1546069901-ba9599a7e63
 export default function Dashboard() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
-  const [lastOrderCount, setLastOrderCount] = useState(0);
 
   const fetchDashboard = async () => {
     try {
@@ -33,13 +32,6 @@ export default function Dashboard() {
         setData(null);
         return;
       }
-
-      if (json.recent_orders?.length > lastOrderCount) {
-        const audio = new Audio(notificationSound);
-        audio.play().catch(() => {});
-      }
-
-      setLastOrderCount(json.recent_orders?.length || 0);
       setData(json);
       setError("");
     } catch (err) {
