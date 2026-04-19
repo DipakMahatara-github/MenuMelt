@@ -59,6 +59,12 @@ export default function PlatformAdminLayout() {
             </NavLink>
           </li>
 
+          <li>
+            <NavLink to="/admin/payments">
+              Payments
+            </NavLink>
+          </li>
+
           <div className="divider"></div>
 
           <span className="menu-title">SYSTEM</span>

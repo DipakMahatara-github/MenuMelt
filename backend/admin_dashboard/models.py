@@ -7,6 +7,8 @@ class PlatformSettings(models.Model):
     """
 
     allow_restaurant_registration = models.BooleanField(default=False)
+    khalti_public_key = models.CharField(max_length=255, blank=True, default="")
+    khalti_secret_key = models.CharField(max_length=255, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

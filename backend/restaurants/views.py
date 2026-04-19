@@ -104,8 +104,17 @@ def _platform_admin_or_403(user):
 
 
 def _platform_khalti_credentials():
-    public_key = getattr(settings, "KHALTI_PUBLIC_KEY", "").strip()
-    secret_key = getattr(settings, "KHALTI_SECRET_KEY", "").strip()
+    from admin_dashboard.models import PlatformSettings
+    settings_obj = PlatformSettings.get_solo()
+    
+    public_key = (settings_obj.khalti_public_key or "").strip()
+    secret_key = (settings_obj.khalti_secret_key or "").strip()
+    
+    if not public_key:
+        public_key = getattr(settings, "KHALTI_PUBLIC_KEY", "").strip()
+    if not secret_key:
+        secret_key = getattr(settings, "KHALTI_SECRET_KEY", "").strip()
+        
     if not public_key or not secret_key:
         raise ValueError("Platform Khalti credentials are not configured.")
     return public_key, secret_key

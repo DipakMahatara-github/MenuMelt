@@ -63,7 +63,7 @@ export default function Subscription() {
     const verify = async () => {
       setBusyId(`verify:${resolvedPaymentId}`);
       try {
-        const res = await authFetch(`${API_BASE}/api/restaurants/subscription/verify//`, {
+        const res = await authFetch(`${API_BASE}/api/restaurants/subscription/verify/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ payment_id: resolvedPaymentId }),

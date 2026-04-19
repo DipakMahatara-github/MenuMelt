@@ -11,6 +11,7 @@ import AdminDashboard from "./pages/admin/dashboard/dashboard";
 import Users from "./pages/admin/users/users";
 import Restaurants from "./pages/admin/restaurants/restaurants";
 import Subscriptions from "./pages/admin/subscriptions/subscriptions";
+import PlatformPaymentSettings from "./pages/admin/payments/PaymentSettings";
 import Settings from "./pages/admin/settings/settings";
 
 /* ================= RESTAURANT ADMIN ================= */
@@ -74,6 +75,7 @@ function App() {
         <Route path="users" element={<Users />} />
         <Route path="restaurants" element={<Restaurants />} />
         <Route path="subscriptions" element={<Subscriptions />} />
+        <Route path="payments" element={<PlatformPaymentSettings />} />
         <Route path="settings" element={<Settings />} />
       </Route>
 

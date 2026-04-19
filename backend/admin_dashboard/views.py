@@ -405,6 +405,8 @@ def admin_settings(request):
                 },
                 "settings": {
                     "allow_restaurant_registration": settings_obj.allow_restaurant_registration,
+                    "khalti_public_key": settings_obj.khalti_public_key,
+                    "khalti_secret_key": settings_obj.khalti_secret_key,
                     "updated_at": settings_obj.updated_at,
                 },
             }
@@ -430,9 +432,23 @@ def admin_settings(request):
     request.user.email = email
     request.user.save(update_fields=["full_name", "email"])
 
+    khalti_public_key = request.data.get("khalti_public_key")
+    khalti_secret_key = request.data.get("khalti_secret_key")
+
+    updated_fields = ["updated_at"]
     if isinstance(allow_registration, bool):
         settings_obj.allow_restaurant_registration = allow_registration
-        settings_obj.save(update_fields=["allow_restaurant_registration", "updated_at"])
+        updated_fields.append("allow_restaurant_registration")
+
+    if khalti_public_key is not None:
+        settings_obj.khalti_public_key = khalti_public_key.strip()
+        updated_fields.append("khalti_public_key")
+
+    if khalti_secret_key is not None:
+        settings_obj.khalti_secret_key = khalti_secret_key.strip()
+        updated_fields.append("khalti_secret_key")
+
+    settings_obj.save(update_fields=updated_fields)
 
     return Response(
         {
@@ -443,6 +459,8 @@ def admin_settings(request):
             },
             "settings": {
                 "allow_restaurant_registration": settings_obj.allow_restaurant_registration,
+                "khalti_public_key": settings_obj.khalti_public_key,
+                "khalti_secret_key": settings_obj.khalti_secret_key,
                 "updated_at": settings_obj.updated_at,
             },
         }
