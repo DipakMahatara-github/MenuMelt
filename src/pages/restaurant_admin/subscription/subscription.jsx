@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import "./subscription.css";
 import { authFetch, API_BASE } from "../../../lib/api";
 import { clearAuth, getRestaurantName, getSubscriptionStatus, setUserSession } from "../../../lib/auth";
-import { submitEpayV2Form } from "../../customer/Billing";
 
 const PENDING_SUB_PAYMENT_KEY = "mm_subscription_payment_id";
 
@@ -18,7 +17,7 @@ export default function Subscription() {
   const [message, setMessage] = useState("");
 
   const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
-  const esewaState = (params.get("esewa") || "").trim();
+  const khaltiState = (params.get("khalti") || "").trim();
   const paymentIdFromUrl = (params.get("payment_id") || "").trim();
 
   const load = async () => {
@@ -50,10 +49,10 @@ export default function Subscription() {
   }, []);
 
   useEffect(() => {
-    if (!esewaState) return;
+    if (!khaltiState) return;
     const storedPaymentId = sessionStorage.getItem(PENDING_SUB_PAYMENT_KEY) || "";
     const resolvedPaymentId = paymentIdFromUrl || storedPaymentId;
-    if (esewaState === "failure") {
+    if (khaltiState === "failure") {
       setMessage("Subscription payment was not completed. You can retry anytime.");
       return;
     }
@@ -64,7 +63,7 @@ export default function Subscription() {
     const verify = async () => {
       setBusyId(`verify:${resolvedPaymentId}`);
       try {
-        const res = await authFetch(`${API_BASE}/api/restaurants/subscription/verify/`, {
+        const res = await authFetch(`${API_BASE}/api/restaurants/subscription/verify//`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ payment_id: resolvedPaymentId }),
@@ -95,7 +94,7 @@ export default function Subscription() {
       }
     };
     verify();
-  }, [esewaState, paymentIdFromUrl]);
+  }, [khaltiState, paymentIdFromUrl]);
 
   const startCheckout = async (planId) => {
     setBusyId(`checkout:${planId}`);
@@ -113,11 +112,15 @@ export default function Subscription() {
         return;
       }
       sessionStorage.setItem(PENDING_SUB_PAYMENT_KEY, String(data.payment_id));
-      submitEpayV2Form(data.form_url ?? data.formUrl, data.fields, { bypassSubmitGuard: true });
+      if (data.payment_url) {
+        window.location.href = data.payment_url;
+      } else {
+        setError("Missing payment URL from server.");
+      }
     } catch {
       setError("Network error while starting checkout.");
     } finally {
-      setBusyId("");
+      // Don't setBusyId("") if redirecting
     }
   };
 
@@ -139,7 +142,7 @@ export default function Subscription() {
           <h1>Activate your restaurant</h1>
           <p className="mm-subscription__restaurant">{restaurantName || "Your restaurant"}</p>
           <p className="mm-subscription__lead">
-            Choose a MenuMelt subscription plan and pay with eSewa to unlock the full restaurant admin experience.
+            Choose a MenuMelt subscription plan and pay with Khalti to unlock the full restaurant admin experience.
           </p>
         </div>
         <div className="mm-subscription__hero-actions">
@@ -191,7 +194,7 @@ export default function Subscription() {
                 disabled={isCurrent || busyId === `checkout:${plan.id}`}
                 onClick={() => startCheckout(plan.id)}
               >
-                {isCurrent ? "Current plan" : busyId === `checkout:${plan.id}` ? "Redirecting…" : "Pay with eSewa"}
+                {isCurrent ? "Current plan" : busyId === `checkout:${plan.id}` ? "Redirecting…" : "Pay with Khalti"}
               </button>
             </article>
           );

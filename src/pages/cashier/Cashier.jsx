@@ -87,16 +87,16 @@ export default function Cashier() {
     }
   };
 
-  const verifyEsewa = async (orderId) => {
+  const verifyKhalti = async (orderId) => {
     const marker = `${orderId}:verify`;
     setBusyKey(marker);
     try {
-      const res = await authFetch(`${API_BASE}/api/orders/${orderId}/verify-esewa-status/`, {
+      const res = await authFetch(`${API_BASE}/api/orders/${orderId}/verify-khalti-status/`, {
         method: "POST",
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || data.detail || "Could not verify eSewa payment.");
+        setError(data.error || data.detail || "Could not verify Khalti payment.");
         return;
       }
       setError("");
@@ -131,10 +131,10 @@ export default function Cashier() {
         busy: `${order.id}:pending_payment:cash`,
       });
       actions.push({
-        label: "Await eSewa",
+        label: "Await Khalti",
         kind: "ghost",
-        onClick: () => patchBilling(order.id, { billing_status: "pending_payment", payment_method: "esewa" }),
-        busy: `${order.id}:pending_payment:esewa`,
+        onClick: () => patchBilling(order.id, { billing_status: "pending_payment", payment_method: "khalti" }),
+        busy: `${order.id}:pending_payment:khalti`,
       });
       actions.push({
         label: "Mark cash paid",
@@ -152,18 +152,18 @@ export default function Cashier() {
           busy: `${order.id}:paid:cash`,
         });
       }
-      if (order.payment_method === "esewa") {
+      if (order.payment_method === "khalti") {
         actions.push({
-          label: "Verify eSewa",
+          label: "Verify Khalti",
           kind: "primary",
-          onClick: () => verifyEsewa(order.id),
+          onClick: () => verifyKhalti(order.id),
           busy: `${order.id}:verify`,
         });
         actions.push({
-          label: "Mark eSewa paid",
+          label: "Mark Khalti paid",
           kind: "success",
-          onClick: () => patchBilling(order.id, { billing_status: "paid", payment_method: "esewa" }),
-          busy: `${order.id}:paid:esewa`,
+          onClick: () => patchBilling(order.id, { billing_status: "paid", payment_method: "khalti" }),
+          busy: `${order.id}:paid:khalti`,
         });
       }
       actions.push({
@@ -181,10 +181,10 @@ export default function Cashier() {
         busy: `${order.id}:pending_payment:cash`,
       });
       actions.push({
-        label: "Retry eSewa",
+        label: "Retry Khalti",
         kind: "ghost",
-        onClick: () => patchBilling(order.id, { billing_status: "pending_payment", payment_method: "esewa" }),
-        busy: `${order.id}:pending_payment:esewa`,
+        onClick: () => patchBilling(order.id, { billing_status: "pending_payment", payment_method: "khalti" }),
+        busy: `${order.id}:pending_payment:khalti`,
       });
     }
     if (order.billing_status === "paid") {
@@ -206,7 +206,7 @@ export default function Cashier() {
           <h1>Billing console</h1>
           {restaurantName ? <p className="mm-cashier__restaurant">{restaurantName}</p> : null}
           <p className="mm-cashier__lead">
-            Manage billing states, accept cash, verify eSewa, and keep payment closure separate from kitchen flow.
+            Manage billing states, accept cash, verify Khalti, and keep payment closure separate from kitchen flow.
           </p>
         </div>
         <button type="button" className="mm-cashier__logout" onClick={logout}>

@@ -111,7 +111,7 @@ export default function Waiter() {
   };
 
   const payLabel = (o) => {
-    if (o.payment_method === "esewa") return `eSewa · ${String(o.billing_status).replaceAll("_", " ")}`;
+    if (o.payment_method === "khalti") return `Khalti · ${String(o.billing_status).replaceAll("_", " ")}`;
     if (o.payment_method === "cash") return `Cash · ${String(o.billing_status).replaceAll("_", " ")}`;
     return `Billing · ${String(o.billing_status).replaceAll("_", " ")}`;
   };

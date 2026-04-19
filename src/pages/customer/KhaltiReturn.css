@@ -1,6 +1,6 @@
 @import "./customerShell.css";
 
-.cx-esewa-center {
+.cx-khalti-center {
   min-height: 70vh;
   display: flex;
   align-items: center;
@@ -8,62 +8,62 @@
   padding: 20px 12px;
 }
 
-.cx-esewa-card {
+.cx-khalti-card {
   text-align: center;
   max-width: 400px;
   width: 100%;
 }
 
-.cx-esewa-title {
+.cx-khalti-title {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 800;
-  color: var(--cx-navy);
+  color: #5d2e8e; /* Khalti purple */
   letter-spacing: -0.02em;
 }
 
-.cx-esewa-msg {
+.cx-khalti-msg {
   margin: 16px 0 0;
   font-size: 0.95rem;
   line-height: 1.55;
   color: var(--cx-slate-dark);
 }
 
-.cx-esewa-hint {
+.cx-khalti-hint {
   margin: 10px 0 0;
   font-size: 0.82rem;
   line-height: 1.45;
   color: var(--cx-slate);
 }
 
-.cx-esewa-detail {
+.cx-khalti-detail {
   margin: 12px 0 0;
   font-size: 0.88rem;
   color: var(--cx-slate);
   font-weight: 600;
 }
 
-.cx-esewa-actions {
+.cx-khalti-actions {
   margin-top: 24px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.cx-esewa-actions a.cx-btn-block {
+.cx-khalti-actions a.cx-btn-block {
   text-decoration: none;
   display: block;
   line-height: 1.2;
 }
 
-.cx-esewa-secondary {
+.cx-khalti-secondary {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #4f46e5;
+  color: #5d2e8e;
   text-decoration: none;
   padding: 10px;
 }
 
-.cx-esewa-secondary:hover {
+.cx-khalti-secondary:hover {
   text-decoration: underline;
 }

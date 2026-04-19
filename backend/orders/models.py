@@ -20,10 +20,10 @@ class Order(models.Model):
     )
 
     PAYMENT_CASH = "cash"
-    PAYMENT_ESEWA = "esewa"
+    PAYMENT_KHALTI = "khalti"
     PAYMENT_METHOD_CHOICES = (
         (PAYMENT_CASH, "Cash"),
-        (PAYMENT_ESEWA, "eSewa"),
+        (PAYMENT_KHALTI, "Khalti"),
     )
 
     PAYMENT_ST_PENDING = "pending"
@@ -85,8 +85,7 @@ class Order(models.Model):
     billed_at = models.DateTimeField(null=True, blank=True)
     paid_at = models.DateTimeField(null=True, blank=True)
     refunded_at = models.DateTimeField(null=True, blank=True)
-    esewa_transaction_uuid = models.CharField(max_length=128, blank=True, default="")
-    esewa_pay_total_amount = models.CharField(max_length=24, blank=True, null=True)
+    khalti_pidx = models.CharField(max_length=255, blank=True, default="")
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
     # Waiter / restaurant admin releases to kitchen; kitchen role only sees orders after this is set.

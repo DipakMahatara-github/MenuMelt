@@ -26,7 +26,7 @@ def _resolve_user_restaurant(user):
 class PaymentConfigSerializer(serializers.ModelSerializer):
     class Meta:
         model = PaymentConfig
-        fields = ["provider", "merchant_id", "secret_key", "updated_at"]
+        fields = ["provider", "public_key", "secret_key", "updated_at"]
         read_only_fields = ["provider", "updated_at"]
 
 
@@ -189,8 +189,8 @@ def payment_config_view(request):
     cfg, _ = PaymentConfig.objects.get_or_create(
         restaurant=restaurant,
         defaults={
-            "provider": PaymentConfig.PROVIDER_ESEWA,
-            "merchant_id": "",
+            "provider": PaymentConfig.PROVIDER_KHALTI,
+            "public_key": "",
             "secret_key": "",
         },
     )

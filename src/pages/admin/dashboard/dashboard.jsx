@@ -133,7 +133,7 @@ export default function Dashboard() {
             <h2>What this unlocks</h2>
           </header>
           <ul className="pa-bullets">
-            <li>Use the Restaurants page to manually unlock restaurant access while eSewa is unstable.</li>
+            <li>Use the Restaurants page to manually unlock restaurant access while Khalti is unstable.</li>
             <li>Use the Subscriptions page to activate, extend, expire, or cancel plans.</li>
             <li>Use Settings to pause new registrations without blocking existing restaurant logins.</li>
           </ul>

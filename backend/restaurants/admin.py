@@ -10,7 +10,7 @@ class RestaurantAdmin(admin.ModelAdmin):
 
 @admin.register(PaymentConfig)
 class PaymentConfigAdmin(admin.ModelAdmin):
-    list_display = ("restaurant", "provider", "merchant_id", "updated_at")
+    list_display = ("restaurant", "provider", "public_key", "updated_at")
 
 
 @admin.register(SubscriptionPlan)

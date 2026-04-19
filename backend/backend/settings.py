@@ -63,6 +63,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -140,6 +141,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# WhiteNoise storage to serve compressed and unique versioned files
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -185,15 +190,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 # Set only in backend/.env — no default, so links never fall back to loopback or LAN IPs.
 FRONTEND_URL = os.getenv("FRONTEND_URL")
 
-PLATFORM_ESEWA_MERCHANT_ID = os.getenv("PLATFORM_ESEWA_MERCHANT_ID", "")
-PLATFORM_ESEWA_SECRET_KEY = os.getenv("PLATFORM_ESEWA_SECRET_KEY", "")
-
-# Optional extra status host; verification tries rc-epay, uat, rc, then this if set.
-# ePay v2 form is on rc-epay — that status API usually has the transaction first.
-ESEWA_STATUS_URL = os.getenv(
-    "ESEWA_STATUS_URL",
-    "https://rc-epay.esewa.com.np/api/epay/transaction/status/",
-)
+KHALTI_PUBLIC_KEY = os.getenv("KHALTI_PUBLIC_KEY", "")
+KHALTI_SECRET_KEY = os.getenv("KHALTI_SECRET_KEY", "")
+KHALTI_BASE_URL = os.getenv("KHALTI_BASE_URL", "https://dev.khalti.com/api/v2/")
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",

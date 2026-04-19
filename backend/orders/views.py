@@ -19,17 +19,7 @@ from menu.pricing import active_offer_queryset, quote_order_lines
 from restaurants.models import PaymentConfig
 
 from .customer_utils import assert_customer_can_access_order, resolve_customer_table_and_session
-from .esewa import (
-    ESEWA_FORM_URL,
-    build_esewa_return_urls,
-    build_form_fields,
-    classify_esewa_transaction_status,
-    decode_esewa_return_data_payload,
-    extract_esewa_redirect_fields,
-    fetch_transaction_status,
-    format_esewa_amount,
-    get_esewa_status_url,
-)
+from .khalti import initiate_khalti_payment, verify_khalti_payment
 from .live import publish_order_event
 from .models import (
     Order,
@@ -47,8 +37,8 @@ from .serializers import (
     OrderSerializer,
 )
 
-ESEWA_VERIFY_MAX_ATTEMPTS = 10
-ESEWA_VERIFY_RETRY_DELAY_SEC = 2.0
+# Khalti doesn't need polling but we might retry lookup if it fails.
+KHALTI_VERIFY_MAX_ATTEMPTS = 3
 
 ORDER_STATUS_VALUES = {
     Order.STATUS_PENDING,
@@ -571,9 +561,9 @@ def update_order_billing(request, order_id):
     payment_method = request.data.get("payment_method")
     if payment_method is not None:
         payment_method = (str(payment_method).strip() or None)
-        if payment_method not in {None, Order.PAYMENT_CASH, Order.PAYMENT_ESEWA}:
+        if payment_method not in {None, Order.PAYMENT_CASH, Order.PAYMENT_KHALTI}:
             return Response(
-                {"error": f"Invalid payment method. Allowed: {[Order.PAYMENT_CASH, Order.PAYMENT_ESEWA]}"},
+                {"error": f"Invalid payment method. Allowed: {[Order.PAYMENT_CASH, Order.PAYMENT_KHALTI]}"},
                 status=400,
             )
 
@@ -639,9 +629,17 @@ def pay_cash(request, order_id):
     return Response(CustomerOrderSummarySerializer(order).data)
 
 
+def _get_restaurant_khalti_key(restaurant) -> str:
+    from restaurants.models import PaymentConfig
+    config = PaymentConfig.objects.filter(restaurant=restaurant).first()
+    if not config or not config.secret_key:
+        raise ValueError(f"Khalti is not configured for {restaurant.name}. Please set up keys in settings.")
+    return config.secret_key.strip()
+
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def pay_esewa(request, order_id):
+def pay_khalti(request, order_id):
     ok, table, session_id, ctx_err = resolve_customer_table_and_session(request)
     if not ok:
         return ctx_err
@@ -651,16 +649,6 @@ def pay_esewa(request, order_id):
         return Response({"error": "Order not found"}, status=404)
 
     assert_customer_can_access_order(order, table, session_id)
-
-    try:
-        cfg = order.restaurant.payment_config
-    except PaymentConfig.DoesNotExist:
-        return Response({"error": "eSewa is not configured for this restaurant"}, status=400)
-
-    merchant_id = (cfg.merchant_id or "").strip()
-    secret_key = (cfg.secret_key or "").strip()
-    if not merchant_id or not secret_key:
-        return Response({"error": "eSewa merchant credentials are incomplete"}, status=400)
 
     if order.billing_status == Order.BILLING_ST_PAID:
         return Response({"error": "Order is already paid"}, status=400)
@@ -669,533 +657,122 @@ def pay_esewa(request, order_id):
     if not base:
         return Response({"error": "FRONTEND_URL is not configured on the server"}, status=500)
 
-    # eSewa requires a new transaction_uuid for every payment initiation.
-    txn = f"mm-{order.pk}-{uuid.uuid4().hex}"
-    pay_amount_str = format_esewa_amount(order.total_price)
-    order.esewa_transaction_uuid = txn
-    order.esewa_pay_total_amount = pay_amount_str
-    _apply_billing_state(
-        order,
-        Order.BILLING_ST_PENDING_PAYMENT,
-        payment_method=Order.PAYMENT_ESEWA,
-    )
-    order.save(
-        update_fields=[
-            "esewa_transaction_uuid",
-            "esewa_pay_total_amount",
-            "payment_method",
-            "payment_status",
-            "billing_status",
-            "billed_at",
-            "paid_at",
-            "refunded_at",
-        ]
-    )
-    _notify_order_change(order)
-
-    # Path only — eSewa appends query params (e.g. data, transaction_uuid). Set FRONTEND_URL to your
-    # public HTTPS origin (e.g. https://xxxx.ngrok-free.app) so this URL is reachable after payment.
-    success_url, failure_url, esewa_url_warnings = build_esewa_return_urls(base, order_id=order.pk)
-    if success_url.startswith("http://"):
-        logger.warning(
-            "eSewa success_url is not HTTPS (%s); eSewa may reject or shorten the payment flow.",
-            success_url,
-        )
-
+    return_url = f"{base}/payment/khalti/success"
+    
     try:
-        fields = build_form_fields(
-            secret_key=secret_key,
-            merchant_id=merchant_id,
-            total_amount=order.total_price,
-            transaction_uuid=txn,
-            success_url=success_url,
-            failure_url=failure_url,
+        # Fetch restaurant's specific Khalti key
+        secret_key = _get_restaurant_khalti_key(order.restaurant)
+
+        # Initiate payment with Khalti
+        res_data = initiate_khalti_payment(
+            order_id=order.pk,
+            amount_npr=order.total_price,
+            purchase_order_name=f"Order #{order.pk}",
+            return_url=return_url,
+            secret_key=secret_key
         )
-    except ValueError as exc:
-        logger.warning("eSewa build_form_fields failed order_id=%s: %s", order.pk, exc)
-        return Response(
-            {"error": f"Invalid eSewa payment parameters: {exc}"},
-            status=status.HTTP_400_BAD_REQUEST,
+        
+        pidx = res_data.get("pidx")
+        payment_url = res_data.get("payment_url")
+        
+        if not pidx or not payment_url:
+            return Response({"error": "Failed to get payment details from Khalti"}, status=502)
+            
+        order.khalti_pidx = pidx
+        _apply_billing_state(
+            order,
+            Order.BILLING_ST_PENDING_PAYMENT,
+            payment_method=Order.PAYMENT_KHALTI,
         )
-
-    print("ESEWA FORM DATA:", fields)
-    logger.info(
-        "eSewa pay_esewa order_id=%s status_api_base=%s success_url=%s",
-        order.pk,
-        get_esewa_status_url(),
-        success_url,
-    )
-
-    payload = {
-        "form_url": ESEWA_FORM_URL,
-        "method": "POST",
-        "fields": fields,
-        "order_id": order.pk,
-        "transaction_uuid": txn,
-        "esewa_pay_total_amount": pay_amount_str,
-    }
-    if esewa_url_warnings:
-        payload["warnings"] = esewa_url_warnings
-    return Response(payload)
+        order.save(update_fields=["khalti_pidx", "payment_method", "payment_status", "billing_status", "billed_at"])
+        
+        _notify_order_change(order)
+        
+        return Response({
+            "payment_url": payment_url,
+            "pidx": pidx,
+            "order_id": order.pk
+        })
+        
+    except Exception as e:
+        logger.exception("Khalti pay failed")
+        return Response({"error": str(e)}, status=400)
 
 
-def _esewa_status_total_amount_str(order: Order) -> str:
-    """Exact total_amount string for status API — prefer value stored at pay-esewa time."""
-    stored = (order.esewa_pay_total_amount or "").strip()
-    if stored:
-        return stored
-    return format_esewa_amount(order.total_price)
-
-
-def _run_esewa_verification_for_order(order: Order) -> Response:
-    """Status polling and billing/payment updates. Caller must have resolved `order` and access control."""
+def _run_khalti_verification(order: Order, pidx: str) -> Response:
     try:
-        cfg = order.restaurant.payment_config
-    except PaymentConfig.DoesNotExist:
-        return Response({"error": "eSewa is not configured for this restaurant"}, status=400)
-
-    if not cfg.merchant_id or not cfg.secret_key:
-        return Response({"error": "eSewa merchant credentials are incomplete"}, status=400)
-
-    if not order.esewa_transaction_uuid:
-        return Response({"error": "No eSewa transaction was started for this order"}, status=400)
-
-    if order.billing_status == Order.BILLING_ST_PAID:
-        logger.info("eSewa verify skip: order_id=%s already paid", order.pk)
-        return Response(
-            {
+        secret_key = _get_restaurant_khalti_key(order.restaurant)
+        res_data = verify_khalti_payment(pidx, secret_key=secret_key)
+        status_text = res_data.get("status")
+        
+        if status_text == "Completed":
+            _apply_billing_state(order, Order.BILLING_ST_PAID, payment_method=Order.PAYMENT_KHALTI)
+            order.save(update_fields=["payment_method", "payment_status", "billing_status", "paid_at"])
+            _notify_order_change(order)
+            return Response({
                 "paid": True,
-                "pending": False,
-                "order": CustomerOrderSummarySerializer(order).data,
-            }
-        )
-
-    total_s = _esewa_status_total_amount_str(order)
-    product_code = cfg.merchant_id
-    txn_uuid = order.esewa_transaction_uuid
-
-    last_payload: dict = {}
-    last_raw: str = ""
-    last_url: str = ""
-
-    for attempt in range(1, ESEWA_VERIFY_MAX_ATTEMPTS + 1):
-        logger.info(
-            "[eSewa verify] order_id=%s attempt=%s/%s transaction_uuid=%r total_amount=%r "
-            "product_code=%r",
-            order.pk,
-            attempt,
-            ESEWA_VERIFY_MAX_ATTEMPTS,
-            txn_uuid,
-            total_s,
-            product_code,
-        )
-        print(
-            f"[eSewa verify DEBUG] order_id={order.pk} attempt={attempt}/"
-            f"{ESEWA_VERIFY_MAX_ATTEMPTS} transaction_uuid={txn_uuid!r} "
-            f"total_amount={total_s!r} product_code={product_code!r}"
-        )
-
-        try:
-            payload, raw, url = fetch_transaction_status(
-                merchant_id=cfg.merchant_id,
-                transaction_uuid=txn_uuid,
-                total_amount_str=total_s,
-            )
-        except ValueError as e:
-            logger.warning(
-                "eSewa verify fetch error order_id=%s attempt=%s/%s: %s",
-                order.pk,
-                attempt,
-                ESEWA_VERIFY_MAX_ATTEMPTS,
-                e,
-            )
-            print(f"[eSewa verify DEBUG] fetch error: {e!r}")
-            if attempt < ESEWA_VERIFY_MAX_ATTEMPTS:
-                time.sleep(ESEWA_VERIFY_RETRY_DELAY_SEC)
-                continue
-            return Response(
-                {
-                    "paid": False,
-                    "pending": True,
-                    "error": str(e),
-                    "esewa": {},
-                },
-                status=status.HTTP_502_BAD_GATEWAY,
-            )
-
-        last_payload = payload
-        last_raw = raw
-        last_url = url
-
-        logger.info(
-            "[eSewa verify] order_id=%s attempt=%s/%s status_url=%s raw_response=%r parsed_json=%s",
-            order.pk,
-            attempt,
-            ESEWA_VERIFY_MAX_ATTEMPTS,
-            url,
-            raw,
-            payload,
-        )
-        print(f"[eSewa verify DEBUG] status_url={url}")
-        print(f"[eSewa verify DEBUG] raw_response={raw!r}")
-        print(f"[eSewa verify DEBUG] parsed_json={payload!r}")
-
-        outcome = classify_esewa_transaction_status(payload)
-        logger.info(
-            "eSewa verify outcome order_id=%s attempt=%s/%s classified=%s payload_keys=%s",
-            order.pk,
-            attempt,
-            ESEWA_VERIFY_MAX_ATTEMPTS,
-            outcome,
-            list(payload.keys()) if isinstance(payload, dict) else None,
-        )
-
-        if outcome == "success":
-            _apply_billing_state(
-                order,
-                Order.BILLING_ST_PAID,
-                payment_method=Order.PAYMENT_ESEWA,
-            )
-            order.save(
-                update_fields=[
-                    "payment_method",
-                    "payment_status",
-                    "billing_status",
-                    "billed_at",
-                    "paid_at",
-                    "refunded_at",
-                ]
-            )
-            _notify_order_change(order)
-            return Response(
-                {
-                    "paid": True,
-                    "pending": False,
-                    "esewa": payload,
-                    "order": CustomerOrderSummarySerializer(order).data,
-                }
-            )
-
-        if outcome == "failed":
-            _apply_billing_state(
-                order,
-                Order.BILLING_ST_FAILED,
-                payment_method=Order.PAYMENT_ESEWA,
-            )
-            order.save(
-                update_fields=[
-                    "payment_method",
-                    "payment_status",
-                    "billing_status",
-                    "billed_at",
-                    "paid_at",
-                    "refunded_at",
-                ]
-            )
-            _notify_order_change(order)
-            return Response({"paid": False, "pending": False, "esewa": payload}, status=200)
-
-        if outcome == "not_found":
-            logger.warning(
-                "[eSewa verify] NOT_FOUND (possible uuid/amount/product_code mismatch vs eSewa) "
-                "order_id=%s attempt=%s/%s",
-                order.pk,
-                attempt,
-                ESEWA_VERIFY_MAX_ATTEMPTS,
-            )
-            print(
-                "[eSewa verify DEBUG] NOT_FOUND — check transaction_uuid, total_amount, "
-                "product_code against payment form"
-            )
-
-        if attempt < ESEWA_VERIFY_MAX_ATTEMPTS:
-            time.sleep(ESEWA_VERIFY_RETRY_DELAY_SEC)
-
-    logger.info(
-        "eSewa verify still pending after retries order_id=%s attempts=%s last_url=%s",
-        order.pk,
-        ESEWA_VERIFY_MAX_ATTEMPTS,
-        last_url,
-    )
-    return Response(
-        {
+                "status": status_text,
+                "order": CustomerOrderSummarySerializer(order).data
+            })
+        
+        return Response({
             "paid": False,
-            "pending": True,
-            "esewa": last_payload,
-            "debug": {
-                "last_status_url": last_url,
-                "last_raw_snippet": (last_raw[:500] + "…") if len(last_raw) > 500 else last_raw,
-            },
-        },
-        status=200,
-    )
-
-
-def _coerce_verify_body(request) -> dict:
-    data = request.data
-    if isinstance(data, dict):
-        return data
-    if data is None:
-        return {}
-    return {}
-
+            "status": status_text,
+            "detail": "Payment not completed yet."
+        })
+        
+    except Exception as e:
+        logger.exception("Khalti verification failed")
+        return Response({"error": str(e)}, status=400)
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def verify_esewa_global(request):
-    """Resolve order by eSewa transaction_uuid from JSON body (success redirect params)."""
+def verify_khalti(request, order_id):
     ok, table, session_id, ctx_err = resolve_customer_table_and_session(request)
     if not ok:
         return ctx_err
-
-    body = dict(_coerce_verify_body(request))
-    print("QUERY PARAMS:", body)
-
-    data_raw = body.get("data")
-    decoded: dict = {}
-    if data_raw is not None and str(data_raw).strip():
-        decoded = decode_esewa_return_data_payload(str(data_raw))
-        du, da, dc = extract_esewa_redirect_fields(decoded)
-        if du and not (body.get("transaction_uuid") or "").strip():
-            body["transaction_uuid"] = du
-        if da and body.get("total_amount") in (None, ""):
-            body["total_amount"] = da
-        if dc and body.get("product_code") in (None, ""):
-            body["product_code"] = dc
-        logger.info(
-            "eSewa verify decoded `data` keys=%s extracted_uuid=%r",
-            list(decoded.keys()) if decoded else None,
-            (body.get("transaction_uuid") or "")[:80],
-        )
-
-    transaction_uuid = (body.get("transaction_uuid") or "").strip()
-    print("VERIFY transaction_uuid received:", repr(transaction_uuid))
-
-    if not transaction_uuid:
-        err_detail = (
-            "Could not resolve transaction_uuid. Send `data` (base64 from eSewa) "
-            "or `transaction_uuid` (+ optional total_amount, product_code)."
-        )
-        return Response(
-            {
-                "error": err_detail,
-                "paid": False,
-                "pending": False,
-                "debug": {
-                    "had_data_param": bool(data_raw and str(data_raw).strip()),
-                    "decoded_keys": list(decoded.keys()) if decoded else None,
-                },
-            },
-            status=400,
-        )
-
-    order = (
-        Order.objects.filter(esewa_transaction_uuid=transaction_uuid)
-        .select_related("restaurant", "table")
-        .first()
-    )
-
-    if not order:
-        sample = list(
-            Order.objects.filter(esewa_transaction_uuid__isnull=False)
-            .exclude(esewa_transaction_uuid="")
-            .values_list("id", "esewa_transaction_uuid")[:5]
-        )
-        print("VERIFY no order for uuid; sample DB (id, esewa_transaction_uuid):", sample)
-        return Response(
-            {
-                "error": "Order not found for this transaction_uuid.",
-                "paid": False,
-                "pending": False,
-                "debug": {
-                    "transaction_uuid_received": transaction_uuid,
-                    "hint": "Ensure pay-esewa ran for this order so esewa_transaction_uuid is saved.",
-                },
-            },
-            status=404,
-        )
-
-    print(
-        f"VERIFY order matched id={order.pk} "
-        f"stored esewa_transaction_uuid={order.esewa_transaction_uuid!r}"
-    )
-
-    try:
-        cfg_dbg = order.restaurant.payment_config
-        merchant_dbg = cfg_dbg.merchant_id
-    except PaymentConfig.DoesNotExist:
-        merchant_dbg = None
-
-    logger.info(
-        "[eSewa verify_esewa_global] order_id=%s stored_transaction_uuid=%r "
-        "stored_esewa_pay_total_amount=%r product_code=%r",
-        order.pk,
-        order.esewa_transaction_uuid,
-        order.esewa_pay_total_amount,
-        merchant_dbg,
-    )
-    print(
-        "[eSewa verify_esewa_global DEBUG] stored_transaction_uuid="
-        f"{order.esewa_transaction_uuid!r} stored_esewa_pay_total_amount="
-        f"{order.esewa_pay_total_amount!r} product_code={merchant_dbg!r}"
-    )
-
-    if decoded:
-        du_chk, _, _ = extract_esewa_redirect_fields(decoded)
-        if du_chk and du_chk != order.esewa_transaction_uuid:
-            logger.warning(
-                "eSewa verify decoded transaction_uuid != order row order_id=%s stored=%r decoded=%r",
-                order.pk,
-                order.esewa_transaction_uuid,
-                du_chk,
-            )
-
-    raw_amt = body.get("total_amount")
-    if raw_amt is not None and str(raw_amt).strip() != "":
-        got = str(raw_amt).strip()
-        stored_amt = (order.esewa_pay_total_amount or "").strip()
-        if stored_amt:
-            if got != stored_amt:
-                logger.warning(
-                    "eSewa verify redirect total_amount vs stored esewa_pay_total_amount "
-                    "order_id=%s stored=%r redirect=%r",
-                    order.pk,
-                    stored_amt,
-                    got,
-                )
-        else:
-            expected = format_esewa_amount(order.total_price)
-            if expected != got:
-                logger.warning(
-                    "eSewa verify total_amount mismatch (no esewa_pay_total_amount on order) "
-                    "order_id=%s expected_from_total_price=%s client_sent=%r",
-                    order.pk,
-                    expected,
-                    raw_amt,
-                )
-
-    product_code = (body.get("product_code") or "").strip()
-    if product_code:
-        try:
-            if product_code != order.restaurant.payment_config.merchant_id:
-                logger.warning(
-                    "eSewa verify product_code mismatch order_id=%s sent=%r",
-                    order.pk,
-                    product_code,
-                )
-        except PaymentConfig.DoesNotExist:
-            pass
-
-    assert_customer_can_access_order(order, table, session_id)
-    return _run_esewa_verification_for_order(order)
-
-
-@api_view(["POST"])
-@permission_classes([AllowAny])
-def verify_esewa(request, order_id):
-    ok, table, session_id, ctx_err = resolve_customer_table_and_session(request)
-    if not ok:
-        return ctx_err
-
-    body = dict(_coerce_verify_body(request))
-    print("VERIFY REQUEST (by order_id):", body, "order_id=", order_id)
-
     try:
         order = Order.objects.select_related("restaurant", "table").get(id=order_id)
     except Order.DoesNotExist:
         return Response({"error": "Order not found"}, status=404)
 
-    print(
-        "VERIFY by order_id stored esewa_transaction_uuid=",
-        repr(order.esewa_transaction_uuid),
-    )
-
-    data_raw = body.get("data")
-    if data_raw is not None and str(data_raw).strip():
-        dec = decode_esewa_return_data_payload(str(data_raw))
-        du, _, _ = extract_esewa_redirect_fields(dec)
-        if du and du != order.esewa_transaction_uuid:
-            logger.warning(
-                "eSewa verify_esewa(order_id): body `data` uuid != stored order_id=%s stored=%r decoded=%r",
-                order.pk,
-                order.esewa_transaction_uuid,
-                du,
-            )
-
-    try:
-        cfg_o = order.restaurant.payment_config
-        merchant_o = cfg_o.merchant_id
-    except PaymentConfig.DoesNotExist:
-        merchant_o = None
-
-    logger.info(
-        "[eSewa verify_esewa] order_id=%s stored_transaction_uuid=%r "
-        "stored_esewa_pay_total_amount=%r product_code=%r",
-        order.pk,
-        order.esewa_transaction_uuid,
-        order.esewa_pay_total_amount,
-        merchant_o,
-    )
-    print(
-        "[eSewa verify_esewa DEBUG] stored_transaction_uuid="
-        f"{order.esewa_transaction_uuid!r} stored_esewa_pay_total_amount="
-        f"{order.esewa_pay_total_amount!r} product_code={merchant_o!r}"
-    )
-
     assert_customer_can_access_order(order, table, session_id)
-    return _run_esewa_verification_for_order(order)
+    
+    pidx = request.data.get("pidx") or order.khalti_pidx
+    if not pidx:
+        return Response({"error": "No pidx provided or found for this order"}, status=400)
+        
+    return _run_khalti_verification(order, pidx)
 
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def verify_khalti_global(request):
+    ok, table, session_id, ctx_err = resolve_customer_table_and_session(request)
+    if not ok:
+        return ctx_err
+        
+    pidx = request.data.get("pidx")
+    if not pidx:
+        return Response({"error": "pidx is required"}, status=400)
+        
+    order = Order.objects.filter(khalti_pidx=pidx).first()
+    if not order:
+        return Response({"error": "Order not found for this pidx"}, status=404)
+        
+    assert_customer_can_access_order(order, table, session_id)
+    return _run_khalti_verification(order, pidx)
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def cashier_verify_esewa(request, order_id):
+def cashier_verify_khalti(request, order_id):
     role = getattr(request.user, "role", None)
     if role not in ("cashier", "restaurant_admin"):
-        return Response(
-            {"error": "Only cashiers or restaurant admins can verify eSewa payments from back office."},
-            status=status.HTTP_403_FORBIDDEN,
-        )
-
+        return Response({"error": "Unauthorized"}, status=403)
+        
     order, err = _resolve_restaurant_order_for_user(request, order_id)
-    if err:
-        return err
-
-    if order.payment_method != Order.PAYMENT_ESEWA:
-        return Response({"error": "This order is not using eSewa billing."}, status=400)
-
-    return _run_esewa_verification_for_order(order)
-
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def debug_esewa(request):
-    """Temporary: inspect stored eSewa fields for a transaction_uuid (query param `uuid`)."""
-    u = (request.query_params.get("uuid") or "").strip()
-    if not u:
-        return Response({"error": "Query parameter uuid is required."}, status=400)
-
-    order = (
-        Order.objects.filter(esewa_transaction_uuid=u)
-        .select_related("restaurant", "table")
-        .first()
-    )
-    if not order:
-        return Response({"error": "No order for this uuid.", "uuid": u}, status=404)
-
-    try:
-        mid = order.restaurant.payment_config.merchant_id
-    except PaymentConfig.DoesNotExist:
-        mid = None
-
-    return Response(
-        {
-            "order": CustomerOrderSummarySerializer(order).data,
-            "esewa_transaction_uuid": order.esewa_transaction_uuid,
-            "esewa_pay_total_amount": order.esewa_pay_total_amount,
-            "total_price": str(order.total_price),
-            "billing_status": order.billing_status,
-            "payment_status": order.payment_status,
-            "payment_method": order.payment_method,
-            "product_code": mid,
-        }
-    )
+    if err: return err
+    
+    if not order.khalti_pidx:
+        return Response({"error": "No Khalti transaction for this order"}, status=400)
+        
+    return _run_khalti_verification(order, order.khalti_pidx)

@@ -1,54 +1,8 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { authFetch, API_BASE } from "../../lib/api";
 import "./Billing.css";
-
-let esewaSubmitCoalesce = false;
-
-export function submitEpayV2Form(formUrl, fields, opts = {}) {
-  if (!formUrl || typeof formUrl !== "string") {
-    throw new Error("Missing eSewa form URL");
-  }
-  if (!fields || typeof fields !== "object" || Array.isArray(fields)) {
-    throw new Error("Missing or invalid eSewa form fields");
-  }
-
-  const run = () => {
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = formUrl;
-    form.enctype = "application/x-www-form-urlencoded";
-    form.acceptCharset = "UTF-8";
-    form.style.cssText = "position:absolute;left:-9999px;width:1px;height:1px;opacity:0;";
-    form.setAttribute("target", "_self");
-
-    Object.entries(fields).forEach(([name, value]) => {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = name;
-      input.value = value == null ? "" : String(value);
-      form.appendChild(input);
-    });
-
-    document.body.appendChild(form);
-    form.submit();
-  };
-
-  if (opts.bypassSubmitGuard) {
-    run();
-    return;
-  }
-
-  if (esewaSubmitCoalesce) {
-    return;
-  }
-  esewaSubmitCoalesce = true;
-  queueMicrotask(() => {
-    esewaSubmitCoalesce = false;
-    run();
-  });
-}
 
 export default function Billing() {
   const { orderId } = useParams();
@@ -56,10 +10,7 @@ export default function Billing() {
   const location = useLocation();
   const [order, setOrder] = useState(location.state?.order || null);
   const [error, setError] = useState("");
-  const [esewaWarning, setEsewaWarning] = useState("");
   const [busy, setBusy] = useState(false);
-  const [epayPayload, setEpayPayload] = useState(null);
-  const [epayFormNonce, setEpayFormNonce] = useState(0);
 
   useEffect(() => {
     if (order || !orderId) return;
@@ -79,15 +30,6 @@ export default function Billing() {
       cancelled = true;
     };
   }, [orderId, order]);
-
-  useLayoutEffect(() => {
-    if (!epayPayload) return;
-    try {
-      submitEpayV2Form(epayPayload.formUrl, epayPayload.fields);
-    } catch (e) {
-      console.error(e);
-    }
-  }, [epayPayload, epayFormNonce]);
 
   const payCash = async () => {
     setError("");
@@ -112,65 +54,27 @@ export default function Billing() {
     }
   };
 
-  const payEsewa = async () => {
+  const payKhalti = async () => {
     setError("");
-    setEsewaWarning("");
-    setEpayPayload(null);
     setBusy(true);
-    let redirecting = false;
     try {
-      const res = await authFetch(`${API_BASE}/api/orders/${orderId}/pay-esewa/`, { method: "POST" });
+      const res = await authFetch(`${API_BASE}/api/orders/${orderId}/pay-khalti/`, { method: "POST" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || data.detail || "eSewa is not available.");
+        setError(data.error || data.detail || "Khalti is not available.");
         return;
       }
 
-      const formUrl = data.form_url ?? data.formUrl;
-      const fields = data.fields;
-      const method = String(data.method ?? "POST").toUpperCase();
-      if (method !== "POST") {
-        setError("Invalid payment configuration.");
-        return;
+      if (data.payment_url) {
+        window.location.href = data.payment_url;
+      } else {
+        setError("Invalid response from server. Missing payment URL.");
       }
-      if (!formUrl || !fields || typeof fields !== "object" || Array.isArray(fields)) {
-        setError("Invalid response from server. Missing eSewa form data.");
-        return;
-      }
-
-      if (Array.isArray(data.warnings) && data.warnings.length) {
-        setEsewaWarning(data.warnings.join(" "));
-      }
-
-      try {
-        const oid = String(data.order_id ?? orderId ?? "").trim();
-        if (oid) {
-          sessionStorage.setItem("mm_esewa_pending_order_id", oid);
-        }
-      } catch {
-        /* ignore */
-      }
-
-      redirecting = true;
-      setEpayFormNonce((current) => current + 1);
-      setEpayPayload({ formUrl, fields });
     } catch (e) {
       console.error(e);
       setError("Network error.");
     } finally {
-      if (!redirecting) setBusy(false);
-    }
-  };
-
-  const handleEsewaContinueClick = () => {
-    if (!epayPayload) return;
-    try {
-      submitEpayV2Form(epayPayload.formUrl, epayPayload.fields, { bypassSubmitGuard: true });
-    } catch (e) {
-      console.error(e);
-      setError("Could not open eSewa. Please try again.");
-      setEpayPayload(null);
-      setBusy(false);
+      // Don't setBusy(false) if we are redirecting
     }
   };
 
@@ -266,17 +170,6 @@ export default function Billing() {
           ) : null}
 
           {error ? <p className="cx-billing-error">{error}</p> : null}
-          {esewaWarning ? (
-            <p className="cx-billing-error" role="status">
-              {esewaWarning}
-            </p>
-          ) : null}
-
-          {epayPayload ? (
-            <p className="cx-billing-esewa-wait" role="status">
-              Redirecting to eSewa…
-            </p>
-          ) : null}
 
           <div className="cx-billing-actions">
             <button
@@ -291,15 +184,10 @@ export default function Billing() {
               type="button"
               className="cx-btn-block"
               disabled={busy || order.billing_status === "paid" || order.billing_status === "refunded"}
-              onClick={payEsewa}
+              onClick={payKhalti}
             >
-              Pay with eSewa
+              Pay with Khalti
             </button>
-            {epayPayload ? (
-              <button type="button" className="cx-btn-secondary" onClick={handleEsewaContinueClick}>
-                Open eSewa (if you were not redirected)
-              </button>
-            ) : null}
             <Link to="/my-orders" className="cx-billing-link">
               View my orders
             </Link>

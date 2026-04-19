@@ -12,18 +12,11 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from orders.esewa import (
-    ESEWA_FORM_URL,
-    build_form_fields,
-    classify_esewa_transaction_status,
-    fetch_transaction_status,
-    format_esewa_amount,
-)
+from orders.khalti import initiate_khalti_payment, verify_khalti_payment
 
 from .models import RestaurantSubscription, SubscriptionPayment, SubscriptionPlan
 
-ESEWA_VERIFY_MAX_ATTEMPTS = 6
-ESEWA_VERIFY_RETRY_DELAY_SEC = 1.5
+KHALTI_VERIFY_MAX_ATTEMPTS = 3
 
 
 class SubscriptionPlanSerializer(serializers.ModelSerializer):
@@ -110,12 +103,12 @@ def _platform_admin_or_403(user):
     return None
 
 
-def _platform_esewa_credentials():
-    merchant_id = (getattr(settings, "PLATFORM_ESEWA_MERCHANT_ID", None) or "").strip()
-    secret_key = (getattr(settings, "PLATFORM_ESEWA_SECRET_KEY", None) or "").strip()
-    if not merchant_id or not secret_key:
-        raise ValueError("Platform eSewa credentials are not configured.")
-    return merchant_id, secret_key
+def _platform_khalti_credentials():
+    public_key = getattr(settings, "KHALTI_PUBLIC_KEY", "").strip()
+    secret_key = getattr(settings, "KHALTI_SECRET_KEY", "").strip()
+    if not public_key or not secret_key:
+        raise ValueError("Platform Khalti credentials are not configured.")
+    return public_key, secret_key
 
 
 def _merge_query_params(url: str, extra: dict) -> str:
@@ -127,19 +120,14 @@ def _merge_query_params(url: str, extra: dict) -> str:
     return urlunparse((parts.scheme, parts.netloc, parts.path, parts.params, urlencode(q), parts.fragment))
 
 
-def _build_subscription_return_urls(payment_id: int) -> tuple[str, str]:
+def _build_subscription_return_urls(payment_id: int) -> str:
     base = (getattr(settings, "FRONTEND_URL", None) or "").rstrip("/")
     if not base:
         raise ValueError("FRONTEND_URL is not configured on the server.")
-    success = _merge_query_params(
+    return _merge_query_params(
         f"{base}/restaurant-admin/subscription",
-        {"esewa": "success", "payment_id": payment_id},
+        {"khalti": "success", "payment_id": payment_id},
     )
-    failure = _merge_query_params(
-        f"{base}/restaurant-admin/subscription",
-        {"esewa": "failure", "payment_id": payment_id},
-    )
-    return success, failure
 
 
 def _subscription_payload(restaurant):
@@ -229,7 +217,7 @@ def subscription_checkout(request):
         return Response({"error": "Your restaurant already has an active subscription."}, status=400)
 
     try:
-        merchant_id, secret_key = _platform_esewa_credentials()
+        public_key, secret_key = _platform_khalti_credentials()
     except ValueError as exc:
         return Response({"error": str(exc)}, status=500)
 
@@ -239,34 +227,37 @@ def subscription_checkout(request):
             plan=plan,
             status=RestaurantSubscription.STATUS_PENDING,
         )
-        transaction_uuid = f"mm-sub-{restaurant.id}-{uuid.uuid4().hex}"
-        amount_str = format_esewa_amount(plan.price)
         payment = SubscriptionPayment.objects.create(
             subscription=subscription,
             amount=plan.price,
             status=SubscriptionPayment.STATUS_PENDING,
-            transaction_uuid=transaction_uuid,
-            esewa_total_amount=amount_str,
+            transaction_uuid=f"mm-sub-{restaurant.id}-{uuid.uuid4().hex}",
         )
 
     try:
-        success_url, failure_url = _build_subscription_return_urls(payment.id)
-        fields = build_form_fields(
-            secret_key=secret_key,
-            merchant_id=merchant_id,
-            total_amount=plan.price,
-            transaction_uuid=transaction_uuid,
-            success_url=success_url,
-            failure_url=failure_url,
+        return_url = _build_subscription_return_urls(payment.id)
+        res_data = initiate_khalti_payment(
+            order_id=subscription.id,
+            amount_npr=plan.price,
+            purchase_order_name=f"Subscription: {plan.name}",
+            return_url=return_url,
+            secret_key=secret_key
         )
+        pidx = res_data.get("pidx")
+        payment_url = res_data.get("payment_url")
+        if not pidx or not payment_url:
+            return Response({"error": "Failed to get payment details from Khalti"}, status=502)
+        
+        payment.khalti_pidx = pidx
+        payment.save(update_fields=["khalti_pidx"])
+        
     except ValueError as exc:
         return Response({"error": str(exc)}, status=400)
 
     return Response(
         {
-            "form_url": ESEWA_FORM_URL,
-            "method": "POST",
-            "fields": fields,
+            "payment_url": payment_url,
+            "pidx": pidx,
             "payment_id": payment.id,
             "subscription_id": subscription.id,
         }
@@ -292,31 +283,15 @@ def subscription_verify(request):
     except SubscriptionPayment.DoesNotExist:
         return Response({"error": "Subscription payment not found."}, status=404)
 
-    if payment.status == SubscriptionPayment.STATUS_PAID:
-        return Response({"paid": True, **_subscription_payload(request.user.restaurant)})
+    if not payment.khalti_pidx:
+        return Response({"error": "No Khalti transaction for this payment."}, status=400)
 
     try:
-        merchant_id, _ = _platform_esewa_credentials()
-    except ValueError as exc:
-        return Response({"error": str(exc)}, status=500)
-
-    last_payload = {}
-    for attempt in range(ESEWA_VERIFY_MAX_ATTEMPTS):
-        try:
-            payload, _, _ = fetch_transaction_status(
-                merchant_id=merchant_id,
-                transaction_uuid=payment.transaction_uuid,
-                total_amount_str=payment.esewa_total_amount or format_esewa_amount(payment.amount),
-            )
-        except ValueError as exc:
-            if attempt < ESEWA_VERIFY_MAX_ATTEMPTS - 1:
-                time.sleep(ESEWA_VERIFY_RETRY_DELAY_SEC)
-                continue
-            return Response({"paid": False, "pending": True, "error": str(exc)}, status=502)
-
-        last_payload = payload
-        outcome = classify_esewa_transaction_status(payload)
-        if outcome == "success":
+        _, secret_key = _platform_khalti_credentials()
+        res_data = verify_khalti_payment(payment.khalti_pidx, secret_key=secret_key)
+        status_text = res_data.get("status")
+        
+        if status_text == "Completed":
             now = timezone.now()
             subscription = payment.subscription
             subscription.status = RestaurantSubscription.STATUS_ACTIVE
@@ -331,23 +306,23 @@ def subscription_verify(request):
 
             payment.status = SubscriptionPayment.STATUS_PAID
             payment.paid_at = now
-            payment.raw_response = payload
+            payment.raw_response = res_data
             payment.save(update_fields=["status", "paid_at", "raw_response", "updated_at"])
             return Response({"paid": True, **_subscription_payload(restaurant)})
 
-        if outcome == "failed":
+        if status_text in ("Expired", "User canceled"):
             subscription = payment.subscription
             subscription.status = RestaurantSubscription.STATUS_FAILED
             subscription.save(update_fields=["status", "updated_at"])
             payment.status = SubscriptionPayment.STATUS_FAILED
-            payment.raw_response = payload
+            payment.raw_response = res_data
             payment.save(update_fields=["status", "raw_response", "updated_at"])
             return Response({"paid": False, "pending": False, **_subscription_payload(subscription.restaurant)})
 
-        if attempt < ESEWA_VERIFY_MAX_ATTEMPTS - 1:
-            time.sleep(ESEWA_VERIFY_RETRY_DELAY_SEC)
+        return Response({"paid": False, "pending": True, "status": status_text})
 
-    return Response({"paid": False, "pending": True, "esewa": last_payload}, status=200)
+    except Exception as exc:
+        return Response({"error": str(exc)}, status=400)
 
 
 @api_view(["GET"])

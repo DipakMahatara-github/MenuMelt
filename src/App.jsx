@@ -38,7 +38,7 @@ import CustomerCart from "./pages/customer/Cart.jsx";
 import Checkout from "./pages/customer/Checkout.jsx";
 import Billing from "./pages/customer/Billing.jsx";
 import MyOrders from "./pages/customer/MyOrders.jsx";
-import EsewaReturn from "./pages/customer/EsewaReturn.jsx";
+import KhaltiReturn from "./pages/customer/KhaltiReturn.jsx";
 
 /* ================= PROTECTED ================= */
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -59,8 +59,7 @@ function App() {
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/billing/:orderId" element={<Billing />} />
       <Route path="/my-orders" element={<MyOrders />} />
-      <Route path="/payment/esewa/success" element={<EsewaReturn variant="success" />} />
-      <Route path="/payment/esewa/failure" element={<EsewaReturn variant="failure" />} />
+      <Route path="/payment/khalti/success" element={<KhaltiReturn />} />
 
       {/* ================= PLATFORM ADMIN ================= */}
       <Route

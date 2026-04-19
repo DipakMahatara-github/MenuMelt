@@ -36,24 +36,24 @@ class Restaurant(models.Model):
 
 
 class PaymentConfig(models.Model):
-    """Per-restaurant eSewa (or future provider) credentials — never exposed to the client."""
+    """Per-restaurant Khalti credentials — never exposed to the client."""
 
-    PROVIDER_ESEWA = "esewa"
-    PROVIDER_CHOICES = ((PROVIDER_ESEWA, "eSewa"),)
+    PROVIDER_KHALTI = "khalti"
+    PROVIDER_CHOICES = ((PROVIDER_KHALTI, "Khalti"),)
 
     restaurant = models.OneToOneField(
         Restaurant,
         on_delete=models.CASCADE,
         related_name="payment_config",
     )
-    provider = models.CharField(max_length=32, choices=PROVIDER_CHOICES, default=PROVIDER_ESEWA)
-    merchant_id = models.CharField(
-        max_length=128,
+    provider = models.CharField(max_length=32, choices=PROVIDER_CHOICES, default=PROVIDER_KHALTI)
+    public_key = models.CharField(
+        max_length=255,
         blank=True,
         default="",
-        help_text="eSewa product_code / merchant code",
+        help_text="Khalti Public Key",
     )
-    secret_key = models.CharField(max_length=256, blank=True, default="")
+    secret_key = models.CharField(max_length=255, blank=True, default="", help_text="Khalti Secret Key")
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -125,19 +125,19 @@ class SubscriptionPayment(models.Model):
         (STATUS_FAILED, "Failed"),
     )
 
-    PROVIDER_ESEWA = "esewa"
-    PROVIDER_CHOICES = ((PROVIDER_ESEWA, "eSewa"),)
+    PROVIDER_KHALTI = "khalti"
+    PROVIDER_CHOICES = ((PROVIDER_KHALTI, "Khalti"),)
 
     subscription = models.ForeignKey(
         RestaurantSubscription,
         on_delete=models.CASCADE,
         related_name="payments",
     )
-    provider = models.CharField(max_length=32, choices=PROVIDER_CHOICES, default=PROVIDER_ESEWA)
+    provider = models.CharField(max_length=32, choices=PROVIDER_CHOICES, default=PROVIDER_KHALTI)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING)
     transaction_uuid = models.CharField(max_length=128, unique=True)
-    esewa_total_amount = models.CharField(max_length=24, blank=True, default="")
+    khalti_pidx = models.CharField(max_length=255, blank=True, default="")
     raw_response = models.JSONField(blank=True, null=True)
     paid_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
