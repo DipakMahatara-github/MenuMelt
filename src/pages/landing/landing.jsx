@@ -5,6 +5,13 @@ import heroImg from "../../assets/hero-qr-scan.png";
 export default function Landing() {
   const navigate = useNavigate();
 
+  const scrollToSection = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <div className="sage-landing">
       {/* NAVBAR */}
@@ -14,10 +21,9 @@ export default function Landing() {
           <span style={{ color: '#557855' }}>MenuMelt</span>
         </div>
         <ul className="sage-nav-links">
-          <li>How It Works</li>
-          <li>Features</li>
-          <li>For Restaurants</li>
-          <li>Contact</li>
+          <li onClick={() => scrollToSection("how-it-works")}>How It Works</li>
+          <li onClick={() => scrollToSection("features")}>Features</li>
+          <li onClick={() => scrollToSection("contact")}>Contact</li>
           <li onClick={() => navigate("/login")} className="sage-nav-login">Login</li>
         </ul>
         <button className="sage-btn-primary" onClick={() => navigate("/register")}>
@@ -38,7 +44,7 @@ export default function Landing() {
           </p>
           <div className="sage-hero-buttons">
             <button className="sage-btn-primary" onClick={() => navigate("/register")}>Create Restaurant Account</button>
-            <button className="sage-btn-secondary">View Demo</button>
+            <button className="sage-btn-secondary" onClick={() => navigate("/demo")}>View Demo</button>
           </div>
         </div>
         <div className="sage-hero-image-container">
@@ -47,7 +53,7 @@ export default function Landing() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="sage-features">
+      <section id="how-it-works" className="sage-features">
         <h2>How It Works</h2>
         <div className="sage-grid-4">
           <div className="sage-feature-card">
@@ -74,7 +80,7 @@ export default function Landing() {
       </section>
 
       {/* FEATURES (Built for Restaurant Owners) */}
-      <section className="sage-operations">
+      <section id="features" className="sage-operations">
         <div className="sage-operations-header">
             <h2>Built for Restaurant Owners</h2>
             <p>Powerful tools specifically designed to streamline your operations.</p>
@@ -121,16 +127,20 @@ export default function Landing() {
       </section>
 
       {/* FOOTER */}
-      <footer className="sage-footer">
+      <footer id="contact" className="sage-footer">
         <div className="sage-footer-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => navigate("/")}>
           <img src="/logo.png" alt="MenuMelt Logo" style={{ height: '32px', width: 'auto' }} />
           <span style={{ color: '#557855' }}>MenuMelt</span>
         </div>
+        <div className="sage-footer-contact" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: '#a8bfa8' }}>
+            <span>Email: <a href="mailto:dipakmahatara34@gmail.com" style={{ color: 'white', textDecoration: 'none' }}>dipakmahatara34@gmail.com</a></span>
+            <span>Phone: <a href="tel:9812465020" style={{ color: 'white', textDecoration: 'none' }}>9812465020</a></span>
+        </div>
         <div className="sage-footer-links">
-            <span>How It Works</span>
-            <span>Features</span>
-            <span>Contact</span>
-            <span>Privacy Policy</span>
+            <span onClick={() => scrollToSection("how-it-works")}>How It Works</span>
+            <span onClick={() => scrollToSection("features")}>Features</span>
+            <span onClick={() => scrollToSection("contact")}>Contact</span>
+            <span onClick={() => navigate("/privacy")}>Privacy Policy</span>
         </div>
         <div className="sage-footer-copyright">
             &copy; {new Date().getFullYear()} MenuMelt. All rights reserved.

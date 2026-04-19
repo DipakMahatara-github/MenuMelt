@@ -4,6 +4,9 @@ import { Routes, Route } from "react-router-dom";
 import Landing from "./pages/landing/landing.jsx";
 import Login from "./pages/login";
 import Register from "./pages/register";
+import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
+import DemoHub from "./pages/demo/DemoHub";
+
 
 /* ================= PLATFORM ADMIN ================= */
 import PlatformAdminLayout from "./layout/PlatformAdminLayout";
@@ -52,6 +55,9 @@ function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/demo" element={<DemoHub />} />
+
 
       {/* ================= CUSTOMER ================= */}
       <Route path="/menu" element={<CustomerMenu />} />
