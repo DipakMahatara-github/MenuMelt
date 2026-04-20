@@ -127,6 +127,11 @@ export default function Billing() {
             <p className="cx-billing-total">
               Rs. <span>{Number(order.total_price).toFixed(2)}</span>
             </p>
+            {Number(order.tax_total || 0) > 0 ? (
+              <p className="cx-billing-order-line">
+                VAT (13%) <strong>+ Rs. {Number(order.tax_total).toFixed(2)}</strong>
+              </p>
+            ) : null}
             {Number(order.discount_total || 0) > 0 ? (
               <p className="cx-billing-order-line">
                 Discounts <strong>- Rs. {Number(order.discount_total).toFixed(2)}</strong>

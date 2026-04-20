@@ -271,12 +271,17 @@ def quote_order_lines(*, restaurant_id: int, menu_items_by_id: dict[int, MenuIte
 
     subtotal = quantize_money(subtotal)
     discount_total = quantize_money(discount_total)
-    total_price = quantize_money(max(Decimal("0.00"), subtotal - discount_total))
+    
+    # 13% VAT calculation
+    taxable_amount = max(Decimal("0.00"), subtotal - discount_total)
+    tax_total = quantize_money(taxable_amount * Decimal("0.13"))
+    total_price = quantize_money(taxable_amount + tax_total)
 
     return {
         "lines": line_results,
         "subtotal_price": subtotal,
         "discount_total": discount_total,
+        "tax_total": tax_total,
         "total_price": total_price,
         "applied_offers": applied_offers,
         "offer_context": offer_context,

@@ -149,6 +149,13 @@ export default function Checkout() {
             </div>
           ) : null}
 
+          {(quote?.tax_total || 0) > 0 ? (
+            <div className="cx-checkout-discount">
+              <span>VAT (13%)</span>
+              <strong>+ Rs. {Number(quote.tax_total).toFixed(2)}</strong>
+            </div>
+          ) : null}
+
           <div className="cx-checkout-lines">
             {cart.map((line) => (
               <div key={line.lineKey} className="cx-checkout-line">

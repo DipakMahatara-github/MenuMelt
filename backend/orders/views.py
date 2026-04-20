@@ -129,6 +129,7 @@ def _serialize_quote(quote):
         "subtotal_price": str(quote["subtotal_price"]),
         "discount_total": str(quote["discount_total"]),
         "total_price": str(quote["total_price"]),
+        "tax_total": str(quote["tax_total"]),
         "items": [
             {
                 "menu_item": line["menu_item"].id,
@@ -322,6 +323,7 @@ def orders_collection(request):
                 customer_name=data["customer_name"],
                 subtotal_price=quote["subtotal_price"],
                 discount_total=quote["discount_total"],
+                tax_total=quote["tax_total"],
                 total_price=quote["total_price"],
                 billing_status=Order.BILLING_ST_UNBILLED,
                 payment_status=Order.PAYMENT_ST_PENDING,

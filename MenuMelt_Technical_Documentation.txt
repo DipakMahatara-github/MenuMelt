@@ -1,0 +1,186 @@
+========================================================================
+                      MENUMELT TECHNICAL DOCUMENTATION
+========================================================================
+
+1. PROJECT OVERVIEW
+------------------------------------------------------------------------
+MenuMelt is a full-stack QR-based restaurant ordering system built to 
+digitize and streamline the dining experience. The system enables 
+customers to access digital menus via table-specific QR codes, place 
+orders without staff interaction, and monitor order status in real-time. 
+It also provides a comprehensive suite of management tools for restaurant 
+operators and a platform-level oversight for system administrators.
+
+Core Features:
+- Digital Menu Browsing: Categorized items with customization options.
+- QR-Based Ordering: Table-specific ordering using session-based tracking.
+- Real-Time Updates: Live order flow for kitchen, waiters, and customers.
+- Management Dashboards: Analytics, team management, and menu editing.
+- Payment Integration: Integrated with Khalti and supports Cash payments.
+- Subscription System: SaaS-ready billing for participating restaurants.
+
+
+2. TECHNOLOGY STACK
+------------------------------------------------------------------------
+Frontend:
+- Framework: React.js (Vite)
+- Styling: Vanilla CSS (Sage Bistro custom components)
+- State Management: React Hooks & Context API
+- Icons: Lucide React
+- Networking: Axios (with custom auth interceptors)
+
+Backend:
+- Framework: Django with Django REST Framework (DRF)
+- Architecture: Decoupled RESTful API
+- Authentication: SimpleJWT (JSON Web Tokens)
+- Real-Time: Custom ASGI WebSocket application (not using Channels layers)
+- Task Handling: Sync-to-Async / Async-to-Sync helpers
+
+Database:
+- Engine: PostgreSQL (Relational)
+- Storage: Local storage for media (QR codes, menu images)
+
+Payment System:
+- Primary Provider: Khalti (Integrated via REST API initiation and pidx verification)
+- Fallback: Cash (Staff-verified)
+
+
+3. SYSTEM ARCHITECTURE (REAL)
+------------------------------------------------------------------------
+Components:
+- Frontend Client: React Single-Page Application (SPA) handling UI, 
+  client-side sessions, and WebSocket listeners.
+- API Layer: Django REST Framework handling request-response cycles.
+- WebSocket Layer: Custom ASGI application in 'orders/live.py' using 
+  asyncio.Queue for broadcasting events to staff and customers.
+- Database: PostgreSQL storing models for persistence.
+
+Interaction Flow:
+- Frontend authenticates with API via JWT (Staff) or Session (Customer).
+- Business logic is primarily located in 'views.py' functional helpers.
+- There is NO formal "Service Layer" class; logic is managed through 
+  atomic transactions within API views.
+
+4. USER ROLES & PERMISSIONS
+------------------------------------------------------------------------
+- Customer: Anonymous access via table tokens. Can browse menu, place 
+  orders, pay via Khalti/Cash, and review served orders.
+- Kitchen Staff: View orders released to the kitchen and mark them as 'Ready'.
+- Waiter: Create/modify orders, confirm orders for kitchen, and mark 
+  orders as 'Served'.
+- Cashier: Manage billing, verify Khalti payments, and mark orders as 'Paid'.
+- Restaurant Admin: Full control over restaurant menu, staff, tables, 
+  settings, and subscription.
+- Platform Admin: High-level control over all users, restaurants, 
+  subscription plans, and system-wide settings.
+
+
+5. AUTHENTICATION & AUTHORIZATION
+------------------------------------------------------------------------
+- Staff/Admins: Login via email/password. System returns JWT tokens. 
+  'rest_framework_simplejwt' handles token rotation and validation.
+- Customers: No traditional login required. Scan of a table QR code set 
+  a 'table_token' and 'session_id' in session storage.
+- Authorization: Done via 'ProtectedRoute.jsx' on the frontend and custom 
+  permission classes ('IsAuthenticated', role-based checks) on the backend.
+
+
+6. ORDER MANAGEMENT FLOW
+------------------------------------------------------------------------
+1. Initiation: Customer scans QR -> 'table_id' and 'session_id' resolved 
+   from URL/Session.
+2. Selection: Items added to 'customerCart.js'.
+3. Quoting: Frontend calls 'POST /api/orders/quote/' to get server-validated 
+   totals and discounts (using 'menu/pricing.py').
+4. Creation: 'POST /api/orders/' creates records for 'Order', 'OrderItem', 
+   'OrderItemCustomizationSelection', and 'OrderAppliedOffer' in a 
+   single 'transaction.atomic()' block.
+5. Confirmation: Waiter/Admin calls 'POST /confirm-kitchen/' to release 
+   order to kitchen (sets 'confirmed_for_kitchen_at').
+6. Kitchen: Kitchen Staff marks as 'Ready' (PATCH status).
+7. Service: Waiter marks as 'Served' (PATCH status).
+8. Data Storage: All data persists in 'Order' and 'OrderItem' models 
+   in PostgreSQL.
+
+
+7. PAYMENT INTEGRATION
+------------------------------------------------------------------------
+- Gateway: Khalti.
+- Initiation: Frontend calls 'POST /pay-khalti/'. Backend fetches key 
+  from 'PaymentConfig', calls Khalti API, saves 'khalti_pidx', and 
+  returns a 'payment_url'.
+- Status Storage: Backend stores 'khalti_pidx'. Payment status is 
+  mapped to 'billing_status' (e.g., 'paid', 'pending_payment').
+- Verification: Done via 'POST /verify-khalti/' (PIDX lookup).
+
+
+8. REAL-TIME SYSTEM
+------------------------------------------------------------------------
+- implementation: Custom ASGI app 'order_socket_app' in 'backend/orders/live.py'.
+- Mechanism: Uses 'asyncio.Queue' and a global '_connections' dictionary.
+- Groups: Connections pooled into 'restaurant:ID' (for staff) and 
+  'customer:table_id:session_id' groups.
+- Broadcast: API views call 'publish_order_event', which triggers 
+  'async_to_sync' broadcasting to all queues in relevant groups.
+
+
+9. DATABASE STRUCTURE (ACTUAL MODELS)
+------------------------------------------------------------------------
+Main Models:
+- accounts.User: email, full_name, role, restaurant_id.
+- restaurants.Restaurant: name, address, owner_id (ref: User), is_active.
+- restaurants.SubscriptionPlan: code, name, price, duration_days.
+- restaurants.RestaurantSubscription: restaurant_id, plan_id, status, ends_at.
+- menu.MenuCategory: restaurant_id, name, sort_order.
+- menu.MenuItem: category_id, name, variant_label, price, image, is_available.
+- menu.MenuItemCustomizationGroup: menu_item_id, selection_mode, is_required.
+- menu.MenuItemCustomizationOption: group_id, name, price_delta.
+- orders.Order: table_id, session_id, customer_name, status, total_price, 
+  billing_status, khalti_pidx.
+- orders.OrderItem: order_id, menu_item_id, quantity, unit_price.
+- tables.Table: restaurant_id, number, qr_code (UUID), qr_image.
+
+
+10. API ENDPOINTS (REAL)
+------------------------------------------------------------------------
+Auth API:
+- /api/auth/login/
+- /api/auth/register/
+- /api/auth/profile/
+
+Order API:
+- /api/orders/ (GET Collection / POST Create)
+- /api/orders/my/ (Customer's current orders)
+- /api/orders/quote/ (Price validation)
+- /api/orders/<id>/status/ (PATCH status)
+- /api/orders/<id>/billing/ (PATCH billing)
+- /api/orders/<id>/pay-khalti/
+- /api/orders/<id>/verify-khalti/
+
+Menu API:
+- /api/menu/ (ViewSet for menu items)
+- /api/categories/ (ViewSet for categories)
+- /api/menu/offers/
+
+
+11. INTERNAL LOGIC FLOW
+------------------------------------------------------------------------
+Customer Request → DRF View ('orders_collection') → 
+  Serializer ('CustomerOrderCreateSerializer') → 
+  Helper Func ('_quote_customer_order' in views.py) → 
+  Validation Layer ('menu/pricing.py') → 
+  DB Transaction ('transaction.atomic()') → 
+  Live Event Trigger ('publish_order_event') → 
+  Database Commit.
+
+
+12. LIMITATIONS / MISSING FEATURES
+------------------------------------------------------------------------
+- Notifications: Firebase Cloud Messaging (FCM) is mentioned in high-level 
+  planning but is NOT implemented in the current code (no notifications 
+  app or FCM logic found).
+- Payment Gateways: Only Khalti and Cash are integrated; no global 
+  providers like Stripe.
+- Offline Mode: System requires persistent internet for order flow and 
+  WebSocket updates.
+========================================================================

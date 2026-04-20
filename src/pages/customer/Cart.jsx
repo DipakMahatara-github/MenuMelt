@@ -160,6 +160,12 @@ export default function Cart() {
               <strong>- Rs. {Number(quote.discount_total).toFixed(2)}</strong>
             </div>
           ) : null}
+          {(quote?.tax_total || 0) > 0 ? (
+            <div className="cx-cart-total">
+              <span>VAT (13%)</span>
+              <strong>+ Rs. {Number(quote.tax_total).toFixed(2)}</strong>
+            </div>
+          ) : null}
           <div className="cx-cart-total">
             <span>Total</span>
             <strong>Rs. {Number(quote?.total_price || localTotal).toFixed(2)}</strong>
