@@ -6,8 +6,10 @@ import { SERVICE_STATUS_LABELS, subscribeToOrderStream, upsertOrder } from "../.
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState("");
+  const [billingFilter, setBillingFilter] = useState("");
   const [busyId, setBusyId] = useState(null);
   const [liveState, setLiveState] = useState("connecting");
+
 
   const fetchOrders = async () => {
     try {
@@ -70,13 +72,18 @@ export default function Orders() {
     const preparing = orders.filter((o) => o.status === "preparing").length;
     const ready = orders.filter((o) => o.status === "ready").length;
     const served = orders.filter((o) => o.status === "served").length;
-    return { total, awaitingRelease, pending, preparing, ready, served };
+    const unpaid = orders.filter((o) => !["paid", "refunded"].includes(o.billing_status)).length;
+    return { total, awaitingRelease, pending, preparing, ready, served, unpaid };
   }, [orders]);
 
   const filteredOrders = useMemo(() => {
-    if (!statusFilter) return orders;
-    return orders.filter((order) => order.status === statusFilter);
-  }, [orders, statusFilter]);
+    return orders.filter((order) => {
+      const matchStatus = statusFilter ? order.status === statusFilter : true;
+      const matchBilling = billingFilter ? order.billing_status === billingFilter : true;
+      return matchStatus && matchBilling;
+    });
+  }, [orders, statusFilter, billingFilter]);
+
 
   return (
     <div className="orders-page mm-orders-pro">
@@ -87,16 +94,29 @@ export default function Orders() {
           <p className="mm-orders-pro__sub">Release orders to the kitchen after you verify payment or service.</p>
           <p className={`mm-orders-pro__live mm-orders-pro__live--${liveState}`}>Live feed: {liveState}</p>
         </div>
-        <label className="mm-orders-pro__filter">
-          <span>Status</span>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="">All</option>
-            <option value="pending">Pending</option>
-            <option value="preparing">Preparing</option>
-            <option value="ready">Ready</option>
-            <option value="served">Served</option>
-          </select>
-        </label>
+        <div className="mm-orders-pro__filters">
+          <label className="mm-orders-pro__filter">
+            <span>Service</span>
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="">All</option>
+              <option value="pending">Pending</option>
+              <option value="preparing">Preparing</option>
+              <option value="ready">Ready</option>
+              <option value="served">Served</option>
+            </select>
+          </label>
+          <label className="mm-orders-pro__filter">
+            <span>Billing</span>
+            <select value={billingFilter} onChange={(e) => setBillingFilter(e.target.value)}>
+              <option value="">All</option>
+              <option value="paid">Paid</option>
+              <option value="unbilled">Unbilled</option>
+              <option value="pending_payment">Pending Payment</option>
+              <option value="refunded">Refunded</option>
+              <option value="failed">Failed</option>
+            </select>
+          </label>
+        </div>
       </header>
 
       <div className="stats mm-orders-stats">
@@ -124,6 +144,10 @@ export default function Orders() {
           <h2>{stats.served}</h2>
           <p>Served</p>
         </div>
+        <div className="stat-card stat-card--danger">
+          <h2>{stats.unpaid}</h2>
+          <p>Unpaid Bills</p>
+        </div>
       </div>
 
       <div className="orders-grid">
@@ -140,11 +164,13 @@ export default function Orders() {
             )}
 
             <div className="meta">
-              <p>Table {order.table_number}</p>
-              <p>{order.customer_name}</p>
-              <p>
-                Billing: {order.billing_status} {order.payment_method ? `· ${order.payment_method}` : ""}
-              </p>
+              <p>Table {order.table_number} · {order.customer_name}</p>
+              <div className="billing-meta">
+                <span className={`mm-orders-chip mm-orders-chip--${order.billing_status}`}>
+                  {order.billing_status.replaceAll("_", " ")}
+                </span>
+                {order.payment_method ? <span className="payment-method">via {order.payment_method}</span> : null}
+              </div>
               <p>Rs. {Number(order.total_price).toFixed(2)}</p>
               <p>{new Date(order.created_at).toLocaleTimeString()}</p>
             </div>

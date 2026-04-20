@@ -19,13 +19,25 @@ import { authFetch, API_BASE } from "../../../lib/api";
 const OCCUPANCY_COLORS = ["#A1BDAB", "#F0F4F1"];
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&h=100&fit=crop";
 
+const StatChange = ({ value }) => {
+  if (value === undefined || value === null) return null;
+  const isPositive = value >= 0;
+  return (
+    <span className={`stat-change ${isPositive ? "positive" : "negative"}`}>
+      {isPositive ? <ArrowUpRight size={14}/> : <ArrowDownRight size={14}/>} {Math.abs(value).toFixed(1)}%
+    </span>
+  );
+};
+
+
 export default function Dashboard() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [chartRange, setChartRange] = useState("month");
 
   const fetchDashboard = async () => {
     try {
-      const res = await authFetch(`${API_BASE}/api/dashboard/`);
+      const res = await authFetch(`${API_BASE}/api/dashboard/?range=${chartRange}`);
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(json?.error || json?.detail || "Could not load dashboard.");
@@ -45,7 +57,7 @@ export default function Dashboard() {
     fetchDashboard();
     const interval = setInterval(fetchDashboard, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [chartRange]);
 
   if (error) {
     return (
@@ -98,7 +110,7 @@ export default function Dashboard() {
             <Banknote className="stat-icon" size={32} />
           </div>
           <p className="value">Rs. {totalRevenue.toLocaleString()}</p>
-          <span className="stat-change positive"><ArrowUpRight size={14}/> 12.5%</span>
+          <StatChange value={data.revenue_change} />
         </div>
 
         <div className="stat-card">
@@ -107,7 +119,7 @@ export default function Dashboard() {
             <ShoppingCart className="stat-icon" size={32} />
           </div>
           <p className="value">{data.today_orders}</p>
-          <span className="stat-change negative"><ArrowDownRight size={14}/> 2.8%</span>
+          <StatChange value={data.orders_change} />
         </div>
 
         <div className="stat-card">
@@ -116,7 +128,7 @@ export default function Dashboard() {
             <Receipt className="stat-icon" size={32} />
           </div>
           <p className="value">Rs. {avgOrderValue.toFixed(2)}</p>
-          <span className="stat-change positive"><ArrowUpRight size={14}/> 8.1%</span>
+          <StatChange value={data.aov_change} />
         </div>
 
         <div className="stat-card">
@@ -125,7 +137,7 @@ export default function Dashboard() {
             <Users className="stat-icon" size={32} />
           </div>
           <p className="value">{data.new_customers || 0}</p>
-          <span className="stat-change positive"><ArrowUpRight size={14}/> 14.2%</span>
+          <StatChange value={data.customers_change} />
         </div>
       </div>
 
@@ -137,9 +149,9 @@ export default function Dashboard() {
               <h2 className="widget-title">Sales Overview</h2>
               <span className="subtitle">revenue vs days</span>
             </div>
-            <select className="select-dropdown">
-              <option>Last 30 Days</option>
-              <option>This Week</option>
+            <select className="select-dropdown" value={chartRange} onChange={e => setChartRange(e.target.value)}>
+              <option value="month">Last 30 Days</option>
+              <option value="week">This Week</option>
             </select>
           </div>
           

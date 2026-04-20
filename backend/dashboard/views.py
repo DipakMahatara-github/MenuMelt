@@ -23,6 +23,13 @@ def _resolve_user_restaurant(user):
         return None
 
 
+def calc_percent_change(current, previous):
+    if previous == 0:
+        return 100.0 if current > 0 else 0.0
+    return round(float(((current - previous) / previous) * 100), 1)
+
+
+
 class PaymentConfigSerializer(serializers.ModelSerializer):
     class Meta:
         model = PaymentConfig
@@ -41,10 +48,16 @@ def dashboard_stats(request):
             return Response({"error": "No restaurant assigned"}, status=400)
 
         today = timezone.now().date()
+        yesterday = today - timedelta(days=1)
+        thirty_days_ago = today - timedelta(days=30)
+        sixty_days_ago = today - timedelta(days=60)
 
         orders = Order.objects.filter(restaurant=restaurant)
 
         today_orders = orders.filter(created_at__date=today).count()
+        yesterday_orders = orders.filter(created_at__date=yesterday).count()
+        orders_change = calc_percent_change(today_orders, yesterday_orders)
+        
         pending_orders = orders.filter(status=Order.STATUS_PENDING).count()
         awaiting_kitchen = orders.filter(
             confirmed_for_kitchen_at__isnull=True,
@@ -55,8 +68,16 @@ def dashboard_stats(request):
         )
 
         revenue = Decimal("0")
+        rev_last_30 = Decimal("0")
+        rev_prev_30 = Decimal("0")
         for order in orders.filter(billing_status=Order.BILLING_ST_PAID):
             revenue += order.total_price
+            if order.created_at.date() >= thirty_days_ago:
+                rev_last_30 += order.total_price
+            elif sixty_days_ago <= order.created_at.date() < thirty_days_ago:
+                rev_prev_30 += order.total_price
+
+        revenue_change = calc_percent_change(float(rev_last_30), float(rev_prev_30))
 
         recent_orders = orders.order_by("-created_at")[:5]
 
@@ -73,11 +94,12 @@ def dashboard_stats(request):
                 }
             )
 
+        chart_range_param = request.GET.get("range", "month")
+        days_to_show = 30 if chart_range_param == "month" else 7
+
         daily_data = []
-
-        for i in range(6, -1, -1):
+        for i in range(days_to_show - 1, -1, -1):
             day = today - timedelta(days=i)
-
             day_total = Decimal("0")
             for o in orders.filter(created_at__date=day, billing_status=Order.BILLING_ST_PAID):
                 day_total += o.total_price
@@ -90,11 +112,17 @@ def dashboard_stats(request):
             )
 
         # New Customers (Distinct session_id in the last 30 days)
-        new_customers = orders.filter(created_at__gte=today - timedelta(days=30)).values("session_id").distinct().count()
+        new_customers = orders.filter(created_at__date__gte=thirty_days_ago).values("session_id").distinct().count()
+        prev_customers = orders.filter(created_at__date__gte=sixty_days_ago, created_at__date__lt=thirty_days_ago).values("session_id").distinct().count()
+        customers_change = calc_percent_change(new_customers, prev_customers)
 
         # Average Order Value (total)
         avg_order_value = orders.filter(billing_status=Order.BILLING_ST_PAID).aggregate(Avg("total_price"))["total_price__avg"] or str(Decimal("0.00"))
         
+        aov_last_30 = orders.filter(created_at__date__gte=thirty_days_ago, billing_status=Order.BILLING_ST_PAID).aggregate(Avg("total_price"))["total_price__avg"] or Decimal("0.00")
+        aov_prev_30 = orders.filter(created_at__date__gte=sixty_days_ago, created_at__date__lt=thirty_days_ago, billing_status=Order.BILLING_ST_PAID).aggregate(Avg("total_price"))["total_price__avg"] or Decimal("0.00")
+        aov_change = calc_percent_change(float(aov_last_30), float(aov_prev_30))
+
         # Table Occupancy
         total_tables = Table.objects.filter(restaurant=restaurant).count()
         empty_tables = max(0, total_tables - active_tables)
@@ -144,10 +172,14 @@ def dashboard_stats(request):
                 "awaiting_kitchen_release": awaiting_kitchen,
                 "active_tables": active_tables,
                 "revenue": float(revenue),
+                "revenue_change": revenue_change,
                 "recent_orders": recent_data,
                 "chart_data": daily_data,
                 "new_customers": new_customers,
+                "customers_change": customers_change,
                 "avg_order_value": float(avg_order_value),
+                "aov_change": aov_change,
+                "orders_change": orders_change,
                 "table_occupancy": table_occupancy,
                 "popular_items": popular_items,
                 "reviews": {

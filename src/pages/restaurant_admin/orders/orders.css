@@ -60,6 +60,12 @@
   color: #2563eb;
 }
 
+.mm-orders-pro__filters {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .mm-orders-pro__filter {
   display: flex;
   flex-direction: column;
@@ -84,6 +90,11 @@
 .stat-card--alert {
   border-left: 5px solid #f97316 !important;
   background: linear-gradient(135deg, #fff7ed, #ffffff);
+}
+
+.stat-card--danger {
+  border-left: 5px solid #ef4444 !important;
+  background: linear-gradient(135deg, #fef2f2, #ffffff);
 }
 
 /* STATS */
@@ -176,6 +187,21 @@
   margin-bottom: 10px;
 }
 
+.billing-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.payment-method {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
 /* ITEMS */
 .items {
   border-top: 1px solid #e2e8f0;
@@ -235,4 +261,30 @@
   background: #ecfdf5;
   color: #047857;
   border: 1px solid #a7f3d0;
+}
+
+/* BILLING CHIPS */
+.mm-orders-chip--paid {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.mm-orders-chip--unbilled {
+  background: #fef08a;
+  color: #854d0e;
+  border: 1px solid #fde047;
+}
+
+.mm-orders-chip--pending_payment {
+  background: #ffedd5;
+  color: #9a3412;
+  border: 1px solid #fdba74;
+}
+
+.mm-orders-chip--refunded,
+.mm-orders-chip--failed {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
 }
