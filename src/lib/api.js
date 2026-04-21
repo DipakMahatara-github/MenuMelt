@@ -43,12 +43,16 @@ export const authFetch = async (url, options = {}) => {
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
-  }
-  if (tableToken) {
-    headers["X-Table-Token"] = tableToken;
-  }
-  if (sessionId) {
-    headers["X-Session-Id"] = sessionId;
+  } else {
+    // Keep QR ordering headers scoped to the anonymous customer flow.
+    // Admin/staff requests must not include them, because some endpoints
+    // intentionally prioritize table context when a table token is present.
+    if (tableToken) {
+      headers["X-Table-Token"] = tableToken;
+    }
+    if (sessionId) {
+      headers["X-Session-Id"] = sessionId;
+    }
   }
 
   let response = await fetch(url, { ...options, headers });
@@ -74,12 +78,6 @@ export const authFetch = async (url, options = {}) => {
     ...(options.headers || {}),
     Authorization: `Bearer ${newAccess}`,
   };
-  if (tableToken) {
-    retryHeaders["X-Table-Token"] = tableToken;
-  }
-  if (sessionId) {
-    retryHeaders["X-Session-Id"] = sessionId;
-  }
 
   response = await fetch(url, { ...options, headers: retryHeaders });
   return response;

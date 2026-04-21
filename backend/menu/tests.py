@@ -67,6 +67,8 @@ class MenuOfferVisibilityTests(TestCase):
         self.assertEqual(len(payload), 1)
         self.assertEqual(payload[0]["customer_price"], "300.00")
         self.assertEqual(payload[0]["offer_badges"][0]["label"], "Lunch deal")
+        self.assertEqual(payload[0]["active_item_offer"]["name"], "Lunch Saver")
+        self.assertEqual(payload[0]["active_item_offer"]["discounted_price"], "300.00")
 
     def test_customer_menu_response_includes_special_offer_section(self):
         response = self.client.get(

@@ -1,9 +1,31 @@
 import requests
 import json
 import logging
+from urllib.parse import urlparse
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+
+def resolve_frontend_base(request=None):
+    candidates = []
+    if request is not None:
+        candidates.extend(
+            [
+                request.headers.get("Origin"),
+                request.headers.get("Referer"),
+            ]
+        )
+    candidates.append(getattr(settings, "FRONTEND_URL", None))
+
+    for raw in candidates:
+        if not raw:
+            continue
+        parsed = urlparse(raw)
+        if parsed.scheme and parsed.netloc:
+            return f"{parsed.scheme}://{parsed.netloc}".rstrip("/")
+
+    return ""
 
 def get_khalti_headers(secret_key=None):
     if secret_key is None:
@@ -13,7 +35,14 @@ def get_khalti_headers(secret_key=None):
         "Content-Type": "application/json",
     }
 
-def initiate_khalti_payment(order_id, amount_npr, purchase_order_name, return_url, secret_key=None):
+def initiate_khalti_payment(
+    order_id,
+    amount_npr,
+    purchase_order_name,
+    return_url,
+    secret_key=None,
+    website_url=None,
+):
     """
     Call Khalti /epayment/initiate/
     amount_npr: Decimal or float
@@ -25,7 +54,7 @@ def initiate_khalti_payment(order_id, amount_npr, purchase_order_name, return_ur
     
     payload = {
         "return_url": return_url,
-        "website_url": settings.FRONTEND_URL,
+        "website_url": website_url or settings.FRONTEND_URL,
         "amount": amount_paisa,
         "purchase_order_id": str(order_id),
         "purchase_order_name": purchase_order_name,

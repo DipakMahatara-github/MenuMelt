@@ -1,0 +1,29 @@
+name: MenuMelt Local
+values:
+  - key: access
+    value: ''
+    enabled: true
+  - key: refresh
+    value: ''
+    enabled: true
+  - key: base_url
+    value: ''
+    enabled: true
+  - key: table_token
+    value: ''
+    enabled: true
+  - key: session_id
+    value: ''
+    enabled: true
+  - key: ''
+    value: ''
+    enabled: true
+  - key: category_id
+    value: ''
+    enabled: true
+  - key: menu_item_id
+    value: ''
+    enabled: true
+  - key: order_id
+    value: ''
+    enabled: true

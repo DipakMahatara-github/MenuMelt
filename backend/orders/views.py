@@ -19,7 +19,7 @@ from menu.pricing import active_offer_queryset, quote_order_lines
 from restaurants.models import PaymentConfig
 
 from .customer_utils import assert_customer_can_access_order, resolve_customer_table_and_session
-from .khalti import initiate_khalti_payment, verify_khalti_payment
+from .khalti import initiate_khalti_payment, resolve_frontend_base, verify_khalti_payment
 from .live import publish_order_event
 from .models import (
     Order,
@@ -655,7 +655,7 @@ def pay_khalti(request, order_id):
     if order.billing_status == Order.BILLING_ST_PAID:
         return Response({"error": "Order is already paid"}, status=400)
 
-    base = (getattr(settings, "FRONTEND_URL", None) or "").rstrip("/")
+    base = resolve_frontend_base(request)
     if not base:
         return Response({"error": "FRONTEND_URL is not configured on the server"}, status=500)
 
@@ -671,7 +671,8 @@ def pay_khalti(request, order_id):
             amount_npr=order.total_price,
             purchase_order_name=f"Order #{order.pk}",
             return_url=return_url,
-            secret_key=secret_key
+            secret_key=secret_key,
+            website_url=base,
         )
         
         pidx = res_data.get("pidx")

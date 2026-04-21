@@ -1,6 +1,7 @@
 import time
 import uuid
 from datetime import timedelta
+from typing import Optional
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from django.conf import settings
@@ -12,7 +13,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from orders.khalti import initiate_khalti_payment, verify_khalti_payment
+from orders.khalti import initiate_khalti_payment, resolve_frontend_base, verify_khalti_payment
 
 from .models import RestaurantSubscription, SubscriptionPayment, SubscriptionPlan
 
@@ -129,8 +130,8 @@ def _merge_query_params(url: str, extra: dict) -> str:
     return urlunparse((parts.scheme, parts.netloc, parts.path, parts.params, urlencode(q), parts.fragment))
 
 
-def _build_subscription_return_urls(payment_id: int) -> str:
-    base = (getattr(settings, "FRONTEND_URL", None) or "").rstrip("/")
+def _build_subscription_return_urls(payment_id: int, *, frontend_base: Optional[str] = None) -> str:
+    base = (frontend_base or getattr(settings, "FRONTEND_URL", None) or "").rstrip("/")
     if not base:
         raise ValueError("FRONTEND_URL is not configured on the server.")
     return _merge_query_params(
@@ -244,13 +245,15 @@ def subscription_checkout(request):
         )
 
     try:
-        return_url = _build_subscription_return_urls(payment.id)
+        frontend_base = resolve_frontend_base(request)
+        return_url = _build_subscription_return_urls(payment.id, frontend_base=frontend_base)
         res_data = initiate_khalti_payment(
             order_id=subscription.id,
             amount_npr=plan.price,
             purchase_order_name=f"Subscription: {plan.name}",
             return_url=return_url,
-            secret_key=secret_key
+            secret_key=secret_key,
+            website_url=frontend_base or None,
         )
         pidx = res_data.get("pidx")
         payment_url = res_data.get("payment_url")

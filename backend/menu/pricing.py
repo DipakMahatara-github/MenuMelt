@@ -89,7 +89,7 @@ def build_offer_context(menu_items, offers):
                 current["effective_price"] = discounted
                 current["item_offer"] = {
                     **badge,
-                    "offer": offer,
+                    "offer_id": offer.id,
                     "discounted_price": discounted,
                     "base_price": base_price,
                 }

@@ -7,6 +7,9 @@ export const RESTAURANT_KEY = "restaurant";
 export const NAME_KEY = "name";
 export const RESTAURANT_ACTIVE_KEY = "restaurant_active";
 export const SUBSCRIPTION_STATUS_KEY = "subscription_status";
+export const CUSTOMER_TABLE_TOKEN_KEY = "table_token";
+export const CUSTOMER_SESSION_KEY = "session_id";
+export const CUSTOMER_RESTAURANT_NAME_KEY = "customer_restaurant_name";
 
 const sessionGet = (key) => sessionStorage.getItem(key);
 const localGet = (key) => localStorage.getItem(key);
@@ -82,5 +85,8 @@ export const clearAuth = () => {
     NAME_KEY,
     RESTAURANT_ACTIVE_KEY,
     SUBSCRIPTION_STATUS_KEY,
+    CUSTOMER_TABLE_TOKEN_KEY,
+    CUSTOMER_SESSION_KEY,
+    CUSTOMER_RESTAURANT_NAME_KEY,
   ].forEach(clearKey);
 };

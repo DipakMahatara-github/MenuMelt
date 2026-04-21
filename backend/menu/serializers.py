@@ -358,7 +358,17 @@ class MenuItemSerializer(serializers.ModelSerializer):
         return self._offer_context(obj).get("badges", [])
 
     def get_active_item_offer(self, obj):
-        return self._offer_context(obj).get("item_offer")
+        offer = self._offer_context(obj).get("item_offer")
+        if not offer:
+            return None
+        return {
+            "id": offer.get("id"),
+            "name": offer.get("name"),
+            "label": offer.get("label"),
+            "offer_type": offer.get("offer_type"),
+            "discounted_price": str(offer.get("discounted_price")),
+            "base_price": str(offer.get("base_price")),
+        }
 
     def get_is_new(self, obj):
         from django.utils import timezone
