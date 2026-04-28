@@ -97,7 +97,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "menumelt_db",
         "USER": "postgres",
-        "PASSWORD": "your_password",
+        "PASSWORD": "12345",
         "HOST": os.getenv("DB_HOST") or "localhost",
         "PORT": os.getenv("DB_PORT") or "5432",
     }
